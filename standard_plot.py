@@ -101,11 +101,14 @@ if __name__ == "__main__":
   parser.add_argument('--lumi',        dest='lumi',        default="2022 F&G",  action='store')
   parser.add_argument('--jet_mode',    dest='jet_mode',    default="Inclusive", action='store')
   parser.add_argument('--DeepTau',     dest='DeepTau_version', default="2p5",   action='store')
+  parser.add_argument('--use_DY_NLO',  dest='use_DY_NLO',  default=True,        action='store')
 
   args = parser.parse_args() 
   testing     = args.testing     # False by default, do full dataset unless otherwise specified
   hide_plots  = args.hide_plots  # False by default, show plots unless otherwise specified
   hide_yields = args.hide_yields # False by default, show yields unless otherwise specified
+  use_DY_NLO  = args.use_DY_NLO  # True  by default, use LO DY if False
+  print(f"use_DY_NLO : {use_DY_NLO}")
   lumi = luminosities["2022 G"] if testing else luminosities[args.lumi]
   DeepTau_version = args.DeepTau_version # default is 2p5 [possible values 2p1 and 2p5]
 
@@ -133,6 +136,8 @@ if __name__ == "__main__":
                    #"AR_region", branches, vars_to_plot)
 
   file_map = testing_file_map if testing else full_file_map
+  if (use_DY_NLO == True): file_map.pop("DYInc")
+  else: file_map.pop("DYIncNLO")
 
   # add FF weights :) # almost the same as SR, except SS and 1st tau fails iso (applied in AR_cuts)
   AR_region_ditau = "(HTT_pdgId > 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"

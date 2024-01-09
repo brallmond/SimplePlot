@@ -11,14 +11,66 @@ from cut_mutau_functions import make_mutau_cut, make_mutau_AR_cut
 from cut_etau_functions  import make_etau_cut,  make_etau_AR_cut
 from branch_functions    import add_trigger_branches, add_DeepTau_branches
 
+# TODO : consider putting this function in a different file and importing it here
 from MC_dictionary import MC_dictionary
+from XSec import XSecRun3 as XSec
 def load_and_store_NWEvents(process, event_dictionary):
   '''
   Read the NWEvents value for a sample and store it in the MC_dictionary,
   overriding the hardcoded values from V11 samples. Delete the NWEvents branch after.
   '''
   MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0]
+  '''
+  if (process == "DYInc"):
+    MC_dictionary["DYGen"]["NWEvents"] = event_dictionary["NWEvents"][0]
+    MC_dictionary["DYLep"]["NWEvents"] = event_dictionary["NWEvents"][0]
+    MC_dictionary["DYJet"]["NWEvents"] = event_dictionary["NWEvents"][0]
+  if (process == "DYIncNLO"):
+    # overwrite DYGen, DYLep, DYJet values with NLO values
+    MC_dictionary["DYGen"]["XSec"] = XSec["DYJetsToLL_M-50"]
+    MC_dictionary["DYLep"]["XSec"] = XSec["DYJetsToLL_M-50"]
+    MC_dictionary["DYJet"]["XSec"] = XSec["DYJetsToLL_M-50"]
+    MC_dictionary["DYGen"]["NWEvents"] = event_dictionary["NWEvents"][0]
+    MC_dictionary["DYLep"]["NWEvents"] = event_dictionary["NWEvents"][0]
+    MC_dictionary["DYJet"]["NWEvents"] = event_dictionary["NWEvents"][0]
+    MC_dictionary["DYGen"]["plot_scaling"] = 1  # override kfactor
+    MC_dictionary["DYLep"]["plot_scaling"] = 1  # override kfactor
+    MC_dictionary["DYJet"]["plot_scaling"] = 1  # override kfactor
+  if ("DY" in process):
+    print(process, MC_dictionary["DYGen"]["NWEvents"], 
+                   MC_dictionary["DYGen"]["XSec"], 
+                   MC_dictionary["DYGen"]["plot_scaling"])
+  '''
   event_dictionary.pop("NWEvents")
+
+def customize_DY(process, final_state_mode):
+  if (process == "DYInc"):
+    MC_dictionary["DYGen"]["NWEvents"] = MC_dictionary["DYInc"]["NWEvents"]
+    MC_dictionary["DYLep"]["NWEvents"] = MC_dictionary["DYInc"]["NWEvents"]
+    MC_dictionary["DYJet"]["NWEvents"] = MC_dictionary["DYInc"]["NWEvents"]
+  if (process == "DYIncNLO"): # double-check 
+    # overwrite DYGen, DYLep, DYJet values with NLO values
+    for subprocess in ["DYGen", "DYLep", "DYJet"]:
+      MC_dictionary[subprocess]["XSec"] = XSec["DYJetsToLL_M-50"]
+      MC_dictionary[subprocess]["NWEvents"] = MC_dictionary["DYIncNLO"]["NWEvents"]
+      MC_dictionary[subprocess]["plot_scaling"] = 1  # override kfactor
+  label_text = { "ditau" : r"$Z{\rightarrow}{\tau_h}{\tau_h}$",
+                 "mutau" : r"$Z{\rightarrow}{\mu}{\tau_h}$",
+                 "etau" : r"$Z{\rightarrow}{e}{\tau_h}$",
+                 "emu" : r"$Z{\rightarrow}{e}{\mu}$",}
+  MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]
+
+  '''
+    MC_dictionary["DYGen"]["XSec"] = XSec["DYJetsToLL_M-50"]
+    MC_dictionary["DYLep"]["XSec"] = XSec["DYJetsToLL_M-50"]
+    MC_dictionary["DYJet"]["XSec"] = XSec["DYJetsToLL_M-50"]
+    MC_dictionary["DYGen"]["NWEvents"] = MC_dictionary["DYIncNLO"]["NWEvents"]
+    MC_dictionary["DYLep"]["NWEvents"] = MC_dictionary["DYIncNLO"]["NWEvents"]
+    MC_dictionary["DYJet"]["NWEvents"] = MC_dictionary["DYIncNLO"]["NWEvents"]
+    MC_dictionary["DYGen"]["plot_scaling"] = 1  # override kfactor
+    MC_dictionary["DYLep"]["plot_scaling"] = 1  # override kfactor
+    MC_dictionary["DYJet"]["plot_scaling"] = 1  # override kfactor
+  '''
 
 
 def append_lepton_indices(event_dictionary):
@@ -124,13 +176,21 @@ def set_FF_values(final_state_mode, jet_mode_and_DeepTau_version):
   FF_values = {
     # FS : { "jet_mode" : [intercept, slope] }  
     "ditau" : { 
-      "custom_0j_2p5_FF" :    [0.273506,-0.000930995],
-      "custom_1j_2p5_FF" :    [0.243313,-0.000929758],
-      "custom_GTE2j_2p5_FF" : [0.222382,-0.000994264],
+      "custom_0j_2p5_FF" : [0.128784,4.29093e-05], # preEE 2022 only, combined fit, by hand
+      "custom_1j_2p5_FF" : [0.128784,4.29093e-05],
+      "custom_GTE2j_2p5_FF" : [0.128784,4.29093e-05],
 
-      "custom_0j_2p5_CH" :    [1.14356 ,-0.000254023],
-      "custom_1j_2p5_CH" :    [1.101 ,4.88618e-05],
-      "custom_GTE2j_2p5_CH" : [1.11098,7.22662e-05],
+      "custom_0j_2p5_CH"    : [1.1, 0], # ad-hoc scaling
+      "custom_1j_2p5_CH"    : [1.1, 0],
+      "custom_GTE2j_2p5_CH" : [1.1, 0],
+ 
+      #"custom_0j_2p5_FF" :    [0.273506,-0.000930995],
+      #"custom_1j_2p5_FF" :    [0.243313,-0.000929758],
+      #"custom_GTE2j_2p5_FF" : [0.222382,-0.000994264],
+
+      #"custom_0j_2p5_CH" :    [1.14356 ,-0.000254023],
+      #"custom_1j_2p5_CH" :    [1.101 ,4.88618e-05],
+      #"custom_GTE2j_2p5_CH" : [1.11098,7.22662e-05],
 
       "custom_0j_2p5_check_FF"   : [0.315051, -0.00227768, 1.12693e-05],
       "custom_0j_2p5_check_Clos" : [1.90974, -0.0257612, 0.000156502],
@@ -694,6 +754,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary,
 
   if ("Data" not in process):
     load_and_store_NWEvents(process, process_events)
+    if ("DY" in process): customize_DY(process, final_state_mode)
     keep_fakes = False
     if ("TT" in process) or ("WJ" in process) or ("DY" in process):
       keep_fakes = True

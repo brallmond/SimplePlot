@@ -449,11 +449,11 @@ def accumulate_MC_subprocesses(parent_process, process_dictionary):
   accumulated_values = 0
   for MC_process in process_dictionary:
     skip_process = False
-    if (MC_process == "DYGen"):
+    if (MC_process == "DYGen") or (MC_process == "DYGenNLO"):
       skip_process = True
-    if (MC_process == "DYLep"):
+    if (MC_process == "DYLep") or (MC_process == "DYLepNLO"):
       skip_process = True
-    if (MC_process == "DYJet"):
+    if (MC_process == "DYJet") or (MC_process == "DYJetNLO"):
       skip_process = True
     if get_parent_process(MC_process, skip_process=skip_process) == parent_process:
       accumulated_values += process_dictionary[MC_process]["BinnedEvents"]

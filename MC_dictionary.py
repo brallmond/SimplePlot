@@ -67,23 +67,41 @@ MC_dictionary = {
   #"DYInc" : {"XSec": XSec["DYJetsToLL_M-50"], "NWEvents": 1925298812420.0,
 
   #"DYInc" : {"XSec": XSec["DYJetsToLL_M-50"], "NWEvents": 6534910623420.0, # v12 DYInc MC from Dennis
-  "DYInc" : {"XSec": XSec["DYJetsToLL_M-50"], "NWEvents": 3222224508811.3296, # old August samples
+  "DYInc" : {"XSec": XSec["DYJetsToLL_M-50_LO"], "NWEvents": 3222224508811.3296, # old August samples
              "label": "DY", "color": color_dictionary["DY"],
              #"plot_scaling" : 1}, # no k-factor
              "plot_scaling" : 1.12}, # k-factor to NNLO
 
   # copy of DYInc
-  "DYGen" : {"XSec": XSec["DYJetsToLL_M-50"], "NWEvents": 3222224508811.3296,
+  "DYGen" : {"XSec": XSec["DYJetsToLL_M-50_LO"], "NWEvents": 3222224508811.3296,
              "label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"],
              "plot_scaling" : 1.12}, # k-factor to NNLO
   # copy of DYInc, different color and label
-  "DYLep" : {"XSec": XSec["DYJetsToLL_M-50"], "NWEvents": 3222224508811.3296,
+  "DYLep" : {"XSec": XSec["DYJetsToLL_M-50_LO"], "NWEvents": 3222224508811.3296,
              "label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"],
              "plot_scaling" : 1.12}, # k-factor to NNLO
   # copy of DYInc, different color and label
-  "DYJet" : {"XSec": XSec["DYJetsToLL_M-50"], "NWEvents": 3222224508811.3296,
+  "DYJet" : {"XSec": XSec["DYJetsToLL_M-50_LO"], "NWEvents": 3222224508811.3296,
              "label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"],
              "plot_scaling" : 1.12}, # k-factor to NNLO
+
+  "DYIncNLO" : {"XSec": XSec["DYJetsToLL_M-50"],
+                "label": "DY", "color": color_dictionary["DY"],
+                "plot_scaling" : 1},
+  # copy of DYIncNLO
+  "DYGenNLO" : {"XSec": XSec["DYJetsToLL_M-50"],
+             "label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"],
+             "plot_scaling" : 1},
+  # copy of DYIncNLO, different color and label
+  "DYLepNLO" : {"XSec": XSec["DYJetsToLL_M-50"],
+             "label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"],
+             "plot_scaling" : 1},
+  # copy of DYIncNLO, different color and label
+  "DYJetNLO" : {"XSec": XSec["DYJetsToLL_M-50"],
+             "label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"],
+             "plot_scaling" : 1},
+
+
 
   "TTTo2L2Nu"         : {"XSec": XSec["TTTo2L2Nu"], "NWEvents": 6750783685.336004,
                          "label": "TT", "color": color_dictionary["TT"],

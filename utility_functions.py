@@ -98,8 +98,8 @@ def print_setup_info(final_state_mode, lumi, jet_mode, testing, useDeepTauVersio
   print(vars_to_plot)
   print(spacer*screen_width)
 
-  print(f"CURRENT FILE DIRECTORY : {using_directory}")
-  print(f"OUTPUT  PLOT DIRECTORY : {plot_dir}")
+  print(f"INPUT  DATA DIRECTORY : {using_directory}")
+  print(f"OUTPUT PLOT DIRECTORY : {plot_dir}")
   print(spacer*screen_width)
  
 

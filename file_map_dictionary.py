@@ -79,11 +79,13 @@ full_file_map = {
   "DataMuon" : "Data/Muon*",
   "DataElectron" : "Data/EGamma*",
 
-  "DYInc" : "DY/DYJetsToLL_M-50_LO*",
+  "DYInc" : "DY/DYJetsToLL_M-50_LO_HTauTau*",
   #"DYJetsToLL_M-50_1J" : "DY/DYJetsToLL_M-50_1J*",
   #"DYJetsToLL_M-50_2J" : "DY/DYJetsToLL_M-50_2J*",
   #"DYJetsToLL_M-50_3J" : "DY/DYJetsToLL_M-50_3J*",
   #"DYJetsToLL_M-50_4J" : "DY/DYJetsToLL_M-50_4J*",
+
+  "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
 
   "TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
