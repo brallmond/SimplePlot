@@ -31,7 +31,9 @@ def load_process_from_file(process, file_directory, file_map, branches, good_eve
   time_print(f"Loading {file_map[process]}")
   file_string = file_directory + "/" + file_map[process] + ".root:Events"
   if data: 
+    # if a branch isn't available in Data, don't try to load it
     branches = [branch for branch in branches if branch != "Generator_weight"]
+    branches = [branch for branch in branches if branch != "NWEvents"]
     branches = [branch for branch in branches if branch != "Tau_genPartFlav"]
   try:
     processed_events = uproot.concatenate([file_string], branches, cut=good_events, library="np")

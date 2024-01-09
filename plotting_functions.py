@@ -136,9 +136,9 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
       MC_dictionary[process] = {}
       #plot_scaling = MC_dictionary[full_process]["plot_scaling"] # 1 for all non-signal processes by default
       MC_dictionary[process]["plot_scaling"] = 1
-      #scaling = 1000. * plot_scaling * luminosity * MC_dictionary[full_process]["XSec"] / MC_dictionary[full_process]["NWevents"]
-      #scaling = 1000. * luminosity * MC_dictionary[full_process]["XSec"] / MC_dictionary[full_process]["NWevents"]
-      scaling_val = 1000. * luminosity * MC_dictionary[full_process]["XSec"] / MC_dictionary[full_process]["NWevents"]
+      #scaling = 1000. * plot_scaling * luminosity * MC_dictionary[full_process]["XSec"] / MC_dictionary[full_process]["NWEvents"]
+      #scaling = 1000. * luminosity * MC_dictionary[full_process]["XSec"] / MC_dictionary[full_process]["NWEvents"]
+      scaling_val = 1000. * luminosity * MC_dictionary[full_process]["XSec"] / MC_dictionary[full_process]["NWEvents"]
      
       if "Genuine" in process:
         MC_dictionary[process]["color"] = MC_dictionary[full_process]["color"] # original color
@@ -162,12 +162,12 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   color = MC_dictionary[process]["color"]
   label = MC_dictionary[process]["label"]
   if scaling_val == 1 and scaling==True:
-    scaling = 1000. * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWevents"]
+    scaling = 1000. * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
  
   ##if (scaling) and (type(scaling) != int):
   # factor of 1000 comes from lumi and XSec units of fb^-1 = 10E15 b^-1 and pb = 10E-12 b respectively
   ##  plot_scaling = MC_dictionary[process]["plot_scaling"] # 1 for all non-signal processes by default
-  ##  scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWevents"]
+  ##  scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
   ##  if process=="QCD": scaling = 1
     #if process=="DYInc": scaling *=6.482345 # scale-up factor for v12 Dimuon DY in MiniIso
     #if process=="DYInc": scaling *= 3.3695 # scale-up factor for v11 Dimuon DY in PFRelIso
@@ -187,7 +187,7 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   if scaling:
   # factor of 1000 comes from lumi and XSec units of fb^-1 = 10E15 b^-1 and pb = 10E-12 b respectively
     plot_scaling = MC_dictionary[process]["plot_scaling"] # 1 for all non-signal processes by default
-    scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWevents"]
+    scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
     if process=="QCD": scaling = 1
     #if process=="DYInc": scaling *=6.482345 # scale up factor for New Dimuon DY
   if signal:

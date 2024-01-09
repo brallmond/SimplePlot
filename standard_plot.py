@@ -117,7 +117,7 @@ if __name__ == "__main__":
   eos_user_dir    = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/HTauTau_2022_fromstep1_skimmed/" + final_state_mode
   # there's no place like home :)
   home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/Run3PreEEFSSplitSamples/" + final_state_mode
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/Run3FSSplitSamples/" + final_state_mode
+  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_Run3FSSplitSamples/" + final_state_mode
   #home_dir        = "/Volumes/IDrive/HTauTau_Data/2022postEE/" # unskimmed data (i.e. final states combined)
   using_directory = home_dir
  

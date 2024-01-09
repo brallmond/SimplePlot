@@ -8,8 +8,17 @@ from utility_functions   import time_print
 
 from cut_ditau_functions import make_ditau_cut, make_ditau_AR_cut
 from cut_mutau_functions import make_mutau_cut, make_mutau_AR_cut
-from cut_etau_functions  import make_etau_cut, make_etau_AR_cut
+from cut_etau_functions  import make_etau_cut,  make_etau_AR_cut
 from branch_functions    import add_trigger_branches, add_DeepTau_branches
+
+from MC_dictionary import MC_dictionary
+def load_and_store_NWEvents(process, event_dictionary):
+  '''
+  Read the NWEvents value for a sample and store it in the MC_dictionary,
+  overriding the hardcoded values from V11 samples. Delete the NWEvents branch after.
+  '''
+  MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0]
+  event_dictionary.pop("NWEvents")
 
 
 def append_lepton_indices(event_dictionary):
@@ -482,6 +491,7 @@ def make_run_cut(event_dictionary, good_runs):
 
 
 def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
+  DEBUG = False # set this to true to show print output from this function
   '''
   Remove all entries in 'event_dictionary' not in 'cut_branch' using the numpy 'take' method.
   Branches that are added during previous cut steps are added here because their entries
@@ -496,9 +506,10 @@ def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
     print("All events removed, sample will be deleted")
     delete_sample = True
     return None
+
  
-  print(f"cut branch: {cut_branch}") # DEBUG
-  print(f"protected branches: {protected_branches}") # DEBUG
+  if DEBUG: print(f"cut branch: {cut_branch}")
+  if DEBUG: print(f"protected branches: {protected_branches}")
   for branch in event_dictionary:
     if delete_sample:
       pass
@@ -513,7 +524,7 @@ def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
       #  event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary["pass_3j_cuts"])
 
     elif ((branch != cut_branch) and (branch not in protected_branches)):
-      print(f"going to cut {branch}, {len(event_dictionary[branch])}") # DEBUG
+      if DEBUG: print(f"going to cut {branch}, {len(event_dictionary[branch])}")
       event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary[cut_branch])
 
   return event_dictionary
@@ -682,6 +693,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary,
   protected_branches = ["FS_t1_flav", "FS_t2_flav", "pass_gen_cuts", "event_flavor"]
 
   if ("Data" not in process):
+    load_and_store_NWEvents(process, process_events)
     keep_fakes = False
     if ("TT" in process) or ("WJ" in process) or ("DY" in process):
       keep_fakes = True
@@ -765,7 +777,7 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
 
 def set_branches(final_state_mode, DeepTau_version):
   common_branches = [
-    "run", "luminosityBlock", "event", "Generator_weight",
+    "run", "luminosityBlock", "event", "Generator_weight", "NWEvents",
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta",
