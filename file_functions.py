@@ -32,9 +32,10 @@ def load_process_from_file(process, file_directory, file_map, branches, good_eve
   file_string = file_directory + "/" + file_map[process] + ".root:Events"
   if data: 
     # if a branch isn't available in Data, don't try to load it
-    branches = [branch for branch in branches if branch != "Generator_weight"]
-    branches = [branch for branch in branches if branch != "NWEvents"]
-    branches = [branch for branch in branches if branch != "Tau_genPartFlav"]
+    branches_not_in_data = ["Generator_weight", "NWEvents", "Tau_genPartFlav", "Weight_DY_Zpt", "XSecMCweight",
+                            "TauSFweight", "MuSFweight", "ElSFweight", "PUweight"]
+    for missing_branch in branches_not_in_data:
+      branches = [branch for branch in branches if branch != missing_branch]
   try:
     processed_events = uproot.concatenate([file_string], branches, cut=good_events, library="np")
   except FileNotFoundError:
@@ -66,8 +67,14 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "PlotEvents": {}, 
       "Cuts": {},
       "Generator_weight": cut_events["Generator_weight"],
+      "Weight_DY_Zpt":    cut_events["Weight_DY_Zpt"],
+      "TauSFweight": cut_events["TauSFweight"],
+      "MuSFweight":  cut_events["MuSFweight"],
+      "ElSFweight":  cut_events["ElSFweight"],
+      "PUweight"  :  cut_events["PUweight"],
       "SF_weight": np.ones(cut_events["Generator_weight"].shape)
     }
+    if "DY" in process: combined_processes[process]["Weight_DY_Zpt_by_hand"] = cut_events["Weight_DY_Zpt_by_hand"]
   elif "Data" in process:
     combined_processes[process] = { 
       "PlotEvents": {},

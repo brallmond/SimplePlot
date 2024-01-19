@@ -3,13 +3,13 @@ import numpy as np
 ### README
 # this file contains functions to perform cuts and self-contained studies
 
-from calculate_functions import calculate_mt
-from utility_functions   import time_print
+from calculate_functions import calculate_mt, hasbit, getBin
+from utility_functions   import time_print, text_options
 
 from cut_ditau_functions import make_ditau_cut, make_ditau_AR_cut
-from cut_mutau_functions import make_mutau_cut, make_mutau_AR_cut
+from cut_mutau_functions import make_mutau_cut, make_mutau_AR_cut, make_mutau_TnP_cut
 from cut_etau_functions  import make_etau_cut,  make_etau_AR_cut
-from branch_functions    import add_trigger_branches, add_DeepTau_branches
+from branch_functions    import add_trigger_branches, add_DeepTau_branches, add_Zpt_branches
 
 # TODO : consider putting this function in a different file and importing it here
 from MC_dictionary import MC_dictionary
@@ -20,30 +20,13 @@ def load_and_store_NWEvents(process, event_dictionary):
   overriding the hardcoded values from V11 samples. Delete the NWEvents branch after.
   '''
   MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0]
-  '''
-  if (process == "DYInc"):
-    MC_dictionary["DYGen"]["NWEvents"] = event_dictionary["NWEvents"][0]
-    MC_dictionary["DYLep"]["NWEvents"] = event_dictionary["NWEvents"][0]
-    MC_dictionary["DYJet"]["NWEvents"] = event_dictionary["NWEvents"][0]
-  if (process == "DYIncNLO"):
-    # overwrite DYGen, DYLep, DYJet values with NLO values
-    MC_dictionary["DYGen"]["XSec"] = XSec["DYJetsToLL_M-50"]
-    MC_dictionary["DYLep"]["XSec"] = XSec["DYJetsToLL_M-50"]
-    MC_dictionary["DYJet"]["XSec"] = XSec["DYJetsToLL_M-50"]
-    MC_dictionary["DYGen"]["NWEvents"] = event_dictionary["NWEvents"][0]
-    MC_dictionary["DYLep"]["NWEvents"] = event_dictionary["NWEvents"][0]
-    MC_dictionary["DYJet"]["NWEvents"] = event_dictionary["NWEvents"][0]
-    MC_dictionary["DYGen"]["plot_scaling"] = 1  # override kfactor
-    MC_dictionary["DYLep"]["plot_scaling"] = 1  # override kfactor
-    MC_dictionary["DYJet"]["plot_scaling"] = 1  # override kfactor
-  if ("DY" in process):
-    print(process, MC_dictionary["DYGen"]["NWEvents"], 
-                   MC_dictionary["DYGen"]["XSec"], 
-                   MC_dictionary["DYGen"]["plot_scaling"])
-  '''
+  MC_dictionary[process]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
   event_dictionary.pop("NWEvents")
+  event_dictionary.pop("XSecMCweight")
 
 def customize_DY(process, final_state_mode):
+  for DYtype in ["DYGen", "DYLep", "DYJet"]:
+    MC_dictionary[DYtype]["XSecMCweight"] = MC_dictionary[process]["XSecMCweight"]
   if (process == "DYInc"):
     MC_dictionary["DYGen"]["NWEvents"] = MC_dictionary["DYInc"]["NWEvents"]
     MC_dictionary["DYLep"]["NWEvents"] = MC_dictionary["DYInc"]["NWEvents"]
@@ -60,17 +43,50 @@ def customize_DY(process, final_state_mode):
                  "emu" : r"$Z{\rightarrow}{e}{\mu}$",}
   MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]
 
-  '''
-    MC_dictionary["DYGen"]["XSec"] = XSec["DYJetsToLL_M-50"]
-    MC_dictionary["DYLep"]["XSec"] = XSec["DYJetsToLL_M-50"]
-    MC_dictionary["DYJet"]["XSec"] = XSec["DYJetsToLL_M-50"]
-    MC_dictionary["DYGen"]["NWEvents"] = MC_dictionary["DYIncNLO"]["NWEvents"]
-    MC_dictionary["DYLep"]["NWEvents"] = MC_dictionary["DYIncNLO"]["NWEvents"]
-    MC_dictionary["DYJet"]["NWEvents"] = MC_dictionary["DYIncNLO"]["NWEvents"]
-    MC_dictionary["DYGen"]["plot_scaling"] = 1  # override kfactor
-    MC_dictionary["DYLep"]["plot_scaling"] = 1  # override kfactor
-    MC_dictionary["DYJet"]["plot_scaling"] = 1  # override kfactor
-  '''
+
+def append_Zpt_weight(event_dictionary):
+  unpack_Zpt = [
+    "nGenPart", "GenPart_pdgId", "GenPart_status", "GenPart_statusFlags",
+    "GenPart_pt", "GenPart_eta", "GenPart_phi", "GenPart_mass",
+  ]
+  unpack_Zpt = (event_dictionary.get(key) for key in unpack_Zpt)
+  Gen_Zpt, Gen_Z_mass, Gen_Zpt_weight = [], [], []
+
+  # could make our own weights like this with a little effort
+  # load 2D ROOT hist from local file
+  #from ROOT import TLorentzVector, TFile # TODO: figure out what you need for hists (TH2D)? THist
+  import ROOT
+  zptroot = ROOT.TFile("SFs/zpt_reweighting_LO_2022.root", "open")
+  zpthist = zptroot.Get("zptmass_histo")
+  for nGen, pdgId, status, statusFlags, pt, eta, phi, mass in zip(*unpack_Zpt):
+    good_lep_vecs = []
+    for iparticle in range(nGen):
+      pdgId_part  = abs(pdgId[iparticle])
+      status_part = status[iparticle]
+      flags_part  = statusFlags[iparticle]
+      if ( ((pdgId_part==11 or pdgId_part==13) and status_part==1 and hasbit(flags_part, 8))
+        or (pdgId_part==15 and status_part==2 and hasbit(flags_part, 8)) ): # 8 : fromHardProcess
+        lep_vec = ROOT.TLorentzVector() # surprisingly, you can't combine this with the following line
+        lep_vec.SetPtEtaPhiM(pt[iparticle], eta[iparticle], phi[iparticle], mass[iparticle])
+        good_lep_vecs.append(lep_vec)
+    # end loop over particles in event
+    #print(f"Z boson lep cands in event: {len(good_lep_vecs)}") # always 2
+    zmass, zpt = 0.0, 0.0
+    if (len(good_lep_vecs) == 2):
+      zboson = good_lep_vecs[0] + good_lep_vecs[-1] # adding only cands in the list
+      zmass = zboson.M()
+      zpt   = zboson.Pt()
+
+    zptweight = 1.0
+    if not (zmass==0.0 and zpt==0.0):
+      xbin = getBin(zmass, zpthist.GetXaxis())
+      ybin = getBin(zpt, zpthist.GetYaxis())
+      zptweight = zpthist.GetBinContent(xbin, ybin)
+      if zptweight<=0.0: zptweight=1.0
+    Gen_Zpt_weight.append(zptweight)
+
+  event_dictionary["Weight_DY_Zpt_by_hand"] = np.array(Gen_Zpt_weight)
+  return event_dictionary
 
 
 def append_lepton_indices(event_dictionary):
@@ -176,33 +192,38 @@ def set_FF_values(final_state_mode, jet_mode_and_DeepTau_version):
   FF_values = {
     # FS : { "jet_mode" : [intercept, slope] }  
     "ditau" : { 
-      "custom_0j_2p5_FF" : [0.128784,4.29093e-05], # preEE 2022 only, combined fit, by hand
-      "custom_1j_2p5_FF" : [0.128784,4.29093e-05],
-      "custom_GTE2j_2p5_FF" : [0.128784,4.29093e-05],
+      #"custom_0j_2p5_FF" : [0.128784,4.29093e-05], # preEE 2022 only, combined fit, by hand
+      #"custom_1j_2p5_FF" : [0.128784,4.29093e-05],
+      #"custom_GTE2j_2p5_FF" : [0.128784,4.29093e-05],
+      
+      #"custom_0j_2p5_FF" : [0.201369, -0.000201878], # postEE 2022 era G only, combined fit, by hand
+      #"custom_1j_2p5_FF" : [0.201369, -0.000201878],
+      #"custom_GTE2j_2p5_FF" : [0.201369, -0.000201878],
 
-      "custom_0j_2p5_CH"    : [1.1, 0], # ad-hoc scaling
-      "custom_1j_2p5_CH"    : [1.1, 0],
-      "custom_GTE2j_2p5_CH" : [1.1, 0],
+      #"custom_0j_2p5_CH"    : [1.1, 0], # ad-hoc scaling
+      #"custom_1j_2p5_CH"    : [1.1, 0],
+      #"custom_GTE2j_2p5_CH" : [1.1, 0],
  
-      #"custom_0j_2p5_FF" :    [0.273506,-0.000930995],
-      #"custom_1j_2p5_FF" :    [0.243313,-0.000929758],
-      #"custom_GTE2j_2p5_FF" : [0.222382,-0.000994264],
+      "custom_0j_2p5_FF" :    [0.273506,-0.000930995],
+      "custom_1j_2p5_FF" :    [0.243313,-0.000929758],
+      "custom_GTE2j_2p5_FF" : [0.222382,-0.000994264],
 
-      #"custom_0j_2p5_CH" :    [1.14356 ,-0.000254023],
-      #"custom_1j_2p5_CH" :    [1.101 ,4.88618e-05],
-      #"custom_GTE2j_2p5_CH" : [1.11098,7.22662e-05],
+      "custom_0j_2p5_CH" :    [1.14356 ,-0.000254023],
+      "custom_1j_2p5_CH" :    [1.101 ,4.88618e-05],
+      "custom_GTE2j_2p5_CH" : [1.11098,7.22662e-05],
 
-      "custom_0j_2p5_check_FF"   : [0.315051, -0.00227768, 1.12693e-05],
-      "custom_0j_2p5_check_Clos" : [1.90974, -0.0257612, 0.000156502],
-      "custom_0j_2p5_check_CH"   : [1.15254, -0.00342661, 2.08671e-05],
+      # unsure when these were derived, they seem wrong
+      #"custom_0j_2p5_check_FF"   : [0.315051, -0.00227768, 1.12693e-05],
+      #"custom_0j_2p5_check_Clos" : [1.90974, -0.0257612, 0.000156502],
+      #"custom_0j_2p5_check_CH"   : [1.15254, -0.00342661, 2.08671e-05],
 
-      "custom_1j_2p5_check_FF"   : [0.330999, -0.00374668, 2.47092e-05],
-      "custom_1j_2p5_check_Clos" : [1.56709, -0.0145289, 3.08194e-05],
-      "custom_1j_2p5_check_CH"   : [1.29089, -0.00589395, 3.75957e-05],
+      #"custom_1j_2p5_check_FF"   : [0.330999, -0.00374668, 2.47092e-05],
+      #"custom_1j_2p5_check_Clos" : [1.56709, -0.0145289, 3.08194e-05],
+      #"custom_1j_2p5_check_CH"   : [1.29089, -0.00589395, 3.75957e-05],
 
-      "custom_GTE2j_2p5_check_FF"   : [0.304739, -0.00343086, 1.88761e-05],
-      "custom_GTE2j_2p5_check_Clos" : [1.99696, -0.0322061, 0.000239253],
-      "custom_GTE2j_2p5_check_CH"   : [1.15858, -0.00220756, 1.75213e-05],
+      #"custom_GTE2j_2p5_check_FF"   : [0.304739, -0.00343086, 1.88761e-05],
+      #"custom_GTE2j_2p5_check_Clos" : [1.99696, -0.0322061, 0.000239253],
+      #"custom_GTE2j_2p5_check_CH"   : [1.15858, -0.00220756, 1.75213e-05],
 
       "0j_2p1"      : [0.409537, -0.00166789],
       "1j_2p1"      : [0.338192, -0.00114901],
@@ -563,10 +584,9 @@ def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
   '''
   delete_sample = False
   if len(event_dictionary[cut_branch]) == 0:
-    print("All events removed, sample will be deleted")
+    print(text_options["red"] + "ALL EVENTS REMOVED! SAMPLE WILL BE DELETED! " + text_options["reset"])
     delete_sample = True
     return None
-
  
   if DEBUG: print(f"cut branch: {cut_branch}")
   if DEBUG: print(f"protected branches: {protected_branches}")
@@ -645,12 +665,18 @@ def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, u
   # setting inclusive in the jet_mode includes all jet branches in protected branches
   # this is okay because in the current ordering (FS cut then jet cut), no jet branches
   # are event created yet.
+  #if (final_state_mode == "mutau_TnP"):
+  #  protected_branches = set_protected_branches(final_state_mode="mutau_TnP", jet_mode="Inclusive")
+  #else:
   protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="Inclusive")
   if final_state_mode == "ditau":
     event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "mutau":
     event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version)
+    event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
+  elif final_state_mode == "mutau_TnP": # special mode for Tau TRG studies
+    event_dictionary = make_mutau_TnP_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "etau":
     event_dictionary = make_etau_cut(event_dictionary, DeepTau_version)
@@ -754,7 +780,9 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary,
 
   if ("Data" not in process):
     load_and_store_NWEvents(process, process_events)
-    if ("DY" in process): customize_DY(process, final_state_mode)
+    if ("DY" in process): 
+      customize_DY(process, final_state_mode)
+      append_Zpt_weight(process_events)
     keep_fakes = False
     if ("TT" in process) or ("WJ" in process) or ("DY" in process):
       keep_fakes = True
@@ -804,8 +832,8 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
   #     # All SR requirements besides opposite sign
   
   # apply FS cut separately so it can be used with reject_duplicate_events
+  good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
   if final_state_mode == "ditau":
-    #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
     #triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\
     #           | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60\
     #           | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet75\
@@ -813,17 +841,20 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
     #           | HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1)"
     triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1)"
 
-    good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==15*15) & " + triggers
+    good_events += " & (abs(HTT_pdgId)==15*15) & " + triggers
     if disable_triggers: good_events = good_events.replace(" & (Trigger_ditau)", "")
 
   elif final_state_mode == "mutau":
-    good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
-    #good_events = "(HTT_SRevent) & (METfilters) & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
+    good_events += " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
     if disable_triggers: good_events = good_events.replace(" & (Trigger_mutau)", "")
 
   elif final_state_mode == "etau":
-    good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
+    good_events += " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
     if disable_triggers: good_events = good_events.replace(" & (Trigger_etau)", "")
+
+  # non-HTT FS modes
+  elif final_state_mode == "mutau_TnP":
+    good_events = "(METfilters) & (abs(HTT_pdgId)==13*15)"
 
   elif final_state_mode == "dimuon":
     # lepton veto must be applied manually for this final state
@@ -836,19 +867,23 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
   return good_events
 
 
-def set_branches(final_state_mode, DeepTau_version):
+def set_branches(final_state_mode, DeepTau_version, process="None"):
   common_branches = [
-    "run", "luminosityBlock", "event", "Generator_weight", "NWEvents",
+    "run", "luminosityBlock", "event", "Generator_weight", "NWEvents", "XSecMCweight",
+    "TauSFweight", "MuSFweight", "ElSFweight", "Weight_DY_Zpt", "PUweight",
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta",
-    "HTT_m_vis", "HTT_dR",
+    "HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+    "Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
   ]
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
   if final_state_mode != "dimuon": branches = add_DeepTau_branches(branches, DeepTau_version)
   branches = add_trigger_branches(branches, final_state_mode)
+
+  if (process == "DY"): branches = add_Zpt_branches(branches)
   return branches
 
 
@@ -860,6 +895,11 @@ def add_final_state_branches(branches_, final_state_mode):
     "ditau"  : ["Lepton_tauIdx", "Tau_dxy", "Tau_dz", "Tau_charge", "PuppiMET_pt"],
 
     "mutau"  : ["Muon_dxy", "Muon_dz", "Muon_charge",
+                "Tau_dxy", "Tau_dz", "Tau_charge",
+                "Lepton_tauIdx", "Lepton_muIdx",
+                "PuppiMET_pt", "PuppiMET_phi"],
+
+    "mutau_TnP"  : ["Muon_dxy", "Muon_dz", "Muon_charge",
                 "Tau_dxy", "Tau_dz", "Tau_charge",
                 "Lepton_tauIdx", "Lepton_muIdx",
                 "PuppiMET_pt", "PuppiMET_phi"],
@@ -904,7 +944,11 @@ final_state_vars = {
 
     "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg",
-                "FS_mt", "FS_t1_flav", "FS_t2_flav"],
+                "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"],
+
+    "mutau_TnP"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
+                "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg",
+                "FS_mt", "FS_t1_flav", "FS_t2_flav", "pass_tag", "pass_probe"],
 
     "etau"   : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg",
@@ -919,7 +963,8 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   Helper function to keep plotting variables organized
   Shouldn't this be in  plotting functions?
   '''
-  vars_to_plot = ["HTT_m_vis", "HTT_dR", "PuppiMET_pt"] # common to all final states # TODO add MET here, add Tau_decayMode
+  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+                  "PuppiMET_pt"] # common to all final states # TODO add MET here, add Tau_decayMode
   FS_vars_to_add = final_state_vars[final_state_mode]
   for var in FS_vars_to_add:
     vars_to_plot.append(var)

@@ -98,7 +98,7 @@ if __name__ == "__main__":
   parser.add_argument('--hide_yields', dest='hide_yields', default=False,       action='store_true')
   parser.add_argument('--final_state', dest='final_state', default="mutau",     action='store')
   parser.add_argument('--plot_dir',    dest='plot_dir',    default="plots",     action='store')
-  parser.add_argument('--lumi',        dest='lumi',        default="2022 F&G",  action='store')
+  parser.add_argument('--lumi',        dest='lumi',        default="2022 EFG",  action='store')
   parser.add_argument('--jet_mode',    dest='jet_mode',    default="Inclusive", action='store')
   parser.add_argument('--DeepTau',     dest='DeepTau_version', default="2p5",   action='store')
   parser.add_argument('--use_DY_NLO',  dest='use_DY_NLO',  default=True,        action='store')
@@ -108,7 +108,6 @@ if __name__ == "__main__":
   hide_plots  = args.hide_plots  # False by default, show plots unless otherwise specified
   hide_yields = args.hide_yields # False by default, show yields unless otherwise specified
   use_DY_NLO  = args.use_DY_NLO  # True  by default, use LO DY if False
-  print(f"use_DY_NLO : {use_DY_NLO}")
   lumi = luminosities["2022 G"] if testing else luminosities[args.lumi]
   DeepTau_version = args.DeepTau_version # default is 2p5 [possible values 2p1 and 2p5]
 
@@ -120,20 +119,20 @@ if __name__ == "__main__":
   eos_user_dir    = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/HTauTau_2022_fromstep1_skimmed/" + final_state_mode
   # there's no place like home :)
   home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/Run3PreEEFSSplitSamples/" + final_state_mode
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_Run3FSSplitSamples/" + final_state_mode
-  #home_dir        = "/Volumes/IDrive/HTauTau_Data/2022postEE/" # unskimmed data (i.e. final states combined)
+  era_modifier_2022 = "preEE" if (("C" in args.lumi) or ("D" in args.lumi)) else "postEE"
+  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
   using_directory = home_dir
  
   good_events  = set_good_events(final_state_mode)
   branches     = set_branches(final_state_mode, DeepTau_version)
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
-  plot_dir = make_directory("FS_plots/"+args.plot_dir, final_state_mode+"_"+jet_mode, testing=testing)
+  plot_dir_name = "FS_plots_testing/" if testing==True else "FS_plots/"
+  plot_dir = make_directory(plot_dir_name+args.plot_dir, final_state_mode+"_"+jet_mode, testing=testing)
 
   # show info to user
   print_setup_info(final_state_mode, lumi, jet_mode, testing, DeepTau_version,
                    using_directory, plot_dir,
                    good_events, branches, vars_to_plot)
-                   #"AR_region", branches, vars_to_plot)
 
   file_map = testing_file_map if testing else full_file_map
   if (use_DY_NLO == True): file_map.pop("DYInc")
@@ -143,13 +142,21 @@ if __name__ == "__main__":
   AR_region_ditau = "(HTT_pdgId > 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
   AR_region_mutau = "(HTT_pdgId > 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
   AR_region_etau  = "(HTT_pdgId > 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
+  AR_region_emu   = "(HTT_pdgId > 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==11*13) & (Trigger_emu)"
 
-  dataset_dictionary = {"ditau" : "DataTau", "mutau" : "DataMuon", "etau" : "DataElectron"}
-  AR_region_dictionary = {"ditau" : AR_region_ditau, "mutau" : AR_region_mutau, "etau" : AR_region_etau}
+  dataset_dictionary = {"ditau" : "DataTau", "mutau" : "DataMuon", "etau" : "DataElectron", "emu" : "DataEMu"}
+  reject_dataset_dictionary = {"ditau" : ["DataMuon", "DataElectron", "DataEMu"],
+                               "mutau" : ["DataTau",  "DataElectron", "DataEMu"],
+                               "etau"  : ["DataMuon", "DataTau",      "DataEMu"],
+                               "emu"   : ["DataMuon", "DataElectron", "DataTau"]}
+  AR_region_dictionary = {"ditau" : AR_region_ditau, "mutau" : AR_region_mutau, 
+                          "etau" : AR_region_etau, "emu" : AR_region_emu}
   dataset = dataset_dictionary[final_state_mode]
+  reject_datasets = reject_dataset_dictionary[final_state_mode]
   AR_region = AR_region_dictionary[final_state_mode]
 
-  if (jet_mode != "Inclusive"):
+  do_QCD = True
+  if (jet_mode != "Inclusive") and (do_QCD==True):
     time_print(f"Processing ditau AR region!")
     AR_process_dictionary = load_process_from_file(dataset, using_directory, file_map,
                                             branches, AR_region, final_state_mode,
@@ -164,7 +171,7 @@ if __name__ == "__main__":
       if ("flav" in var): continue
       FF_dictionary["QCD"]["PlotEvents"][var] = cut_events_AR[var]
 
-  if (jet_mode == "Inclusive"):
+  if (jet_mode == "Inclusive") and (do_QCD == True):
     temp_FF_dictionary = {}
     for internal_jet_mode in ["0j", "1j", "GTE2j"]:
       time_print(f"Processing {final_state_mode} AR region! {internal_jet_mode}")
@@ -173,7 +180,6 @@ if __name__ == "__main__":
       AR_process_dictionary = load_process_from_file(dataset, using_directory, file_map,
                                             branches, AR_region, final_state_mode,
                                             data=True, testing=testing)
-
       AR_events = AR_process_dictionary[dataset]["info"]
       cut_events_AR = apply_AR_cut(AR_events, final_state_mode, internal_jet_mode, DeepTau_version)
       temp_FF_dictionary[internal_jet_mode] = {}
@@ -185,16 +191,17 @@ if __name__ == "__main__":
         temp_FF_dictionary[internal_jet_mode]["QCD"]["PlotEvents"][var] = cut_events_AR[var]
 
     temp_dict = {}
-    temp_dict["QCD"] = {}
-    temp_dict["QCD"]["PlotEvents"] = {}
-    temp_dict["QCD"]["FF_weight"]  = np.concatenate((temp_FF_dictionary["0j"]["QCD"]["FF_weight"], 
-                                                   temp_FF_dictionary["1j"]["QCD"]["FF_weight"],
-                                                   temp_FF_dictionary["GTE2j"]["QCD"]["FF_weight"]))
-    for var in vars_to_plot:
-      if ("flav" in var): continue
-      temp_dict["QCD"]["PlotEvents"][var] = np.concatenate((temp_FF_dictionary["0j"]["QCD"]["PlotEvents"][var],
-                                                            temp_FF_dictionary["1j"]["QCD"]["PlotEvents"][var],
-                                                            temp_FF_dictionary["GTE2j"]["QCD"]["PlotEvents"][var]))
+    if (do_QCD==True):
+      temp_dict["QCD"] = {}
+      temp_dict["QCD"]["PlotEvents"] = {}
+      temp_dict["QCD"]["FF_weight"]  = np.concatenate((temp_FF_dictionary["0j"]["QCD"]["FF_weight"], 
+                                                       temp_FF_dictionary["1j"]["QCD"]["FF_weight"],
+                                                       temp_FF_dictionary["GTE2j"]["QCD"]["FF_weight"]))
+      for var in vars_to_plot:
+        if ("flav" in var): continue
+        temp_dict["QCD"]["PlotEvents"][var] = np.concatenate((temp_FF_dictionary["0j"]["QCD"]["PlotEvents"][var],
+                                                              temp_FF_dictionary["1j"]["QCD"]["PlotEvents"][var],
+                                                              temp_FF_dictionary["GTE2j"]["QCD"]["PlotEvents"][var]))
 
     FF_dictionary = temp_dict
 
@@ -203,11 +210,9 @@ if __name__ == "__main__":
   for process in file_map: 
 
     gc.collect()
-    if   final_state_mode == "ditau"  and (process=="DataMuon" or process=="DataElectron"): continue
-    elif final_state_mode == "mutau"  and (process=="DataTau"  or process=="DataElectron"): continue
-    elif final_state_mode == "etau"   and (process=="DataTau"  or process=="DataMuon"):     continue
-    elif final_state_mode == "dimuon" and not (process=="DataMuon" or "DY" in process): continue
+    if (process in reject_datasets): continue
 
+    if "DY" in process: branches = set_branches(final_state_mode, DeepTau_version, process="DY") # Zpt handling
     new_process_dictionary = load_process_from_file(process, using_directory, file_map,
                                               branches, good_events, final_state_mode,
                                               data=("Data" in process), testing=testing)
@@ -261,85 +266,6 @@ if __name__ == "__main__":
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
-  #### JETVETOMAPS TEMP IMPLEMENTATION for ditau only
-  from correctionlib import _core
-  fname = "../jetvetomaps.json.gz"
-  print(f"fname is : {fname}")
-  if fname.endswith(".json.gz"):
-    import gzip
-    with gzip.open(fname,'rt') as file:
-      data = file.read().strip()
-      evaluator = _core.CorrectionSet.from_string(data)
-  else:
-    evaluator = _core.CorrectionSet.from_file(fname)
-    
-  # 2022 Jet Veto Maps
-  if final_state_mode == "ditau":
-    for process in combined_process_dictionary:
-      bad_events = []
-      eta1_arr = combined_process_dictionary[process]["PlotEvents"]["FS_t1_eta"]
-      phi1_arr = combined_process_dictionary[process]["PlotEvents"]["FS_t1_phi"]
-      eta2_arr = combined_process_dictionary[process]["PlotEvents"]["FS_t2_eta"]
-      phi2_arr = combined_process_dictionary[process]["PlotEvents"]["FS_t2_phi"]
-  
-      to_check = (range(len(eta1_arr)), eta1_arr, phi1_arr, eta2_arr, phi2_arr)
-      for i, eta1, phi1, eta2, phi2 in zip(*to_check):
-        weight = 1
-        if abs(phi1) > 3.141592653589793: phi1 = np.sign(phi1)*3.141592653589792 # put values out of bounds at bounds...
-        if abs(phi2) > 3.141592653589793: phi2 = np.sign(phi2)*3.141592653589792
-  
-        eta1, phi1 = np.float64(eta1), np.float64(phi1) # wild hack, float32s just don't cut it
-        eta2, phi2 = np.float64(eta2), np.float64(phi2)
-  
-        # TODO fix weight check method, also add njets
-        # 15 GeV -- default jet cut
-        # 25 GeV --
-        # 30 GeV -- only veto event if jet in that region 
-        # all jets, veto if in the region at all
-        weight *= evaluator["Winter22Run3_RunE_V1"].evaluate("jetvetomap", eta1, phi1)
-        weight *= evaluator["Winter22Run3_RunE_V1"].evaluate("jetvetomap", eta2, phi2)
-        if weight != 0:
-          bad_events.append(i)
-      print(f"{len(bad_events)} in {process}")
-
-  #### Muon ID/Iso/Trig SFs temp implementation
-  time_print("Adding SFs!")
-
-  from correctionlib import _core
-  fname = "SFs/2022EE_schemaV2.json"
-  fnamehlt = "SFs/ScaleFactors_Muon_Z_Run2022EE_Prompt_abseta_pT_schemaV2.json"
-  evaluator = _core.CorrectionSet.from_file(fname)
-  evaluatorhlt = _core.CorrectionSet.from_file(fnamehlt)
-
-  if ((final_state_mode == "dimuon") or (final_state_mode == "mutau")):
-    for process in background_dictionary:
-      mu_pt_arr  = background_dictionary[process]["PlotEvents"]["FS_mu_pt"] 
-      mu_eta_arr = background_dictionary[process]["PlotEvents"]["FS_mu_eta"] 
-      mu_chg_arr = background_dictionary[process]["PlotEvents"]["FS_mu_chg"] 
-  
-      sf_type = "nominal"
-      to_use = (range(len(mu_pt_arr)), mu_pt_arr, mu_eta_arr, mu_chg_arr)
-      SF_weights = []
-      for i, mu_pt, mu_eta, mu_chg in zip(*to_use): 
-        weight = 1
-        if (mu_pt < 15.0): continue
-        if (abs(mu_eta) > 2.4): continue
-        mu_pt = 199.9 if mu_pt >= 200 else mu_pt
-        mu_pt, mu_eta = np.float64(mu_pt), np.float64(mu_eta) # wild hack, float32s just don't cut it
-  
-        weight *= evaluator["NUM_MediumID_DEN_TrackerMuons"].evaluate(abs(mu_eta), mu_pt, sf_type)
-        weight *= evaluator["NUM_TightPFIso_DEN_MediumID"].evaluate(abs(mu_eta), mu_pt, sf_type)
-      
-        # min trig pt is 26 in the SFs, this should apply trig SFs to muons with pt between 25 and 26 only
-        mu_pt = 26.0 if mu_pt < 26.0 else mu_pt
-        weight *= evaluatorhlt["NUM_IsoMu24_DEN_CutBasedIdTight_and_PFIsoTight_and_Run2022EE"].evaluate(
-                               np.float64(mu_chg), abs(mu_eta), mu_pt, sf_type)
-  
-        SF_weights.append(weight)
-  
-  
-      background_dictionary[process]["SF_weight"] = np.array(SF_weights)
-
   time_print("Processing finished!")
   ## end processing loop, begin plotting
 
@@ -347,11 +273,11 @@ if __name__ == "__main__":
   for var in vars_to_plot:
     time_print(f"Plotting {var}")
 
-    xbins = make_bins(var)
+    xbins = make_bins(var, final_state_mode)
     hist_ax, hist_ratio = setup_ratio_plot()
 
     h_data = get_binned_data(data_dictionary, var, xbins, lumi)
-    if (final_state_mode != "dimuon"):
+    if (final_state_mode != "dimuon") and (do_QCD == True):
       background_dictionary["QCD"] = FF_dictionary["QCD"] # manually include QCD as background
     h_backgrounds, h_summed_backgrounds = get_binned_backgrounds(background_dictionary, var, xbins, lumi, jet_mode)
     h_signals = get_binned_signals(signal_dictionary, var, xbins, lumi, jet_mode) 

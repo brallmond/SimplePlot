@@ -143,3 +143,16 @@ def yields_for_CSV(histogram_axis, desired_order=[]):
           corresponding_yields.append(int(label_yield))
     return reordered_labels, corresponding_yields
 
+
+def hasbit(value, bit):
+  # copied from Dennis' ProcessWeights.py
+  return (value & (1 << bit))>0
+
+def getBin(var, axis):
+  # copied from Dennis' ProcessWeights.py
+  mybin = axis.FindBin(var)
+  nbins = axis.GetNbins()
+  if mybin<1: mybin=1
+  elif mybin>nbins: mybin=nbins
+  return mybin
+

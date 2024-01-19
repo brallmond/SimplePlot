@@ -113,6 +113,14 @@ MC_dictionary = {
                          "label": "TT", "color": color_dictionary["TT"],
                          "plot_scaling" : 1},
 
+  "ST_s-channel_Tbar"  : {"XSec": XSec["ST_s-channel_antitop"],
+                          "label": "ST", "color": color_dictionary["ST"], "plot_scaling": 1},
+  "ST_s-channel_T"     : {"XSec": XSec["ST_s-channel_top"],
+                          "label": "ST", "color": color_dictionary["ST"], "plot_scaling": 1},
+  "ST_t-channel_Tbar"  : {"XSec": XSec["ST_t-channel_antitop"],
+                          "label": "ST", "color": color_dictionary["ST"], "plot_scaling": 1},
+  "ST_t-channel_T"     : {"XSec": XSec["ST_t-channel_top"],
+                          "label": "ST", "color": color_dictionary["ST"], "plot_scaling": 1},
   "ST_TWminus_2L2Nu"   : {"XSec": XSec["ST_TWminus_2L2Nu"], "NWEvents": 31630228.619640004,
                           "label": "ST", "color": color_dictionary["ST"],
                           "plot_scaling" : 1},
@@ -185,6 +193,6 @@ MC_dictionary = {
 
   "QCD"   : {"XSec": 1, "NWEvents": 1,
              "label": "Jet Fakes", "color": color_dictionary["QCD"],
-             "plot_scaling" : 1}, 
+             "plot_scaling" : 1, "XSecMCweight" : 1},  # dummy value for MCweight
 
 }

@@ -26,4 +26,12 @@ def add_DeepTau_branches(branches_, DeepTauVersion):
 
   return branches_
 
+def add_Zpt_branches(branches_,):
+  Zpt_weight_branches = [
+    "nGenPart", "GenPart_pdgId", "GenPart_status", "GenPart_statusFlags",
+    "GenPart_pt", "GenPart_eta", "GenPart_phi", "GenPart_mass",
+  ]
+  for branch in Zpt_weight_branches:
+    branches_.append(branch)
 
+  return branches_

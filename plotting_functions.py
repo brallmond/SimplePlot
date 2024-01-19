@@ -26,8 +26,9 @@ def plot_data(histogram_axis, xbins, data_info, luminosity,
   sum_of_data = np.sum(data_info)
   stat_error = np.array([np.sqrt(entry) if entry > 0 else 0 for entry in data_info]) #error = √N
   midpoints   = get_midpoints(xbins)
+  bin_width  = abs(xbins[0:-1]-xbins[1:])/2
   label = f"Data [{sum_of_data:>.0f}]" if label == "Data" else label
-  histogram_axis.errorbar(midpoints, data_info, yerr=stat_error, 
+  histogram_axis.errorbar(midpoints, data_info, xerr=bin_width, yerr=stat_error, 
                           color=color, marker=marker, fillstyle=fillstyle, label=label,
                           linestyle='none', markersize=3)
   #below plots without error bars
@@ -188,6 +189,8 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   # factor of 1000 comes from lumi and XSec units of fb^-1 = 10E15 b^-1 and pb = 10E-12 b respectively
     plot_scaling = MC_dictionary[process]["plot_scaling"] # 1 for all non-signal processes by default
     scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
+    #scaling = plot_scaling * MC_dictionary[process]["XSecMCweight"] * 1.025 # somehow wrong
+    # difference between normtag and non-normtag lumi, V12 made without normtag
     if process=="QCD": scaling = 1
     #if process=="DYInc": scaling *=6.482345 # scale up factor for New Dimuon DY
   if signal:
@@ -205,6 +208,11 @@ def setup_ratio_plot():
   return (upper_ax, lower_ax)
 
 
+def setup_TnP_plot():
+  fig, ax = plt.subplots() #subplot?
+  return ax
+
+
 def add_CMS_preliminary(axis):
   '''
   Add text to plot following CMS plotting guidelines
@@ -220,6 +228,7 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
   final_state_str = {
     "ditau"  : r"${\tau_h}{\tau_h}$",
     "mutau"  : r"${\mu}{\tau_h}$",
+    "mutau_TnP"  : r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$",
     "etau"   : r"$e{\tau_h}$",
     "dimuon" : r"${\mu}{\mu}$",
   }
@@ -262,6 +271,17 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
   ratio_plot_axis.yaxis.set_minor_locator(plt.MultipleLocator(0.05))
 
 
+def spruce_up_TnP_plot(axis, variable_name, title):
+  add_CMS_preliminary(axis)
+  axis.set_title(title, loc='right', y=0.98)
+  axis.set_ylabel("Efficiency (Probe/Tag)")
+  axis.set_ylim([0.0, 1.1])
+  axis.minorticks_on()
+  axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
+  axis.set_xlabel(variable_name) # shared axis label
+  axis.grid(True)
+
+
 def spruce_up_legend(histogram_axis, final_state_mode, data_hists):
   # this post has good advice about moving the legend off the plot
   # https://stackoverflow.com/questions/4700614/how-to-put-the-legend-outside-the-plot
@@ -302,12 +322,15 @@ def make_ratio_plot(ratio_axis, xbins, numerator_data, denominator_data):
   ratio = numerator_data/denominator_data
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
   # TODO : technically errors from stack should be individually calculated, not one stack
-  statistical_error = [ ratio[i] * np.sqrt( (np.sqrt(numerator_data[i])   / numerator_data[i]) ** 2 +
-                                            (np.sqrt(denominator_data[i]) / denominator_data[i]) ** 2 )
+  #statistical_error = [ ratio[i] * np.sqrt( (np.sqrt(numerator_data[i])   / numerator_data[i]) ** 2 +
+  #                                          (np.sqrt(denominator_data[i]) / denominator_data[i]) ** 2 )
+  #                    for i,_ in enumerate(denominator_data)]
+  statistical_error = [ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
                       for i,_ in enumerate(denominator_data)]
 
   midpoints = get_midpoints(xbins)
-  ratio_axis.errorbar(midpoints, ratio, yerr=statistical_error,
+  bin_width  = abs(xbins[0:-1]-xbins[1:])/2
+  ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
                     color="black", marker="o", linestyle='none', markersize=2)
 
 
@@ -341,7 +364,7 @@ def get_trimmed_Generator_weight_copy(variable, single_background_dictionary, je
   return temp_weight
 
 
-def make_bins(variable_name):
+def make_bins(variable_name, final_state_mode):
   '''
   Create a linear numpy array to use for histogram binning.
   Information for binning is referenced from a python dictionary in a separate file.
@@ -350,15 +373,22 @@ def make_bins(variable_name):
   
   This method returns only linearly spaced bins
   '''
-  nbins, xmin, xmax = binning_dictionary[variable_name]
-  check_uniformity = (xmax-xmin)/nbins
-  if (check_uniformity % 1 != 0 and 
-      check_uniformity % 0.1 != 0 and 
-      check_uniformity % 0.01 != 0 and
-      check_uniformity % 0.001 != 0):
-    print(f"nbins, xmin, xmax : {nbins}, {xmin}, {xmax}")
-    print(f"(xmax-xmin)/nbins = {check_uniformity}, results in bad bin edges and centers")
-  xbins = np.linspace(xmin, xmax, nbins+1)
+  # TODO : re-generalize this function
+  if (final_state_mode == "mutau_TnP") and (variable_name == "FS_tau_pt"):
+    xbins = binning_dictionary[final_state_mode][variable_name]
+  if (final_state_mode == "mutau") and ((variable_name == "FS_tau_rawPNetVSmu") or (variable_name=="FS_tau_rawPNetVSe")):
+    xbins = binning_dictionary[variable_name]
+  else:
+    nbins, xmin, xmax = binning_dictionary[variable_name]
+    check_uniformity = (xmax-xmin)/nbins
+    if (check_uniformity % 1 != 0 and 
+        check_uniformity % 0.1 != 0 and 
+        check_uniformity % 0.01 != 0 and
+        check_uniformity % 0.001 != 0):
+      print(f"nbins, xmin, xmax : {nbins}, {xmin}, {xmax}")
+      print(f"(xmax-xmin)/nbins = {check_uniformity}, results in bad bin edges and centers")
+    xbins = np.linspace(xmin, xmax, nbins+1) # TODO with above TODO. everything in binning dict should be remade into a numpy array
+
   return xbins
 
 
@@ -506,9 +536,19 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
     ##if ("JetGT30_" in variable) and (jet_mode=="Inclusive"):
     #  process_weights = get_trimmed_Generator_weight_copy(variable, background_dictionary[process], jet_mode)
     else:
-      process_weights_gen = background_dictionary[process]["Generator_weight"]
-      process_weights_SF  = background_dictionary[process]["SF_weight"]
-      process_weights = process_weights_gen*process_weights_SF
+      process_weights_gen    = background_dictionary[process]["Generator_weight"]
+      process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
+      process_weights_PU     = background_dictionary[process]["PUweight"]
+      process_weights_TauSF  = background_dictionary[process]["TauSFweight"]
+      process_weights_MuSF   = background_dictionary[process]["MuSFweight"]
+      # old implementation, TODO : remove
+      #process_weights_SF     = background_dictionary[process]["SF_weight"]
+      #process_weights = process_weights_gen*process_weights_SF*process_weights_DY_Zpt
+      #if "DY" in process: process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt_by_hand"]
+
+      #process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_MuSF # for Oceane
+      process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_PU *\
+                        process_weights_TauSF * process_weights_MuSF
     #print("process, variable, variable and weight shapes") # DEBUG 
     #print(process, variable, process_variable.shape, process_weights.shape) # DEBUG
     h_MC_by_process[process] = {}
