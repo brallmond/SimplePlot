@@ -27,20 +27,17 @@ def load_and_store_NWEvents(process, event_dictionary):
 def customize_DY(process, final_state_mode):
   for DYtype in ["DYGen", "DYLep", "DYJet"]:
     MC_dictionary[DYtype]["XSecMCweight"] = MC_dictionary[process]["XSecMCweight"]
-  if (process == "DYInc"):
-    MC_dictionary["DYGen"]["NWEvents"] = MC_dictionary["DYInc"]["NWEvents"]
-    MC_dictionary["DYLep"]["NWEvents"] = MC_dictionary["DYInc"]["NWEvents"]
-    MC_dictionary["DYJet"]["NWEvents"] = MC_dictionary["DYInc"]["NWEvents"]
+    MC_dictionary[DYtype]["NWEvents"] = MC_dictionary[process]["NWEvents"]
   if (process == "DYIncNLO"): # double-check 
     # overwrite DYGen, DYLep, DYJet values with NLO values
     for subprocess in ["DYGen", "DYLep", "DYJet"]:
-      MC_dictionary[subprocess]["XSec"] = XSec["DYJetsToLL_M-50"]
-      MC_dictionary[subprocess]["NWEvents"] = MC_dictionary["DYIncNLO"]["NWEvents"]
+      MC_dictionary[subprocess]["XSec"]         = XSec["DYJetsToLL_M-50"]
+      MC_dictionary[subprocess]["NWEvents"]     = MC_dictionary["DYIncNLO"]["NWEvents"]
       MC_dictionary[subprocess]["plot_scaling"] = 1  # override kfactor
   label_text = { "ditau" : r"$Z{\rightarrow}{\tau_h}{\tau_h}$",
                  "mutau" : r"$Z{\rightarrow}{\mu}{\tau_h}$",
-                 "etau" : r"$Z{\rightarrow}{e}{\tau_h}$",
-                 "emu" : r"$Z{\rightarrow}{e}{\mu}$",}
+                 "etau"  : r"$Z{\rightarrow}{e}{\tau_h}$",
+                 "emu"   : r"$Z{\rightarrow}{e}{\mu}$",}
   MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]
 
 
@@ -111,8 +108,7 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
   unpack_flav = (event_dictionary.get(key) for key in unpack_flav)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_flav]
   FS_t1_flav, FS_t2_flav = [], []
-  pass_gen_cuts, genuine_events, jet_fake_events, lep_fake_events = [], [], [], []
-  event_flavor = []
+  pass_gen_cuts, event_flavor = [], []
   for i, l1_idx, l2_idx, tau_idx, tau_flav in zip(*to_check):
     genuine, lep_fake, jet_fake = False, False, False
     t1_flav = -1
@@ -123,12 +119,10 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
       if (t1_flav == 5) and (t2_flav == 5):
         # genuine tau --> both taus are taus at gen level
         genuine = True
-        genuine_events.append(i)
         event_flavor.append("G")
       elif (t1_flav == 0) or (t2_flav == 0):
         # jet fake --> one tau is faked by jet
         jet_fake = True
-        jet_fake_events.append(i)
         event_flavor.append("J")
       elif (t1_flav < 5 and t1_flav > 0) or (t2_flav < 5 and t1_flav > 0):
         # lep fake --> both taus are faked by lepton
@@ -136,21 +130,17 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
         # implies also the case where both are faked but one is faked by lepton 
         # is added to jet fakes, which i think is fine
         lep_fake = True
-        lep_fake_events.append(i)
         event_flavor.append("L")
     elif ((final_state_mode == "mutau") or (final_state_mode == "etau")):
       t1_flav = tau_flav[tau_idx[l1_idx] + tau_idx[l2_idx] + 1] # update with NanoAODv12 samples
       if (t1_flav == 5):
         genuine = True
-        #genuine_events.append(i)
         event_flavor.append("G")
       elif (t1_flav == 0):
         jet_fake = True
-        #jet_fake_events.append(i)
         event_flavor.append("J")
       elif (t1_flav < 5 and t1_flav > 0):
         lep_fake = True
-        #lep_fake_events.append(i)
         event_flavor.append("L")
 
     else:
@@ -173,15 +163,6 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
   event_dictionary["FS_t2_flav"] = np.array(FS_t2_flav)
   event_dictionary["pass_gen_cuts"] = np.array(pass_gen_cuts)
   event_dictionary["event_flavor"]  = np.array(event_flavor)
-  return event_dictionary
-
-
-def make_TnP_cut(event_dictionary, DeepTau_version, numerator=False):
-  '''
-  '''
-  nEvents_precut = len(event_dictionary["Lepton_pt"])
-  unpack_TnP = ["Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_tauIdx",
-                "l1_indices", "l2_indices"]
   return event_dictionary
 
 
@@ -792,9 +773,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary,
 
   FS_cut_events = apply_final_state_cut(process_events, final_state_mode, DeepTau_version, useMiniIso=useMiniIso)
   if (FS_cut_events==None or len(FS_cut_events["run"])==0): return None 
-  ### TODO TODO TODO re enable me
   cut_events = apply_jet_cut(FS_cut_events, jet_mode)
-  #cut_events = apply_jet_cut(FS_cut_events, jet_mode="pass") # DEBUG
   if (cut_events==None or len(cut_events["run"])==0): return None
 
   # TODO : want to move to this
@@ -833,6 +812,7 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
   
   # apply FS cut separately so it can be used with reject_duplicate_events
   good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
+  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0)"
   if final_state_mode == "ditau":
     #triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\
     #           | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60\
@@ -870,7 +850,7 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
 def set_branches(final_state_mode, DeepTau_version, process="None"):
   common_branches = [
     "run", "luminosityBlock", "event", "Generator_weight", "NWEvents", "XSecMCweight",
-    "TauSFweight", "MuSFweight", "ElSFweight", "Weight_DY_Zpt", "PUweight",
+    "TauSFweight", "MuSFweight", "ElSFweight", "Weight_DY_Zpt", "PUweight", "Weight_TTbar_NNLO",
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta",

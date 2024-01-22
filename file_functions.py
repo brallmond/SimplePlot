@@ -33,7 +33,7 @@ def load_process_from_file(process, file_directory, file_map, branches, good_eve
   if data: 
     # if a branch isn't available in Data, don't try to load it
     branches_not_in_data = ["Generator_weight", "NWEvents", "Tau_genPartFlav", "Weight_DY_Zpt", "XSecMCweight",
-                            "TauSFweight", "MuSFweight", "ElSFweight", "PUweight"]
+                            "TauSFweight", "MuSFweight", "ElSFweight", "PUweight", "Weight_TTbar_NNLO"]
     for missing_branch in branches_not_in_data:
       branches = [branch for branch in branches if branch != missing_branch]
   try:
@@ -66,8 +66,9 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
     combined_processes[process] = {
       "PlotEvents": {}, 
       "Cuts": {},
-      "Generator_weight": cut_events["Generator_weight"],
-      "Weight_DY_Zpt":    cut_events["Weight_DY_Zpt"],
+      "Generator_weight":  cut_events["Generator_weight"],
+      "Weight_DY_Zpt":     cut_events["Weight_DY_Zpt"],
+      "Weight_TTbar_NNLO": cut_events["Weight_TTbar_NNLO"],
       "TauSFweight": cut_events["TauSFweight"],
       "MuSFweight":  cut_events["MuSFweight"],
       "ElSFweight":  cut_events["ElSFweight"],

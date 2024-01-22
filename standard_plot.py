@@ -270,17 +270,25 @@ if __name__ == "__main__":
   ## end processing loop, begin plotting
 
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
+  # remove mvis, replace with mvis_HTT and mvis_SF
+  vars_to_plot.remove("HTT_m_vis")
+  vars_to_plot.append("HTT_m_vis-KSUbinning")
+  vars_to_plot.append("HTT_m_vis-SFbinning")
   for var in vars_to_plot:
     time_print(f"Plotting {var}")
 
     xbins = make_bins(var, final_state_mode)
     hist_ax, hist_ratio = setup_ratio_plot()
 
+    temp_var = var
+    if "HTT_m_vis" in var:
+      var = "HTT_m_vis"
     h_data = get_binned_data(data_dictionary, var, xbins, lumi)
     if (final_state_mode != "dimuon") and (do_QCD == True):
       background_dictionary["QCD"] = FF_dictionary["QCD"] # manually include QCD as background
     h_backgrounds, h_summed_backgrounds = get_binned_backgrounds(background_dictionary, var, xbins, lumi, jet_mode)
     h_signals = get_binned_signals(signal_dictionary, var, xbins, lumi, jet_mode) 
+    var = temp_var
 
     # plot everything :)
     plot_data(hist_ax, xbins, h_data, lumi)

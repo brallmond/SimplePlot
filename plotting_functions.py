@@ -322,12 +322,9 @@ def make_ratio_plot(ratio_axis, xbins, numerator_data, denominator_data):
   ratio = numerator_data/denominator_data
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
   # TODO : technically errors from stack should be individually calculated, not one stack
-  #statistical_error = [ ratio[i] * np.sqrt( (np.sqrt(numerator_data[i])   / numerator_data[i]) ** 2 +
-  #                                          (np.sqrt(denominator_data[i]) / denominator_data[i]) ** 2 )
-  #                    for i,_ in enumerate(denominator_data)]
   statistical_error = [ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
-                      for i,_ in enumerate(denominator_data)]
-
+                      if ((denominator_data[i] > 0) and (numerator_data[i] >0)) else 0
+                      for i,_ in enumerate(denominator_data)] # ratio error = √ ((1/A) + (1/B)) \
   midpoints = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2
   ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
@@ -537,17 +534,15 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
     #  process_weights = get_trimmed_Generator_weight_copy(variable, background_dictionary[process], jet_mode)
     else:
       process_weights_gen    = background_dictionary[process]["Generator_weight"]
-      process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
       process_weights_PU     = background_dictionary[process]["PUweight"]
       process_weights_TauSF  = background_dictionary[process]["TauSFweight"]
       process_weights_MuSF   = background_dictionary[process]["MuSFweight"]
-      # old implementation, TODO : remove
-      #process_weights_SF     = background_dictionary[process]["SF_weight"]
-      #process_weights = process_weights_gen*process_weights_SF*process_weights_DY_Zpt
-      #if "DY" in process: process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt_by_hand"]
+      process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
+      if "DY" in process: process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt_by_hand"]
+      process_weights_TT_NNLO = background_dictionary[process]["Weight_TTbar_NNLO"]
 
       #process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_MuSF # for Oceane
-      process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_PU *\
+      process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_PU * process_weights_TT_NNLO * \
                         process_weights_TauSF * process_weights_MuSF
     #print("process, variable, variable and weight shapes") # DEBUG 
     #print(process, variable, process_variable.shape, process_weights.shape) # DEBUG
@@ -561,12 +556,10 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
     h_MC_by_family["QCD"] = {}
     h_MC_by_family["QCD"]["BinnedEvents"] = h_MC_by_process["QCD"]["BinnedEvents"]
   #all_MC_families  = ["JetFakes", "LepFakes", "DY", "TT", "ST", "WJ", "VV"] # determines stack order, far left is bottom
-  all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # determines stack order, far left is bottom, QCD at bototm
+  all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # determines stack order, far left is bottom, QCD at bottom
   used_MC_families = []
   for family in all_MC_families:
     for process in h_MC_by_process:
-  #for process in h_MC_by_process:
-  #  for family in all_MC_families:
       if (("WW" in process) or ("WZ" in process) or ("ZZ" in process)) and ("VV" not in used_MC_families):
         used_MC_families.append("VV")
       elif (family in process) and (family not in used_MC_families):

@@ -49,17 +49,16 @@ binning_dictionary = {
   "FS_tau_chg" : (2, -1, 1),
 
   "FS_tau_rawPNetVSjet" : (50, 0, 1),
-  "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), #(50, 0, 1)
-  "FS_tau_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), #(50, 0, 1)
+  "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
+  "FS_tau_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
 
   "mutau_TnP" : {
     "FS_mu_pt"   : (40, 0, 120),
-    "FS_mu_eta"  : (7, -2.7, 2.7), #(30, -3, 3),
+    "FS_mu_eta"  : (7, -2.7, 2.7),
     "FS_mu_phi"  : (16, -3.2, 3.2),
  
-    #"FS_tau_pt"  : (36, 0, 180),
     "FS_tau_pt" : np.array([0, 20, 25, 30, 35, 40, 50, 70, 150]),
-    "FS_tau_eta"  : (7, -2.7, 2.7), #(30, -3, 3),
+    "FS_tau_eta"  : (7, -2.7, 2.7),
     "FS_tau_phi" : (16, -3.2, 3.2),
   },
   "pass_tag"   : (2, 0, 2),
@@ -103,12 +102,11 @@ binning_dictionary = {
   "HTT_DiJet_dEta_fromHighestMjj"    : (35, 0, 7),
   "HTT_H_pt_using_PUPPI_MET"         : (30, 0, 300),
   "HTT_dR"     : (60, 0, 6),
-  "HTT_m_vis" : (30, 0, 300), # HTT AN binning
-  #"HTT_m_vis" : (40, 0, 200), # SF group's binning
+  "HTT_m_vis-KSUbinning" : (30, 0, 300),
+  "HTT_m_vis-SFbinning"  : (40, 0, 200),
   "HTT_pT_l1l2" : (30, 0, 150),
   "FastMTT_PUPPIMET_mT" : (40, 0, 400),
-  #"FastMTT_PUPPIMET_mass" : (30, 0, 300), # HTT AN binning (check)
-  "FastMTT_PUPPIMET_mass" : (40, 0, 200), # SF group's binning
+  "FastMTT_PUPPIMET_mass" : (20, 0, 400),
   "FS_t1_flav" : (11, 0, 11),
   "FS_t2_flav" : (11, 0, 11),
 }
