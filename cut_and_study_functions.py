@@ -859,7 +859,7 @@ def set_branches(final_state_mode, DeepTau_version, process="None"):
     "nCleanJet", "CleanJet_pt", "CleanJet_eta",
     "HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
     "Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
-    "HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
+    #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
   ]
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
@@ -947,7 +947,8 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   Shouldn't this be in  plotting functions?
   '''
   vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
-                  "PuppiMET_pt", "HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj"] 
+                  "PuppiMET_pt"]
+                  #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj"] 
                   # common to all final states # TODO add MET here, add Tau_decayMode
   FS_vars_to_add = final_state_vars[final_state_mode]
   for var in FS_vars_to_add:

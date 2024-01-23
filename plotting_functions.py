@@ -583,18 +583,28 @@ def get_binned_signals(signal_dictionary, variable, xbins_, lumi_, jet_mode):
   Signal is put in a separate dictionary from MC, but they are processed very similarly
   '''
   h_signals = {}
-  for signal in signal_dictionary:
-    signal_variable = signal_dictionary[signal]["PlotEvents"][variable]
+  for process in signal_dictionary:
+    signal_variable = signal_dictionary[process]["PlotEvents"][variable]
     if len(signal_variable) == 0: continue
     #if ("JetGT30_" in variable or "fromHighestMjj" in variable) and (jet_mode=="Inclusive" or jet_mode=="GTE2j"):
     if ( (("JetGT30_" in variable or "fromHighestMjj" in variable) and (jet_mode=="Inclusive")) or 
          ((variable == "CleanJetGT30_pt_3" or variable == "CleanJetGT30_eta3") and (jet_mode=="GTE2j")) ):
     #if ("JetGT30_" in variable) and (jet_mode=="Inclusive"):
-      signal_weights = get_trimmed_Generator_weight_copy(variable, signal_dictionary[signal], jet_mode)
+      signal_weights = get_trimmed_Generator_weight_copy(variable, signal_dictionary[process], jet_mode)
     else:
-      signal_weights = signal_dictionary[signal]["Generator_weight"]
-    h_signals[signal] = {}
-    h_signals[signal]["BinnedEvents"] = get_binned_info(signal, signal_variable,
+      signal_weights_gen    = signal_dictionary[process]["Generator_weight"]
+      signal_weights_PU     = signal_dictionary[process]["PUweight"]
+      signal_weights_TauSF  = signal_dictionary[process]["TauSFweight"]
+      signal_weights_MuSF   = signal_dictionary[process]["MuSFweight"]
+      signal_weights_DY_Zpt = signal_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
+      if "DY" in process: signal_weights_DY_Zpt = signal_dictionary[process]["Weight_DY_Zpt_by_hand"]
+      signal_weights_TT_NNLO = signal_dictionary[process]["Weight_TTbar_NNLO"]
+
+      #signal_weights = signal_weights_gen * signal_weights_DY_Zpt * signal_weights_MuSF # for Oceane
+      signal_weights = signal_weights_gen * signal_weights_DY_Zpt * signal_weights_PU * signal_weights_TT_NNLO * \
+                       signal_weights_TauSF * signal_weights_MuSF
+    h_signals[process] = {}
+    h_signals[process]["BinnedEvents"] = get_binned_info(process, signal_variable,
                                                         xbins_, signal_weights, lumi_)
   return h_signals
 
