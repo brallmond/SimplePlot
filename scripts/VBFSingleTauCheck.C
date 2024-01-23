@@ -77,13 +77,13 @@ void VBFSingleTauCheck::Loop()
       if (!(pass_nLeptons)) continue;
 
       bool pass_triggers = ( (L1_DoubleIsoTau34er2p1 && HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1) || \
-                            HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1 || \
+                            //HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1 || \
                             //
-                            //(HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1) );
+                            (HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1) );
                             //
                             //HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1 || \
                             //
-                            (L1_DoubleJet_110_35_DoubleJet35_Mass_Min620 && HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1));
+                            //(L1_DoubleJet_110_35_DoubleJet35_Mass_Min620 && HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1));
                             //(L1_DoubleJet_110_35_DoubleJet35_Mass_Min800 && HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1));
       if (!(pass_triggers)) continue;
 
@@ -328,8 +328,8 @@ void VBFSingleTauCheck::Loop()
       pass_VBF1Tau_bool = false;
       if (HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1 &&\
           //(t1_pt > 50) && (t2_pt > 25) && (j1_pt > 55) && (j2_pt > 55) && (mjj > 600) && (detajj > 2.5)) {
-          (t1_pt > 50) && (t2_pt > 25) && (j1_pt > 60) && (j2_pt > 60) && (mjj > 700) && (detajj > 2.5)) {
-          //(t1_pt > 50) && (t2_pt > 25) && (j1_pt > 60) && (j2_pt > 60) && (mjj > 750) && (detajj > 2.5)) {
+          //(t1_pt > 50) && (t2_pt > 25) && (j1_pt > 60) && (j2_pt > 60) && (mjj > 700) && (detajj > 2.5)) {
+          (t1_pt > 50) && (t2_pt > 25) && (j1_pt > 60) && (j2_pt > 60) && (mjj > 750) && (detajj > 2.5)) {
         pass_VBF1Tau_bool = true;
         pass_VBF1Tau_count += 1;
       }
@@ -337,7 +337,7 @@ void VBFSingleTauCheck::Loop()
       // HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1
       pass_VBF2Tau_bool = false;
       if (HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1 &&\
-          (t1_pt > 50) && (t2_pt > 25) && (j1_pt > 50) && (j2_pt > 50) && (mjj >600) && (detajj > 2.5)) {
+          (t1_pt > 50) && (t2_pt > 25) && (j1_pt > 50) && (j2_pt > 50) && (mjj > 600) && (detajj > 2.5)) {
           //(t1_pt > 50) && (t2_pt > 25) && (j1_pt > 50) && (j2_pt > 50) && (mjj >600)) { // no detajj
         pass_VBF2Tau_bool = true;
         pass_VBF2Tau_count += 1;
@@ -347,13 +347,14 @@ void VBFSingleTauCheck::Loop()
       // note Mia also proposed a tighter L1 
       pass_VBFInc_bool = false;
       if (HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1 &&\
-          L1_DoubleJet_110_35_DoubleJet35_Mass_Min620 && \
+          //L1_DoubleJet_110_35_DoubleJet35_Mass_Min620 && \
           //
-          //L1_DoubleJet_110_35_DoubleJet35_Mass_Min800 && \
+          L1_DoubleJet_110_35_DoubleJet35_Mass_Min800 && \
           //
-          (t1_pt > 25) && (t2_pt > 25) && (j1_pt > 120) && (j2_pt > 40) && (mjj >700) && (detajj > 2.5)) {
-          //(t1_pt > 25) && (t2_pt > 25) && (j1_pt > 120) && (j2_pt > 40) && (mjj >850) && (detajj > 2.5)) {
-          //(t1_pt > 25) && (t2_pt > 25) && (j1_pt > 120) && (j2_pt > 40) && (mjj >700)) { // no detajj
+          //(t1_pt > 25) && (t2_pt > 25) && (j1_pt > 120) && (j2_pt > 45) && (mjj >700) && (detajj > 2.5)) {
+          (t1_pt > 25) && (t2_pt > 25) && (j1_pt > 120) && (j2_pt > 45) && (mjj >850) && (detajj > 2.5)) {
+          //(t1_pt > 25) && (t2_pt > 25) && (j1_pt > 120) && (j2_pt > 45) && (mjj >700)) { // no detajj
+          //(t1_pt > 25) && (t2_pt > 25) && (j1_pt > 120) && (j2_pt > 45) && (mjj >850)) { // no detajj
         pass_VBFInc_bool = true;
         pass_VBFInc_count += 1;
       }
