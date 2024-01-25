@@ -33,9 +33,8 @@ testing_file_map = {
   "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
   "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
 
-  #"WJetsInc" : "WJ/WJetsToLNu_LO_HTauTau*",
-  #"WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
-  #"WJetsInc" : "WJ/WJ*part1",
+  "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
+  "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
 
   "ST_s-channel_Tbar"  : "ST/ST_s-channel_antitop*",
   "ST_t-channel_Tbar"  : "ST/ST_t-channel_antitop*",
@@ -108,8 +107,8 @@ full_file_map = {
   "ST_TWminus_4Q"      : "ST/ST_TWminus_4Q*",
   "ST_TWminus_LNu2Q"   : "ST/ST_TWminus_LNu2Q*",
 
-  #"WJetsInc" : "WJ/WJ*",
-  "WJetsInc" : "WJ/WJetsToLNu_LO_HTauTau*",
+  "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
+  "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
   #"WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
   #"WJetsToLNu_1J" : "WJ/W1JetsToLNu*",
   #"WJetsToLNu_2J" : "WJ/W2JetsToLNu*",

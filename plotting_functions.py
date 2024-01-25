@@ -243,7 +243,8 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
             transform=axis.transAxes, fontsize=10)
 
 
-def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_state_mode, jet_mode):
+def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_state_mode, jet_mode,
+                   set_x_log = False, set_y_log = False):
   '''
   Add title and axes labels
   Additionally:
@@ -270,6 +271,14 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
   ratio_plot_axis.yaxis.set_major_formatter('{x:.1f}')
   ratio_plot_axis.yaxis.set_minor_locator(plt.MultipleLocator(0.05))
 
+  if (set_x_log == True):
+    # does not work how you think it should, need custom redefine
+    #ax.set_xscale('function', functions=(1-log, inverse))
+    histogram_axis.set_xscale('log')
+    ratio_plot_axis.set_xscale('log')
+  if (set_y_log == True):
+    histogram_axis.set_yscale('log')
+    ratio_plot_axis.set_yscale('log')
 
 def spruce_up_TnP_plot(axis, variable_name, title):
   add_CMS_preliminary(axis)
@@ -374,6 +383,9 @@ def make_bins(variable_name, final_state_mode):
   if (final_state_mode == "mutau_TnP") and (variable_name == "FS_tau_pt"):
     xbins = binning_dictionary[final_state_mode][variable_name]
   if (final_state_mode == "mutau") and ((variable_name == "FS_tau_rawPNetVSmu") or (variable_name=="FS_tau_rawPNetVSe")):
+    xbins = binning_dictionary[variable_name]
+  if (final_state_mode == "ditau") and \
+     (("PNet" in variable_name) and (("VSmu" in variable_name) or ("VSe" in variable_name))):
     xbins = binning_dictionary[variable_name]
   else:
     nbins, xmin, xmax = binning_dictionary[variable_name]

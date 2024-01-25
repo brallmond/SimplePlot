@@ -67,7 +67,7 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
 
     tauPNetvJetVal = PNetvJet[tauBranchLoc]
     tauPNetvMuVal  = PNetvMu[tauBranchLoc]
-    tauPNetvEVal = PNetvE[tauBranchLoc]
+    tauPNetvEVal   = PNetvE[tauBranchLoc]
 
     # my selection
     passTauPtAndEta  = ((tauPtVal > 30.0) and (abs(tauEtaVal) < 2.3)) # mine
@@ -136,8 +136,8 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   event_dictionary["FS_tau_chg"] = np.array(FS_tau_chg)
   event_dictionary["FS_mt"]    = np.array(FS_mt)
   event_dictionary["FS_tau_rawPNetVSjet"] = np.array(FS_tau_PNet_v_jet)
-  event_dictionary["FS_tau_rawPNetVSmu"] = np.array(FS_tau_PNet_v_mu)
-  event_dictionary["FS_tau_rawPNetVSe"] = np.array(FS_tau_PNet_v_e)
+  event_dictionary["FS_tau_rawPNetVSmu"]  = np.array(FS_tau_PNet_v_mu)
+  event_dictionary["FS_tau_rawPNetVSe"]   = np.array(FS_tau_PNet_v_e)
   nEvents_postcut = len(np.array(pass_cuts))
   print(f"nEvents before and after mutau cuts = {nEvents_precut}, {nEvents_postcut}")
   return event_dictionary

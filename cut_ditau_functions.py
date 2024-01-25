@@ -20,7 +20,8 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   '''
   nEvents_precut = len(event_dictionary["Lepton_pt"])
   unpack_ditau = ["Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_tauIdx", 
-                  "Tau_dxy", "Tau_dz", "Tau_decayMode", "Tau_charge", "l1_indices", "l2_indices"]
+                  "Tau_dxy", "Tau_dz", "Tau_decayMode", "Tau_charge", "l1_indices", "l2_indices",
+                  "Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe"]
   unpack_ditau = add_DeepTau_branches(unpack_ditau, DeepTau_version)
   unpack_ditau = add_trigger_branches(unpack_ditau, final_state_mode="ditau")
   unpack_ditau = (event_dictionary.get(key) for key in unpack_ditau)
@@ -28,10 +29,13 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   pass_cuts = []
   FS_t1_pt, FS_t1_eta, FS_t1_phi, FS_t1_dxy, FS_t1_dz, FS_t1_chg = [], [], [], [], [], []
   FS_t2_pt, FS_t2_eta, FS_t2_phi, FS_t2_dxy, FS_t2_dz, FS_t2_chg = [], [], [], [], [], []
+  FS_t1_PNet_v_jet, FS_t1_PNet_v_mu, FS_t1_PNet_v_e = [], [], []
+  FS_t2_PNet_v_jet, FS_t2_PNet_v_mu, FS_t2_PNet_v_e = [], [], []
   # note these are in the same order as the variables in the first line of this function :)
   # TODO: double-check counts with/without trigger :)
   for i, lep_pt, lep_eta, lep_phi, tau_idx,\
-      tau_dxy, tau_dz, tau_decayMode, tau_chg, l1_idx, l2_idx, vJet, vMu, vEle,\
+      tau_dxy, tau_dz, tau_decayMode, tau_chg, l1_idx, l2_idx,\
+      PNetvJet, PNetvMu, PNetvE, vJet, vMu, vEle,\
       ditau_trig, ditau_jet_low_trig, ditau_jet_high_trig,\
       ditau_VBFRun2_trig, ditau_VBFRun3_trig in zip(*to_check):
     # assign object pts and etas
@@ -62,8 +66,10 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
 
     t1_chg = tau_chg[tau_idx[l1_idx]]
     t2_chg = tau_chg[tau_idx[l2_idx]]
+    pass_charge = False
+    if (t1_chg*t2_chg == -1): pass_charge = True
   
-    if ( (passKinems and t1passDT and t2passDT and good_tau_decayMode) or 
+    if ( (pass_charge and passKinems and t1passDT and t2passDT and good_tau_decayMode) or 
          (passKinems and skip_DeepTau and t2passDT and good_tau_decayMode) ):
       pass_cuts.append(i)
       # TODO update me with the variable names used earlier
@@ -73,12 +79,18 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
       FS_t1_dxy.append(abs(tau_dxy[tau_idx[l1_idx]]))
       FS_t1_dz.append(abs(tau_dz[tau_idx[l1_idx]]))
       FS_t1_chg.append(t1_chg)
+      FS_t1_PNet_v_jet.append(PNetvJet[tau_idx[l1_idx]])
+      FS_t1_PNet_v_mu.append(PNetvMu[tau_idx[l1_idx]])
+      FS_t1_PNet_v_e.append(PNetvE[tau_idx[l1_idx]])
       FS_t2_pt.append(lep_pt[l2_idx])
       FS_t2_eta.append(lep_eta[l2_idx])
       FS_t2_phi.append(lep_phi[l2_idx])
       FS_t2_dxy.append(abs(tau_dxy[tau_idx[l2_idx]]))
       FS_t2_dz.append(abs(tau_dz[tau_idx[l2_idx]]))
       FS_t2_chg.append(t2_chg)
+      FS_t2_PNet_v_jet.append(PNetvJet[tau_idx[l2_idx]])
+      FS_t2_PNet_v_mu.append(PNetvMu[tau_idx[l2_idx]])
+      FS_t2_PNet_v_e.append(PNetvE[tau_idx[l2_idx]])
 
   event_dictionary["pass_cuts"] = np.array(pass_cuts)
   event_dictionary["FS_t1_pt"]  = np.array(FS_t1_pt)
@@ -87,12 +99,20 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   event_dictionary["FS_t1_dxy"] = np.array(FS_t1_dxy)
   event_dictionary["FS_t1_dz"]  = np.array(FS_t1_dz)
   event_dictionary["FS_t1_chg"] = np.array(FS_t1_chg)
+  event_dictionary["FS_t1_rawPNetVSjet"] = np.array(FS_t1_PNet_v_jet)
+  event_dictionary["FS_t1_rawPNetVSmu"]  = np.array(FS_t1_PNet_v_mu)
+  event_dictionary["FS_t1_rawPNetVSe"]   = np.array(FS_t1_PNet_v_e)
   event_dictionary["FS_t2_pt"]  = np.array(FS_t2_pt)
   event_dictionary["FS_t2_eta"] = np.array(FS_t2_eta)
   event_dictionary["FS_t2_phi"] = np.array(FS_t2_phi)
   event_dictionary["FS_t2_dxy"] = np.array(FS_t2_dxy)
   event_dictionary["FS_t2_dz"]  = np.array(FS_t2_dz)
   event_dictionary["FS_t2_chg"] = np.array(FS_t2_chg)
+  event_dictionary["FS_t2_rawPNetVSjet"] = np.array(FS_t2_PNet_v_jet)
+  event_dictionary["FS_t2_rawPNetVSmu"]  = np.array(FS_t2_PNet_v_mu)
+  event_dictionary["FS_t2_rawPNetVSe"]   = np.array(FS_t2_PNet_v_e)
+
+
 
   nEvents_postcut = len(np.array(pass_cuts))
   print(f"nEvents before and after ditau cuts = {nEvents_precut}, {nEvents_postcut}")

@@ -135,8 +135,12 @@ if __name__ == "__main__":
                    good_events, branches, vars_to_plot)
 
   file_map = testing_file_map if testing else full_file_map
-  if (use_DY_NLO == True): file_map.pop("DYInc")
-  else: file_map.pop("DYIncNLO")
+  if (use_DY_NLO == True): 
+    file_map.pop("DYInc")
+    file_map.pop("WJetsInc")
+  else: 
+    file_map.pop("DYIncNLO")
+    file_map.pop("WJetsIncNLO")
 
   # add FF weights :) # almost the same as SR, except SS and 1st tau fails iso (applied in AR_cuts)
   AR_region_ditau = "(HTT_pdgId > 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
@@ -300,7 +304,9 @@ if __name__ == "__main__":
     # reversed dictionary search for era name based on lumi 
     title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
     title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
-    spruce_up_plot(hist_ax, hist_ratio, var, title, final_state_mode, jet_mode)
+    
+    set_x_log = True if "PNet" in var else False
+    spruce_up_plot(hist_ax, hist_ratio, var, title, final_state_mode, jet_mode, set_x_log = set_x_log)
     spruce_up_legend(hist_ax, final_state_mode, h_data)
 
     plt.savefig(plot_dir + "/" + str(var) + ".png")

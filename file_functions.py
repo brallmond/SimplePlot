@@ -33,7 +33,7 @@ def load_process_from_file(process, file_directory, file_map, branches, good_eve
   if data: 
     # if a branch isn't available in Data, don't try to load it
     branches_not_in_data = ["Generator_weight", "NWEvents", "Tau_genPartFlav", "Weight_DY_Zpt", "XSecMCweight",
-                            "TauSFweight", "MuSFweight", "ElSFweight", "PUweight", "Weight_TTbar_NNLO"]
+                            "TauSFweight", "MuSFweight", "ElSFweight", "PUweight", "Weight_TTbar_NNLO", "Pileup_nPU"]
     for missing_branch in branches_not_in_data:
       branches = [branch for branch in branches if branch != missing_branch]
   try:

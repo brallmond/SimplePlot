@@ -142,19 +142,22 @@ MC_dictionary = {
                           "label": "ST", "color": color_dictionary["ST"],
                           "plot_scaling" : 1},
 
-  "WJetsInc"      : {"XSec": XSec["WJetsToLNu"], "NWEvents": 43876130657994.01,
+  "WJetsInc"      : {"XSec": XSec["WJetsToLNu_LO"], "NWEvents": 43876130657994.01,
                      "label": "WJ", "color": color_dictionary["WJ"],
                      "plot_scaling" : 1},
-  "WJetsToLNu_1J" : {"XSec": XSec["WJetsToLNu"], "NWEvents": 1302140190027.9631,
+  "WJetsIncNLO"   : {"XSec": XSec["WJetsToLNu"], "NWEvents": 1,
                      "label": "WJ", "color": color_dictionary["WJ"],
                      "plot_scaling" : 1},
-  "WJetsToLNu_2J" : {"XSec": XSec["WJetsToLNu"], "NWEvents": -999999.99999, # sample DNE
+  "WJetsToLNu_1J" : {"XSec": XSec["WJetsToLNu_LO"], "NWEvents": 1302140190027.9631,
                      "label": "WJ", "color": color_dictionary["WJ"],
                      "plot_scaling" : 1},
-  "WJetsToLNu_3J" : {"XSec": XSec["WJetsToLNu"], "NWEvents": 320401283585.0479,
+  "WJetsToLNu_2J" : {"XSec": XSec["WJetsToLNu_LO"], "NWEvents": -999999.99999, # sample DNE
                      "label": "WJ", "color": color_dictionary["WJ"],
                      "plot_scaling" : 1},
-  "WJetsToLNu_4J" : {"XSec": XSec["WJetsToLNu"], "NWEvents": 35153418064.277626,
+  "WJetsToLNu_3J" : {"XSec": XSec["WJetsToLNu_LO"], "NWEvents": 320401283585.0479,
+                     "label": "WJ", "color": color_dictionary["WJ"],
+                     "plot_scaling" : 1},
+  "WJetsToLNu_4J" : {"XSec": XSec["WJetsToLNu_LO"], "NWEvents": 35153418064.277626,
                      "label": "WJ", "color": color_dictionary["WJ"],
                      "plot_scaling" : 1},
 

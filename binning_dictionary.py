@@ -52,6 +52,14 @@ binning_dictionary = {
   "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
   "FS_tau_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
 
+  "FS_t1_rawPNetVSjet" : (50, 0, 1),
+  "FS_t1_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
+  "FS_t1_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
+
+  "FS_t2_rawPNetVSjet" : (50, 0, 1),
+  "FS_t2_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
+  "FS_t2_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
+
   "mutau_TnP" : {
     "FS_mu_pt"   : (40, 0, 120),
     "FS_mu_eta"  : (7, -2.7, 2.7),
@@ -91,6 +99,11 @@ binning_dictionary = {
   "CleanJetGT30_eta_1" : (50, -5, 5),
   "CleanJetGT30_eta_2" : (50, -5, 5),
   "CleanJetGT30_eta_3" : (50, -5, 5),
+  "CleanJetGT30_phi_1" : (16, -3.2, 3.2),
+  "CleanJetGT30_phi_2" : (16, -3.2, 3.2),
+  "CleanJetGT30_phi_3" : (16, -3.2, 3.2),
+  "FS_mjj"    : (30, 0, 1500),
+  "FS_detajj" : (31, 0, 7),
 
 # common, from branches
   "MET_pt"      : (30, 0, 150),
@@ -109,4 +122,5 @@ binning_dictionary = {
   "FastMTT_PUPPIMET_mass" : (20, 0, 400),
   "FS_t1_flav" : (11, 0, 11),
   "FS_t2_flav" : (11, 0, 11),
+  "PV_npvs"    : (30, 0, 90),
 }
