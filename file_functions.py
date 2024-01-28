@@ -1,7 +1,7 @@
 import uproot
 import numpy as np
 
-from utility_functions import time_print, text_options
+from utility_functions import time_print, text_options, log_print
 
 ### README ###
 # This file contains the main method to load data from root files
@@ -9,7 +9,9 @@ from utility_functions import time_print, text_options
 # This file also contains methods relevant to sorting samples from files.
 
 
-def load_process_from_file(process, file_directory, file_map, branches, good_events, final_state_mode, data=False, testing=False):
+def load_process_from_file(process, file_directory, file_map, log_file,
+                           branches, good_events, final_state_mode, 
+                           data=False, testing=False):
   '''
   Most important function! Contains the only call to uproot in this library! 
   Loads into memory files relevant to the given 'final_state_mode' by reading
@@ -28,7 +30,7 @@ def load_process_from_file(process, file_directory, file_map, branches, good_eve
   Note: that a numpy array is generated for each loaded process, which corresponds
   to a set of files. 
   '''
-  time_print(f"Loading {file_map[process]}")
+  log_print(f"Loading {file_map[process]}", log_file, time=True)
   file_string = file_directory + "/" + file_map[process] + ".root:Events"
   if data: 
     # if a branch isn't available in Data, don't try to load it
@@ -39,8 +41,8 @@ def load_process_from_file(process, file_directory, file_map, branches, good_eve
   try:
     processed_events = uproot.concatenate([file_string], branches, cut=good_events, library="np")
   except FileNotFoundError:
-    print(text_options["yellow"] + "FILE NOT FOUND! " + text_options["reset"], end="")
-    print(f"continuing without loading {file_map[process]}...")
+    log_print(text_options["yellow"] + "FILE NOT FOUND! " + text_options["reset"], log_file, end="")
+    log_print(f"continuing without loading {file_map[process]}...", log_file)
     return None
   process_list = {}
   process_list[process] = {}

@@ -239,6 +239,7 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
     "GTE2j" : "≥2j",
   }
   axis.text(0.05, 0.92, 
+  #axis.text(0.45, -0.045, 
             final_state_str[final_state_mode] + " : " + jet_mode_str[jet_mode], 
             transform=axis.transAxes, fontsize=10)
 
@@ -382,9 +383,9 @@ def make_bins(variable_name, final_state_mode):
   # TODO : re-generalize this function
   if (final_state_mode == "mutau_TnP") and (variable_name == "FS_tau_pt"):
     xbins = binning_dictionary[final_state_mode][variable_name]
-  if (final_state_mode == "mutau") and ((variable_name == "FS_tau_rawPNetVSmu") or (variable_name=="FS_tau_rawPNetVSe")):
+  elif (final_state_mode == "mutau") and ((variable_name == "FS_tau_rawPNetVSmu") or (variable_name=="FS_tau_rawPNetVSe")):
     xbins = binning_dictionary[variable_name]
-  if (final_state_mode == "ditau") and \
+  elif (final_state_mode == "ditau") and \
      (("PNet" in variable_name) and (("VSmu" in variable_name) or ("VSe" in variable_name))):
     xbins = binning_dictionary[variable_name]
   else:

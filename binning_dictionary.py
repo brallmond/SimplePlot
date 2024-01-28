@@ -11,18 +11,22 @@ binning_dictionary = {
   "FS_t1_pt"   : (36, 0, 180),
   "FS_t1_eta"  : (30, -3, 3),
   "FS_t1_phi"  : (32, -3.2, 3.2),
-  "FS_t1_DT"   : (9, 0, 9),
+  "FS_t1_DeepTauVSjet" : (8, 1, 9),
+  "FS_t1_DeepTauVSmu"  : (4, 1, 5),
+  "FS_t1_DeepTauVSe"   : (8, 1, 9),
   "FS_t1_dxy"  : (50, 0, 0.20),
   "FS_t1_dz"   : (50, 0, 0.25),
-  "FS_t1_chg"  : (2, -1, 1),
+  "FS_t1_chg"  : (5, -2, 2),
 
   "FS_t2_pt"   : (24, 0, 120),
   "FS_t2_eta"  : (30, -3, 3),
   "FS_t2_phi"  : (32, -3.2, 3.2),
-  "FS_t2_DT"   : (9, 0, 9),
+  "FS_t2_DeepTauVSjet" : (8, 1, 9),
+  "FS_t2_DeepTauVSmu"  : (4, 1, 5),
+  "FS_t2_DeepTauVSe"   : (8, 1, 9),
   "FS_t2_dxy"  : (50, 0, 0.20),
   "FS_t2_dz"   : (50, 0, 0.25),
-  "FS_t2_chg"  : (2, -1, 1),
+  "FS_t2_chg"  : (5, -2, 2),
 
 #  mutau/etau
   "FS_mu_pt"   : (40, 0, 120),
@@ -31,7 +35,7 @@ binning_dictionary = {
   "FS_mu_iso"  : (25, 0, 1),
   "FS_mu_dxy"  : (50, 0, 0.05),
   "FS_mu_dz"   : (50, 0, 0.25),
-  "FS_mu_chg"  : (2, -1, 1),
+  "FS_mu_chg"  : (5, -2, 2),
 
   "FS_el_pt"   : (40, 0, 120),
   "FS_el_eta"  : (30, -3, 3),
@@ -39,14 +43,14 @@ binning_dictionary = {
   "FS_el_iso"  : (25, 0, 1),
   "FS_el_dxy"  : (50, 0, 0.05),
   "FS_el_dz"   : (50, 0, 0.25),
-  "FS_el_chg"  : (2, -1, 1),
+  "FS_el_chg"  : (5, -2, 2),
 
   "FS_tau_pt"  : (36, 0, 180),
   "FS_tau_eta" : (30, -3, 3),
   "FS_tau_phi" : (32, -3.2, 3.2),
   "FS_tau_dxy" : (50, 0, 0.20),
   "FS_tau_dz"  : (50, 0, 0.25),
-  "FS_tau_chg" : (2, -1, 1),
+  "FS_tau_chg" : (5, -2, 2),
 
   "FS_tau_rawPNetVSjet" : (50, 0, 1),
   "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
@@ -79,7 +83,7 @@ binning_dictionary = {
   "FS_m1_iso"  : (25, 0, 1),
   "FS_m1_dxy"  : (50, 0, 0.05),
   "FS_m1_dz"   : (50, 0, 0.25),
-  "FS_m1_chg"  : (2, -1, 1),
+  "FS_m1_chg"  : (5, -2, 2),
 
   "FS_m2_pt"   : (60, 0, 300),
   "FS_m2_eta"  : (99, -2.5, 2.5),
@@ -87,7 +91,7 @@ binning_dictionary = {
   "FS_m2_iso"  : (25, 0, 1),
   "FS_m2_dxy"  : (50, 0, 0.05),
   "FS_m2_dz"   : (50, 0, 0.25),
-  "FS_m2_chg"  : (2, -1, 1),
+  "FS_m2_chg"  : (5, -2, 2),
   "FS_m_vis_tight" : (80, 70, 110), # TODO add this
 
 # common, calculated on the fly

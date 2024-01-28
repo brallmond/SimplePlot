@@ -4,7 +4,7 @@ import numpy as np
 # this file contains functions to perform cuts and self-contained studies
 
 from calculate_functions import calculate_mt, hasbit, getBin, highest_mjj_pair
-from utility_functions   import time_print, text_options
+from utility_functions   import time_print, text_options, log_print
 
 from cut_ditau_functions import make_ditau_cut, make_ditau_AR_cut
 from cut_mutau_functions import make_mutau_cut, make_mutau_AR_cut, make_mutau_TnP_cut
@@ -168,7 +168,7 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
   return event_dictionary
 
 
-def set_FF_values(final_state_mode, jet_mode_and_DeepTau_version):
+def set_FF_values(final_state_mode, jet_mode_and_DeepTau_version, determining_FF):
   '''
   '''
   # should have aiso/iso as well
@@ -260,15 +260,19 @@ def set_FF_values(final_state_mode, jet_mode_and_DeepTau_version):
 
     },
   } 
-  intercept = FF_values[final_state_mode][jet_mode_and_DeepTau_version][0]
-  slope     = FF_values[final_state_mode][jet_mode_and_DeepTau_version][1]
-  #slope2    = FF_values[final_state_mode][jet_mode_and_DeepTau_version][2]
+  if (determining_FF == True):
+    print("determining FF dictionary, setting dummy values and not plotting QCD")
+    intercept, slope = 0.2, 1.1
+  else:
+    intercept = FF_values[final_state_mode][jet_mode_and_DeepTau_version][0]
+    slope     = FF_values[final_state_mode][jet_mode_and_DeepTau_version][1]
+    #slope2    = FF_values[final_state_mode][jet_mode_and_DeepTau_version][2]
 
   #return intercept, slope, slope2
   return intercept, slope
 
 
-def add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version):
+def add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version, determining_FF=False):
   unpack_FFVars = ["Lepton_pt", "HTT_m_vis", "l1_indices", "l2_indices"]
   unpack_FFVars = (event_dictionary.get(key) for key in unpack_FFVars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_FFVars]
@@ -281,6 +285,11 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version
     # 90 events. This is not big enough to effect plots dramatically, so as long as the
     # probs are close to 0.999, they don't need to be updated every time
     # SHOULD update them the final time
+    "Inclusive_2p5" : [bins, # estimated, values not derived
+                 [0.999, # < 50
+                  0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999,
+                  0.999, 0.999, 0.999, 0.999, 0.999, 0.999, 0.999,
+                  0.999, 0.999, 0.999]], # > 200
     "0j_2p5" : [bins,
           [0.998869, # < 50
            0.999233, 0.999735, 0.999866, 0.999873, 0.999901, 0.999944, 0.999944, 0.999939, 
@@ -315,8 +324,8 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version
   
   FF_key = jet_mode + "_" + DeepTau_version
 
-  intercept, slope = set_FF_values(final_state_mode, "custom_"+jet_mode+"_2p5_FF")
-  OSSS_bias_intercept, OSSS_bias_slope = set_FF_values(final_state_mode, "custom_"+jet_mode+"_2p5_CH")
+  intercept, slope = set_FF_values(final_state_mode, "custom_"+jet_mode+"_2p5_FF", determining_FF)
+  OSSS_bias_intercept, OSSS_bias_slope = set_FF_values(final_state_mode, "custom_"+jet_mode+"_2p5_CH", determining_FF)
 
   #intercept, slope = set_FF_values("ditau", FF_key)
   #closure_intercept, closure_slope = set_FF_values("ditau", "Closure_" + DeepTau_version)
@@ -729,14 +738,21 @@ def apply_flavor_cut(event_dictionary):
   return event_dictionary
 
 
-def apply_AR_cut(event_dictionary, final_state_mode, jet_mode, DeepTau_version):
+def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, DeepTau_version, determining_FF):
   '''
   Organizational function
   added 'skip_DeepTau' to apply a partial selection (all but leading tau deeptau reqs)
   '''
   protected_branches = ["None"]
   event_dictionary = append_lepton_indices(event_dictionary)
-  if ((final_state_mode != "dimuon") and (jet_mode != "Inclusive")):
+  if ("Data" not in process):
+    load_and_store_NWEvents(process, event_dictionary)
+    if ("DY" in process): 
+      customize_DY(process, final_state_mode)
+      append_Zpt_weight(event_dictionary)
+    event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
+  #if ((final_state_mode != "dimuon") and (jet_mode != "Inclusive")):
+  if (final_state_mode != "dimuon"):
     # non-standard FS cut
     if (final_state_mode == "ditau"):
       event_dictionary = make_ditau_AR_cut(event_dictionary, DeepTau_version)
@@ -756,7 +772,9 @@ def apply_AR_cut(event_dictionary, final_state_mode, jet_mode, DeepTau_version):
     protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
     event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
     #
-    event_dictionary = add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version)
+    event_dictionary = add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version,
+                                      determining_FF=determining_FF)
+    determining_FF = False # paranoid thing to prevent leaking the variable
   else:
     print(f"{final_state_mode} : {jet_mode} not possible. Continuing without AR or FF method applied.")
   return event_dictionary
@@ -786,7 +804,7 @@ def apply_jet_cut(event_dictionary, jet_mode):
   return event_dictionary
 
 
-def apply_HTT_FS_cuts_to_process(process, process_dictionary, 
+def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
                                  final_state_mode, jet_mode="Inclusive", 
                                  DeepTau_version="2p5", useMiniIso=False):
   '''
@@ -795,7 +813,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary,
   Can be extended to hold additional standard cuts (i.e. jets) or the returned
   value can be cut on as needed.
   '''
-  time_print(f"Processing {process}")
+  log_print(f"Processing {process}", log_file)
   process_events = process_dictionary[process]["info"]
   if len(process_events["run"])==0: return None
 
@@ -972,6 +990,8 @@ final_state_vars = {
                 "FS_t1_flav", "FS_t2_flav", 
                 "FS_t1_rawPNetVSjet", "FS_t1_rawPNetVSmu", "FS_t1_rawPNetVSe",
                 "FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
+                "FS_t1_DeepTauVSjet", "FS_t1_DeepTauVSmu", "FS_t1_DeepTauVSe", 
+                "FS_t2_DeepTauVSjet", "FS_t2_DeepTauVSmu", "FS_t2_DeepTauVSe", 
                 ],
 
     "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",

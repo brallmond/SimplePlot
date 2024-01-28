@@ -31,6 +31,8 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   FS_t2_pt, FS_t2_eta, FS_t2_phi, FS_t2_dxy, FS_t2_dz, FS_t2_chg = [], [], [], [], [], []
   FS_t1_PNet_v_jet, FS_t1_PNet_v_mu, FS_t1_PNet_v_e = [], [], []
   FS_t2_PNet_v_jet, FS_t2_PNet_v_mu, FS_t2_PNet_v_e = [], [], []
+  FS_t1_DeepTau_v_jet, FS_t1_DeepTau_v_mu, FS_t1_DeepTau_v_e = [], [], []
+  FS_t2_DeepTau_v_jet, FS_t2_DeepTau_v_mu, FS_t2_DeepTau_v_e = [], [], []
   # note these are in the same order as the variables in the first line of this function :)
   # TODO: double-check counts with/without trigger :)
   for i, lep_pt, lep_eta, lep_phi, tau_idx,\
@@ -82,6 +84,9 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
       FS_t1_PNet_v_jet.append(PNetvJet[tau_idx[l1_idx]])
       FS_t1_PNet_v_mu.append(PNetvMu[tau_idx[l1_idx]])
       FS_t1_PNet_v_e.append(PNetvE[tau_idx[l1_idx]])
+      FS_t1_DeepTau_v_jet.append(vJet[tau_idx[l1_idx]])
+      FS_t1_DeepTau_v_mu.append(vMu[tau_idx[l1_idx]])
+      FS_t1_DeepTau_v_e.append(vEle[tau_idx[l1_idx]])
       FS_t2_pt.append(lep_pt[l2_idx])
       FS_t2_eta.append(lep_eta[l2_idx])
       FS_t2_phi.append(lep_phi[l2_idx])
@@ -91,6 +96,9 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
       FS_t2_PNet_v_jet.append(PNetvJet[tau_idx[l2_idx]])
       FS_t2_PNet_v_mu.append(PNetvMu[tau_idx[l2_idx]])
       FS_t2_PNet_v_e.append(PNetvE[tau_idx[l2_idx]])
+      FS_t2_DeepTau_v_jet.append(vJet[tau_idx[l2_idx]])
+      FS_t2_DeepTau_v_mu.append(vMu[tau_idx[l2_idx]])
+      FS_t2_DeepTau_v_e.append(vEle[tau_idx[l2_idx]])
 
   event_dictionary["pass_cuts"] = np.array(pass_cuts)
   event_dictionary["FS_t1_pt"]  = np.array(FS_t1_pt)
@@ -102,6 +110,9 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   event_dictionary["FS_t1_rawPNetVSjet"] = np.array(FS_t1_PNet_v_jet)
   event_dictionary["FS_t1_rawPNetVSmu"]  = np.array(FS_t1_PNet_v_mu)
   event_dictionary["FS_t1_rawPNetVSe"]   = np.array(FS_t1_PNet_v_e)
+  event_dictionary["FS_t1_DeepTauVSjet"] = np.array(FS_t1_DeepTau_v_jet)
+  event_dictionary["FS_t1_DeepTauVSmu"]  = np.array(FS_t1_DeepTau_v_mu)
+  event_dictionary["FS_t1_DeepTauVSe"]   = np.array(FS_t1_DeepTau_v_e)
   event_dictionary["FS_t2_pt"]  = np.array(FS_t2_pt)
   event_dictionary["FS_t2_eta"] = np.array(FS_t2_eta)
   event_dictionary["FS_t2_phi"] = np.array(FS_t2_phi)
@@ -111,6 +122,9 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   event_dictionary["FS_t2_rawPNetVSjet"] = np.array(FS_t2_PNet_v_jet)
   event_dictionary["FS_t2_rawPNetVSmu"]  = np.array(FS_t2_PNet_v_mu)
   event_dictionary["FS_t2_rawPNetVSe"]   = np.array(FS_t2_PNet_v_e)
+  event_dictionary["FS_t2_DeepTauVSjet"] = np.array(FS_t2_DeepTau_v_jet)
+  event_dictionary["FS_t2_DeepTauVSmu"]  = np.array(FS_t2_DeepTau_v_mu)
+  event_dictionary["FS_t2_DeepTauVSe"]   = np.array(FS_t2_DeepTau_v_e)
 
 
 
