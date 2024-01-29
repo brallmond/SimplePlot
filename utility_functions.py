@@ -30,9 +30,9 @@ text_options = {
 }
 
 # hack for simultaneous logging + terminal output
-def log_print(text, log_file, time=False):
+def log_print(text, log_file, time=False, *args, **kwargs):
     if (time==True): time_print(text)
-    else: print(text)
+    else: print(text, *args, **kwargs)
     if log_file:
         if (time==True): text = datetime.now(timezone.utc).strftime('%H:%M:%S') + ' ' + text
         log_file.write(str(str(text)+'\n'))
