@@ -827,6 +827,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
       append_Zpt_weight(process_events)
     keep_fakes = False
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
+      # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
     if (("DY" in process) and (final_state_mode=="ditau")):
       keep_fakes = True

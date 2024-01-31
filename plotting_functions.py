@@ -550,13 +550,14 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
       process_weights_PU     = background_dictionary[process]["PUweight"]
       process_weights_TauSF  = background_dictionary[process]["TauSFweight"]
       process_weights_MuSF   = background_dictionary[process]["MuSFweight"]
+      process_weights_ElSF   = background_dictionary[process]["ElSFweight"]
       process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
       if "DY" in process: process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt_by_hand"]
       process_weights_TT_NNLO = background_dictionary[process]["Weight_TTbar_NNLO"]
 
       #process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_MuSF # for Oceane
       process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_PU * process_weights_TT_NNLO * \
-                        process_weights_TauSF * process_weights_MuSF
+                        process_weights_TauSF * process_weights_MuSF * process_weights_ElSF
     #print("process, variable, variable and weight shapes") # DEBUG 
     #print(process, variable, process_variable.shape, process_weights.shape) # DEBUG
     h_MC_by_process[process] = {}
