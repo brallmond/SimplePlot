@@ -610,13 +610,14 @@ def get_binned_signals(signal_dictionary, variable, xbins_, lumi_, jet_mode):
       signal_weights_PU     = signal_dictionary[process]["PUweight"]
       signal_weights_TauSF  = signal_dictionary[process]["TauSFweight"]
       signal_weights_MuSF   = signal_dictionary[process]["MuSFweight"]
+      signal_weights_ElSF   = signal_dictionary[process]["ElSFweight"]
       signal_weights_DY_Zpt = signal_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
       if "DY" in process: signal_weights_DY_Zpt = signal_dictionary[process]["Weight_DY_Zpt_by_hand"]
       signal_weights_TT_NNLO = signal_dictionary[process]["Weight_TTbar_NNLO"]
 
       #signal_weights = signal_weights_gen * signal_weights_DY_Zpt * signal_weights_MuSF # for Oceane
       signal_weights = signal_weights_gen * signal_weights_DY_Zpt * signal_weights_PU * signal_weights_TT_NNLO * \
-                       signal_weights_TauSF * signal_weights_MuSF
+                       signal_weights_TauSF * signal_weights_MuSF * signal_weights_ElSF
     h_signals[process] = {}
     h_signals[process]["BinnedEvents"] = get_binned_info(process, signal_variable,
                                                         xbins_, signal_weights, lumi_)
