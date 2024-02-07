@@ -14,7 +14,8 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
                   "Muon_dxy", "Muon_dz", "Muon_charge", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_decayMode",
                   "PuppiMET_pt", "PuppiMET_phi",
                   "Lepton_tauIdx", "Lepton_muIdx", "l1_indices", "l2_indices", 
-                  "Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe"]
+                  #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe"
+                  ]
   #TODO add this "CleanJet_btagWP" (no effect in August skims since it was always 1)
   unpack_mutau = add_DeepTau_branches(unpack_mutau, DeepTau_version)
   unpack_mutau = add_trigger_branches(unpack_mutau, final_state_mode="mutau")
@@ -22,13 +23,15 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_mutau] # "*" unpacks a tuple
   pass_cuts, FS_mt = [], []
   FS_mu_pt, FS_mu_eta, FS_mu_phi, FS_mu_iso, FS_mu_dxy, FS_mu_dz, FS_mu_chg = [], [], [], [], [], [], []
-  FS_tau_pt, FS_tau_eta, FS_tau_phi, FS_tau_dxy, FS_tau_dz, FS_tau_chg = [], [], [], [], [], []
-  FS_tau_PNet_v_jet, FS_tau_PNet_v_mu, FS_tau_PNet_v_e = [], [], []
+  FS_tau_pt, FS_tau_eta, FS_tau_phi, FS_tau_dxy, FS_tau_dz, FS_tau_chg, FS_tau_DM = [], [], [], [], [], [], []
+  #FS_tau_PNet_v_jet, FS_tau_PNet_v_mu, FS_tau_PNet_v_e = [], [], []
   # note these are in the same order as the variables in the first line of this function :)
+  # goes after l1_idx, l2_idx,
+      #PNetvJet, PNetvMu, PNetvE,\
   for i, lep_pt, lep_eta, lep_phi, lep_iso,\
       mu_dxy, mu_dz, mu_chg, tau_dxy, tau_dz, tau_chg, tau_decayMode,\
       MET_pt, MET_phi, tau_idx, mu_idx,\
-      l1_idx, l2_idx, PNetvJet, PNetvMu, PNetvE,\
+      l1_idx, l2_idx,\
       vJet, vMu, vEle, trg24mu, trg27mu, crosstrg in zip(*to_check):
 
     # some handling to figure out which FS index applies to what lepton
@@ -63,42 +66,43 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     tauChgVal  = tau_chg[tauBranchLoc]
     mtVal      = calculate_mt(muPtVal, muPhiVal, MET_pt, MET_phi)
     #passMT     = (mtVal < 65.0) # SF groups
-    #passMT     = (mtVal < 50.0) # mine
-    passMT     = True
+    passMT     = (mtVal < 50.0) # mine
+    #passMT     = True # passthrough for mt check
 
-    tauPNetvJetVal = PNetvJet[tauBranchLoc]
-    tauPNetvMuVal  = PNetvMu[tauBranchLoc]
-    tauPNetvEVal   = PNetvE[tauBranchLoc]
+    #tauPNetvJetVal = PNetvJet[tauBranchLoc]
+    #tauPNetvMuVal  = PNetvMu[tauBranchLoc]
+    #tauPNetvEVal   = PNetvE[tauBranchLoc]
 
     # my selection
-    #passTauPtAndEta  = ((tauPtVal > 30.0) and (abs(tauEtaVal) < 2.3)) # mine
-    #pass25MuPt   = ((trg24mu) and (muPtVal > 25.0) and (abs(muEtaVal) < 2.4)) #mine
-    #pass28MuPt   = ((trg27mu) and (muPtVal > 28.0) and (abs(muEtaVal) < 2.4)) #mine
+    passTauPtAndEta  = ((tauPtVal > 30.0) and (abs(tauEtaVal) < 2.3)) # mine
+    pass25MuPt   = ((trg24mu) and (muPtVal > 25.0) and (abs(muEtaVal) < 2.4)) #mine
+    pass28MuPt   = ((trg27mu) and (muPtVal > 28.0) and (abs(muEtaVal) < 2.4)) #mine
     # HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1
-    #passMuPtCrossTrigger = ((crosstrg) and ((21.0 < muPtVal < 25.0) and (abs(muEtaVal) < 2.1))
-    #                                   and ((tauPtVal > 32.0)       and (abs(tauEtaVal) < 2.1)) ) 
+    passMuPtCrossTrigger = ((crosstrg) and ((21.0 < muPtVal < 25.0) and (abs(muEtaVal) < 2.1))
+                                       and ((tauPtVal > 32.0)       and (abs(tauEtaVal) < 2.1)) ) 
+    passMuPtCrossTrigger = False # dummy to turn off crosstrg
 
     # Medium v Jet, Tight v Muon, VVVLoose v Ele
-    #passTauDT  = ((vJet[tauBranchLoc] >= 5) and (vMu[tauBranchLoc] >= 4) and (vEle[tauBranchLoc] >= 1))
+    passTauDT  = ((vJet[tauBranchLoc] >= 5) and (vMu[tauBranchLoc] >= 4) and (vEle[tauBranchLoc] >= 1))
     # end my selection
 
     # SF group's selection
-    passTauPtAndEta  = ((tauPtVal > 20.0) and (abs(tauEtaVal) < 2.5))
-    pass25MuPt    = (trg24mu or trg27mu) and (muPtVal > 25.0) and (abs(muEtaVal) < 2.4)
+    #passTauPtAndEta  = ((tauPtVal > 20.0) and (abs(tauEtaVal) < 2.5))
+    #pass25MuPt    = (trg24mu or trg27mu) and (muPtVal > 25.0) and (abs(muEtaVal) < 2.4)
  
     # Medium v Jet, Tight v Muon, VVLoose v Ele
-    passTauDT  = ((vJet[tauBranchLoc] >= 5) and (vMu[tauBranchLoc] >= 4) and (vEle[tauBranchLoc] >= 2))
-    skip_DM2 = (tau_decayMode[tauBranchLoc] != 2)
+    #passTauDT  = ((vJet[tauBranchLoc] >= 5) and (vMu[tauBranchLoc] >= 4) and (vEle[tauBranchLoc] >= 2))
+    #skip_DM2 = (tau_decayMode[tauBranchLoc] != 2)
     # end SF group's selection
 
     if skip_DeepTau: passTauDT = False; # makes OR below mutually exclusive # for ARregion
 
     #restrict_tau_decayMode = (tau_decayMode[tauBranchLoc] == 0)
 
-    #if ( (passMT and (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger)) and passTauDT) # mine
-    #  or (passMT and (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger)) and skip_DeepTau) ):
-    if ( (passMT and (passTauPtAndEta and pass25MuPt and passTauDT) and skip_DM2) # SF groups
-      or (passMT and (passTauPtAndEta and pass25MuPt and skip_DeepTau) and skip_DM2) ):
+    if ( (passMT and (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger)) and passTauDT) # mine
+      or (passMT and (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger)) and skip_DeepTau) ):
+    #if ( (passMT and (passTauPtAndEta and pass25MuPt and passTauDT) and skip_DM2) # SF groups
+    #  or (passMT and (passTauPtAndEta and pass25MuPt and skip_DeepTau) and skip_DM2) ):
       pass_cuts.append(i)
       FS_mu_pt.append(muPtVal)
       FS_mu_eta.append(muEtaVal)
@@ -114,10 +118,11 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
       FS_tau_dxy.append(tauDxyVal)
       FS_tau_dz.append(tauDzVal)
       FS_tau_chg.append(tauChgVal)
+      FS_tau_DM.append(tau_decayMode[tauBranchLoc])
 
-      FS_tau_PNet_v_jet.append(tauPNetvJetVal)
-      FS_tau_PNet_v_mu.append(tauPNetvMuVal)
-      FS_tau_PNet_v_e.append(tauPNetvEVal)
+      #FS_tau_PNet_v_jet.append(tauPNetvJetVal)
+      #FS_tau_PNet_v_mu.append(tauPNetvMuVal)
+      #FS_tau_PNet_v_e.append(tauPNetvEVal)
 
       FS_mt.append(mtVal)
 
@@ -135,10 +140,11 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   event_dictionary["FS_tau_dxy"] = np.array(FS_tau_dxy)
   event_dictionary["FS_tau_dz"]  = np.array(FS_tau_dz)
   event_dictionary["FS_tau_chg"] = np.array(FS_tau_chg)
+  event_dictionary["FS_tau_DM"]  = np.array(FS_tau_DM)
   event_dictionary["FS_mt"]    = np.array(FS_mt)
-  event_dictionary["FS_tau_rawPNetVSjet"] = np.array(FS_tau_PNet_v_jet)
-  event_dictionary["FS_tau_rawPNetVSmu"]  = np.array(FS_tau_PNet_v_mu)
-  event_dictionary["FS_tau_rawPNetVSe"]   = np.array(FS_tau_PNet_v_e)
+  #event_dictionary["FS_tau_rawPNetVSjet"] = np.array(FS_tau_PNet_v_jet)
+  #event_dictionary["FS_tau_rawPNetVSmu"]  = np.array(FS_tau_PNet_v_mu)
+  #event_dictionary["FS_tau_rawPNetVSe"]   = np.array(FS_tau_PNet_v_e)
   nEvents_postcut = len(np.array(pass_cuts))
   print(f"nEvents before and after mutau cuts = {nEvents_precut}, {nEvents_postcut}")
   return event_dictionary

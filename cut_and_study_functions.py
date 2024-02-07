@@ -747,11 +747,8 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, DeepTau_
   event_dictionary = append_lepton_indices(event_dictionary)
   if ("Data" not in process):
     load_and_store_NWEvents(process, event_dictionary)
-    if ("DY" in process): 
-      customize_DY(process, final_state_mode)
-      append_Zpt_weight(event_dictionary)
+    if ("DY" in process): customize_DY(process, final_state_mode)
     event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
-  #if ((final_state_mode != "dimuon") and (jet_mode != "Inclusive")):
   if (final_state_mode != "dimuon"):
     # non-standard FS cut
     if (final_state_mode == "ditau"):
@@ -824,7 +821,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
     load_and_store_NWEvents(process, process_events)
     if ("DY" in process): 
       customize_DY(process, final_state_mode)
-      append_Zpt_weight(process_events)
+      #append_Zpt_weight(process_events)
     keep_fakes = False
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
@@ -878,12 +875,12 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
   good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0)"
   if final_state_mode == "ditau":
-    #triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\
-    #           | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60\
-    #           | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet75\
-    #           | HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1\
-    #           | HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1)"
-    triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1)"
+    triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\
+               | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60\
+               | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet75\
+               | HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1\
+               | HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1)"
+    #triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1)"
 
     good_events += " & (abs(HTT_pdgId)==15*15) & " + triggers
     if disable_triggers: good_events = good_events.replace(" & (Trigger_ditau)", "")
@@ -919,7 +916,7 @@ def set_branches(final_state_mode, DeepTau_version, process="None"):
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass",
     "HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
-    "Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
+    #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
     "PV_npvs", "Pileup_nPU",
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
   ]
@@ -986,18 +983,20 @@ clean_jet_vars = {
 final_state_vars = {
     # can't put nanoaod branches here because this dictionary is used to protect branches created internally
     "none"   : [],
-    "ditau"  : ["FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_dxy", "FS_t1_dz", "FS_t1_chg",
-                "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_dxy", "FS_t2_dz", "FS_t2_chg",
+    "ditau"  : ["FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_dxy", "FS_t1_dz", "FS_t1_chg", "FS_t1_DM",
+                "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_dxy", "FS_t2_dz", "FS_t2_chg", "FS_t2_DM",
                 "FS_t1_flav", "FS_t2_flav", 
-                "FS_t1_rawPNetVSjet", "FS_t1_rawPNetVSmu", "FS_t1_rawPNetVSe",
-                "FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
+                #"FS_t1_rawPNetVSjet", "FS_t1_rawPNetVSmu", "FS_t1_rawPNetVSe",
+                #"FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
                 "FS_t1_DeepTauVSjet", "FS_t1_DeepTauVSmu", "FS_t1_DeepTauVSe", 
                 "FS_t2_DeepTauVSjet", "FS_t2_DeepTauVSmu", "FS_t2_DeepTauVSe", 
                 ],
 
     "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
-                "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg",
-                "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"],
+                "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_DM",
+                "FS_mt", "FS_t1_flav", "FS_t2_flav", 
+                #"FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
+                ],
 
     "mutau_TnP"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg",

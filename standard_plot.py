@@ -63,13 +63,13 @@ if __name__ == "__main__":
   parser.add_argument('--lumi',        dest='lumi',        default="2022 EFG",  action='store')
   parser.add_argument('--jet_mode',    dest='jet_mode',    default="Inclusive", action='store')
   parser.add_argument('--DeepTau',     dest='DeepTau_version', default="2p5",   action='store')
-  parser.add_argument('--use_DY_NLO',  dest='use_DY_NLO',  default=True,        action='store')
+  parser.add_argument('--use_NLO',  dest='use_NLO',  default=True,        action='store')
 
   args = parser.parse_args() 
   testing     = args.testing     # False by default, do full dataset unless otherwise specified
   hide_plots  = args.hide_plots  # False by default, show plots unless otherwise specified
   hide_yields = args.hide_yields # False by default, show yields unless otherwise specified
-  use_DY_NLO  = args.use_DY_NLO  # True  by default, use LO DY if False
+  use_NLO  = args.use_NLO  # True  by default, use LO DY if False
   lumi = luminosities["2022 G"] if testing else luminosities[args.lumi]
   DeepTau_version = args.DeepTau_version # default is 2p5 [possible values 2p1 and 2p5]
 
@@ -82,7 +82,8 @@ if __name__ == "__main__":
   # there's no place like home :)
   home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/Run3PreEEFSSplitSamples/" + final_state_mode
   era_modifier_2022 = "preEE" if (("C" in args.lumi) or ("D" in args.lumi)) else "postEE"
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
+  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
+  #home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
   using_directory = home_dir
  
   good_events  = set_good_events(final_state_mode)
@@ -99,7 +100,7 @@ if __name__ == "__main__":
                    good_events, branches, vars_to_plot, log_file)
 
   file_map = testing_file_map if testing else full_file_map
-  if (use_DY_NLO == True): 
+  if (use_NLO == True): 
     file_map.pop("DYInc")
     file_map.pop("WJetsInc")
   else: 

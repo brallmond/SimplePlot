@@ -52,7 +52,8 @@ testing_file_map = {
   #"ZZTo2Nu2Q" : "VV/ZZTo2Nu2Q*",
   #"ZZTo4L"    : "VV/ZZTo4L*", 
 
-  "VBF"   : "Signal/VBF*",
+  "VBF"   : "Signal/VBF*private*",
+  "ggH"   : "Signal/ggH*private*",
 }
 
 compare_eras_file_map = {
@@ -131,6 +132,6 @@ full_file_map = {
   "ZZTo2Nu2Q" : "VV/ZZTo2Nu2Q*",
   "ZZTo4L"    : "VV/ZZTo4L*", 
 
-  "VBF"   : "Signal/VBF*",
-  "ggH"   : "Signal/ggH*",
+  "VBF"   : "Signal/VBF*private*",
+  "ggH"   : "Signal/ggH*private*",
 }

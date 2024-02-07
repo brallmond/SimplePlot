@@ -1,6 +1,7 @@
 import numpy as np
 from datetime import datetime, timezone
 from os import getlogin, path, makedirs
+import sys
 
 ### README
 # this file contains functions to support various print commands
@@ -77,9 +78,8 @@ def make_directory(directory_name, final_state, testing=False):
   if not path.isdir(directory_name):
     makedirs(directory_name)
   else:
-    directory_name = "alternate_" + directory_name
-    makedirs(directory_name)
-    print("WARNING: directory already exists, putting images in alternate: {directory_name}")
+    print("WARNING: directory already exists, wait one minute.")
+    sys.exit()
   return directory_name
 
 

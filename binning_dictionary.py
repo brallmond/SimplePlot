@@ -17,6 +17,7 @@ binning_dictionary = {
   "FS_t1_dxy"  : (50, 0, 0.20),
   "FS_t1_dz"   : (50, 0, 0.25),
   "FS_t1_chg"  : (5, -2, 2),
+  "FS_t1_DM"   : (20, 0, 19),
 
   "FS_t2_pt"   : (24, 0, 120),
   "FS_t2_eta"  : (30, -3, 3),
@@ -27,6 +28,7 @@ binning_dictionary = {
   "FS_t2_dxy"  : (50, 0, 0.20),
   "FS_t2_dz"   : (50, 0, 0.25),
   "FS_t2_chg"  : (5, -2, 2),
+  "FS_t2_DM"   : (20, 0, 19),
 
 #  mutau/etau
   "FS_mu_pt"   : (40, 0, 120),
@@ -51,6 +53,7 @@ binning_dictionary = {
   "FS_tau_dxy" : (50, 0, 0.20),
   "FS_tau_dz"  : (50, 0, 0.25),
   "FS_tau_chg" : (5, -2, 2),
+  "FS_tau_DM"  : (20, 0, 19),
 
   "FS_tau_rawPNetVSjet" : (50, 0, 1),
   "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx

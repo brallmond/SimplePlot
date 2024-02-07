@@ -552,7 +552,6 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
       process_weights_MuSF   = background_dictionary[process]["MuSFweight"]
       process_weights_ElSF   = background_dictionary[process]["ElSFweight"]
       process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
-      if "DY" in process: process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt_by_hand"]
       process_weights_TT_NNLO = background_dictionary[process]["Weight_TTbar_NNLO"]
 
       #process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_MuSF # for Oceane
@@ -612,7 +611,6 @@ def get_binned_signals(signal_dictionary, variable, xbins_, lumi_, jet_mode):
       signal_weights_MuSF   = signal_dictionary[process]["MuSFweight"]
       signal_weights_ElSF   = signal_dictionary[process]["ElSFweight"]
       signal_weights_DY_Zpt = signal_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
-      if "DY" in process: signal_weights_DY_Zpt = signal_dictionary[process]["Weight_DY_Zpt_by_hand"]
       signal_weights_TT_NNLO = signal_dictionary[process]["Weight_TTbar_NNLO"]
 
       #signal_weights = signal_weights_gen * signal_weights_DY_Zpt * signal_weights_MuSF # for Oceane

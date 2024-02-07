@@ -144,7 +144,7 @@ MC_dictionary = {
 
   "WJetsInc"      : {"XSec": XSec["WJetsToLNu_LO"], "NWEvents": 43876130657994.01,
                      "label": "WJ", "color": color_dictionary["WJ"],
-                     "plot_scaling" : 1},
+                     "plot_scaling" : 1.125552349}, #k-factor from Stitching config in NanoTauAnalysis
   "WJetsIncNLO"   : {"XSec": XSec["WJetsToLNu"], "NWEvents": 1,
                      "label": "WJ", "color": color_dictionary["WJ"],
                      "plot_scaling" : 1},
