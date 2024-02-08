@@ -3,6 +3,47 @@ import numpy as np
 ### README ###
 # binning for different variables are defined below and are separated by use-case
 # All variables are assumed to be linearly binned.
+
+label_dictionary = {
+  "FS_t1_pt" : r'Leading Tau $p_T$ [GeV]',
+  "FS_t1_eta" : r'Leading Tau $\eta$',
+  "FS_t1_phi" : r'Leading Tau $\phi$',
+  "FS_t1_DeepTauVSjet" : r'Leading Tau DeepTau Vs Jet',
+  "FS_t1_DeepTauVSmu"  : r'Leading Tau DeepTau Vs Muon',
+  "FS_t1_DeepTauVSe"   : r'Leading Tau DeepTau Vs Electron',
+  "FS_t1_dxy"  : r'Leading Tau $D_{xy}$',
+  "FS_t1_dz"   : r'Leading Tau $D_Z$',
+  "FS_t1_chg"  : r'Leading Tau Charge',
+  "FS_t1_DM"   : r'Leading Tau Decay Mode',
+
+  "FS_t2_pt" : r'Sub-leading Tau $p_T$ [GeV]',
+  "FS_t2_eta" : r'Sub-leading Tau $\eta$',
+  "FS_t2_phi" : r'Sub-leading Tau $\phi$',
+  "FS_t2_DeepTauVSjet" : r'Sub-leading Tau DeepTau Vs Jet',
+  "FS_t2_DeepTauVSmu"  : r'Sub-leading Tau DeepTau Vs Muon',
+  "FS_t2_DeepTauVSe"   : r'Sub-leading Tau DeepTau Vs Electron',
+  "FS_t2_dxy"  : r'Sub-leading Tau $D_{xy}$',
+  "FS_t2_dz"   : r'Sub-leading Tau $D_Z$',
+  "FS_t2_chg"  : r'Sub-leading Tau Charge',
+  "FS_t2_DM"   : r'Sub-leading Tau Decay Mode',
+
+
+  "MET_pt"      : r'MET [GeV]',
+  "PuppiMET_pt" : r'PUPPI MET [GeV]',
+  "nCleanJetGT30"   : r'Number of Jets',
+  #"CleanJet_pt" : '',
+  #"CleanJet_eta": '',
+  "HTT_DiJet_MassInv_fromHighestMjj" : r'Dijet Mass [GeV]',
+  "HTT_DiJet_dEta_fromHighestMjj"    : r'|$\Delta\eta$|',
+  "HTT_H_pt_using_PUPPI_MET"         : r'Higgs $p_T$ [GeV]',
+  "HTT_dR"     : r'$\Delta$R',
+  "HTT_m_vis-KSUbinning" : r'$m_{vis}$ [GeV]',
+  "HTT_m_vis-SFbinning" : r'$m_{vis}$ [GeV]',
+  "HTT_pT_l1l2" : r'$p_T^{ll}$',
+  "FastMTT_PUPPIMET_mT" : r'Fast MTT Transverse Mass [GeV]',
+  "FastMTT_PUPPIMET_mass" : r'Fast MTT Mass [GeV]',
+  "PV_npvs"    : r'Number of Primary Vertices',
+}
  
 binning_dictionary = {
 #  var  : (nBins, xmin, xmax),

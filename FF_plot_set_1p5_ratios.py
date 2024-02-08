@@ -6,6 +6,8 @@ import sys
 import matplotlib.pyplot as plt
 import gc
 import copy
+from iminuit import Minuit
+from iminuit.cost import LeastSquares
 
 # explicitly import used functions from user files, grouped roughly by call order and relatedness
 from file_map_dictionary   import testing_file_map, full_file_map, testing_dimuon_file_map, dimuon_file_map
@@ -19,9 +21,9 @@ from cut_and_study_functions import apply_HTT_FS_cuts_to_process, apply_AR_cut
 
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
-from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, setup_single_plot, spruce_up_single_plot
+from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins
 
-from plotting_functions import get_midpoints
+from plotting_functions import get_midpoints, setup_single_plot, spruce_up_single_plot
 
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print
@@ -31,43 +33,10 @@ from cut_and_study_functions import load_and_store_NWEvents, customize_DY, appen
 from cut_ditau_functions import make_ditau_AR_cut, make_ditau_SR_cut, make_ditau_cut, make_ditau_cut_FF
 from cut_ditau_functions import make_ditau_AR_aiso_cut, make_ditau_SR_aiso_cut
 
-def match_objects_to_trigger_bit():
-  '''
-  Current work in progress
-  Using the final state object kinematics, check if the filter bit of a used trigger is matched
-  '''
-  #FS ditau - two taus, match to ditau
-  #FS mutau - one tau, one muon
-  # - if not cross-trig, match muon to filter
-  # - if cross-trig, use cross-trig filters to match both
-  match = False
-  # step 1 check fired triggers
-  # step 2 ensure correct trigger bit is fired
-  # step 3 calculate dR and compare with 0.5
-  dR_trig_offline = calculate_dR(trig_eta, trig_phi, off_eta, off_phi)
+from binning_dictionary import label_dictionary
 
-def plot_QCD_preview(xbins, h_data, h_summed_backgrounds, h_QCD, h_MC_frac, h_QCD_FF):
-  FF_before_after_ax, FF_info_ax = setup_ratio_plot()
-
-  FF_before_after_ax.set_title("QCD Preview")
-  FF_before_after_ax.set_ylabel("Events / Bin")
-  FF_before_after_ax.minorticks_on()
-
-  FF_before_after_ax.plot(xbins[0:-1], h_data, label="Data",
-                          color="black", marker="o", linestyle='none', markersize=3)
-  FF_before_after_ax.plot(xbins[0:-1], h_summed_backgrounds, label="MC",
-                          color="blue", marker="^", linestyle='none', markersize=3)
-  FF_before_after_ax.plot(xbins[0:-1], h_QCD, label="QCD", 
-                          color="orange", marker="v", linestyle='none', markersize=4)
-
-  FF_info_ax.plot(xbins[0:-1], h_MC_frac, label="1-MC/Data",
-                  color="red", marker="*", linestyle='none', markersize=3)
-  FF_info_ax.plot(xbins[0:-1], h_QCD_FF, label="FF from fit",
-                  color="green", marker="s", linestyle='none', markersize=3)
-  FF_info_ax.axhline(y=1, color='grey', linestyle='--')
-
-  FF_before_after_ax.legend()
-  FF_info_ax.legend()
+def line(x, a, b):
+    return a + x * b
 
 if __name__ == "__main__":
   '''
@@ -136,7 +105,7 @@ if __name__ == "__main__":
   # SR AR are always OS
   # DR are always SS
   
-  # ahh, you can just do the whole thing in aiso and 
+  # you can just do the whole thing in aiso and 
   # say, well, it's probably fine to do that in SR too
 
   dataset_dictionary = {"ditau" : "DataTau", "mutau" : "DataMuon", "etau" : "DataElectron", "emu" : "DataEMu"}
@@ -152,6 +121,7 @@ if __name__ == "__main__":
 
 
   #"AR",   OS_region, make_ditau_AR_cut ("pass_AR_cuts")
+  #"SR",   OS_region, make_ditau_SR_cut ("pass_SR_cuts") # not plotted with this script
   #"DRar", SS_region, make_ditau_AR_cut ("pass_AR_cuts")
   #"DRsr", SS_region, make_ditau_SR_cut ("pass_SR_cuts")
 
@@ -160,7 +130,12 @@ if __name__ == "__main__":
   #"DRar-aiso", SS_region, make_ditau_AR_aiso_cut ("pass_AR_aiso_cuts")
   #"DRsr-aiso", SS_region, make_ditau_SR_aiso_cut ("pass_SR_aiso_cuts")
 
-  for region in ["AR", "DRsr", "DRar", "SR-aiso", "AR-aiso", "DRsr-aiso", "DRar-aiso"]:
+  store_region_data_dictionary = {}
+  store_region_bkgd_dictionary = {}
+  store_region_sgnl_dictionary = {}
+  numerator = "DRsr-aiso"
+  denominator = "DRar-aiso"
+  for region in [numerator, denominator]:
 
     region_title = region
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
@@ -171,6 +146,7 @@ if __name__ == "__main__":
 
     # make and apply cuts to any loaded events, store in new dictionaries for plotting
     combined_process_dictionary = {}
+
     for process in file_map: 
 
       gc.collect()
@@ -259,59 +235,114 @@ if __name__ == "__main__":
     # after loop, sort big dictionary into three smaller ones
     data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
-    log_print("Processing finished!", log_file, time=True)
-    ## end processing loop, begin plotting
+    # store dictionaries
+    store_region_data_dictionary[region_title] = data_dictionary
+    store_region_bkgd_dictionary[region_title] = background_dictionary
+    store_region_sgnl_dictionary[region_title] = signal_dictionary
 
-    vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-    # remove mvis, replace with mvis_HTT and mvis_SF
-    vars_to_plot.remove("HTT_m_vis")
-    vars_to_plot.append("HTT_m_vis-KSUbinning")
-    vars_to_plot = ["HTT_m_vis-KSUbinning", 
-                    "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",
-                    "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt"]
-    # and add back variables unique to the jet mode
-    if (jet_mode == "1j") or (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_1")
-    if (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_2")
-    for var in vars_to_plot:
-      log_print(f"Plotting {var}", log_file, time=True)
 
-      xbins = make_bins(var, final_state_mode)
-      #hist_ax, hist_ratio = setup_ratio_plot()
-      hist_ax = setup_single_plot()
+  numerator_data = store_region_data_dictionary[numerator]
+  numerator_bkgd = store_region_bkgd_dictionary[numerator]
+  numerator_sgnl = store_region_sgnl_dictionary[numerator]
+  denominator_data = store_region_data_dictionary[denominator]
+  denominator_bkgd = store_region_bkgd_dictionary[denominator]
+  denominator_sgnl = store_region_sgnl_dictionary[denominator]
 
-      temp_var = var
-      if "HTT_m_vis" in var: var = "HTT_m_vis"
-      h_data = get_binned_data(data_dictionary, var, xbins, lumi)
-      h_backgrounds, h_summed_backgrounds = get_binned_backgrounds(background_dictionary, var, xbins, lumi, jet_mode)
-      h_signals = get_binned_signals(signal_dictionary, var, xbins, lumi, jet_mode) 
-      var = temp_var
+  log_print("Processing finished!", log_file, time=True)
+  ## end processing loop, begin plotting
 
-      # plot everything :)
-      plot_data(hist_ax, xbins, h_data, lumi)
-      plot_MC(hist_ax, xbins, h_backgrounds, lumi)
-      plot_signal(hist_ax, xbins, h_signals, lumi)
+  vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
+  # remove mvis, replace with mvis_HTT and mvis_SF
+  vars_to_plot.remove("HTT_m_vis")
+  vars_to_plot.append("HTT_m_vis-KSUbinning")
+  vars_to_plot = ["HTT_m_vis-KSUbinning", 
+                  "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",
+                  "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt"]
+  # and add back variables unique to the jet mode
+  if (jet_mode == "1j") or (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_1")
+  if (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_2")
+  for var in vars_to_plot:
+    log_print(f"Plotting {var}", log_file, time=True)
 
-      #make_ratio_plot(hist_ratio, xbins, h_data, h_summed_backgrounds)
+    xbins = make_bins(var, final_state_mode)
 
-      # reversed dictionary search for era name based on lumi 
-      title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
-      title = f"{region_title} {title_era}, {lumi:.2f}" + r"$fb^{-1}$"
-      
-      #spruce_up_plot(hist_ax, hist_ratio, var, title, final_state_mode, jet_mode, set_x_log = set_x_log)
-      spruce_up_single_plot(hist_ax, var, "Events/Bin", title, final_state_mode, jet_mode)
-      spruce_up_legend(hist_ax, final_state_mode, h_data)
+    ax_compare = setup_single_plot()
+    ax_ratio   = setup_single_plot()
 
-      plt.savefig(plot_dir + "/" + str(var) + "_" + str(region_title) + ".png")
+    temp_var = var
+    if "HTT_m_vis" in var: var = "HTT_m_vis"
+    h_numerator_data = get_binned_data(numerator_data, var, xbins, lumi)
+    h_denominator_data = get_binned_data(denominator_data, var, xbins, lumi)
+    h_numerator_backgrounds, h_numerator_summed_backgrounds = get_binned_backgrounds(numerator_bkgd, var, xbins, lumi, jet_mode)
+    h_denominator_backgrounds, h_denominator_summed_backgrounds = get_binned_backgrounds(denominator_bkgd, var, xbins, lumi, jet_mode)
+    #h_numerator_signals = get_binned_signals(numerator_sgnl, var, xbins, lumi, jet_mode) 
+    #h_denominator_signals = get_binned_signals(denominator_sgnl, var, xbins, lumi, jet_mode) 
+    var = temp_var
 
-      # calculate and print these quantities only once
-      if (var == "HTT_m_vis"): 
-        calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
-        labels, yields = yields_for_CSV(hist_ax, desired_order=["Data", "TT", "WJ", "DY", "VV", "ST", "ggH", "VBF"])
-        print(f"Reordered     Labels: {labels}")
-        print(f"Corresponding Yields: {yields}")
+    h_numerator_data_m_MC = h_numerator_data - h_numerator_summed_backgrounds
+    h_denominator_data_m_MC = h_denominator_data - h_denominator_summed_backgrounds
 
-    if hide_plots: pass
-    else: plt.show()
-    log_print(f"Finished plots for {region_title} region!", log_file, time=True)
+    # reversed dictionary search for era name based on lumi 
+    title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
+    title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
+
+    # plot everything :)
+    plot_data(ax_compare, xbins, h_numerator_data_m_MC, lumi, color="black", label=f"{numerator} : Data-MC")
+    plot_data(ax_compare, xbins, h_denominator_data_m_MC, lumi, color="green",  label=f"{denominator} : Data-MC")
+    spruce_up_single_plot(ax_compare, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
+    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region_title) + ".png")
+
+    FF_ratio, FF_ratio_err = make_ratio_plot(ax_ratio, xbins, h_numerator_data_m_MC, h_denominator_data_m_MC, 
+                                             label=f"{numerator} / {denominator}")
+
+
+    # remove entry if val or error is zero (and is next to another zero)
+    identify_zeros = np.array([(FF_ratio[i] == 0) for i in range(len(FF_ratio))]) # mask for all zeros
+    # finds zeros neighboring zeros
+    silly_zeros = []
+    for i,val in enumerate(FF_ratio):
+      if (val == 0):
+        if (i == 0):
+          if (FF_ratio[i+1] == 0): silly_zeros.append(True)
+        elif (i == len(FF_ratio)-1):
+          if (FF_ratio[i-1] == 0): silly_zeros.append(True)
+        elif ((FF_ratio[i+1] == 0) or (FF_ratio[i-1] == 0)): silly_zeros.append(True)
+        else: silly_zeros.append(False)
+      else: silly_zeros.append(False)
+    silly_zeros = np.array(silly_zeros)
+
+    midpoints = get_midpoints(xbins)
+
+    # cludging
+    use_FF_ratio     = FF_ratio[~silly_zeros]
+    use_FF_ratio_err = FF_ratio_err[~silly_zeros]
+    use_midpoints    = midpoints[~silly_zeros]
+
+    if (var == "FS_t1_pt"):
+      use_vals = np.array([((midpoints[i] > 40) and (midpoints[i] < 150)) for i in range(len(midpoints))])
+      use_FF_ratio     = FF_ratio[use_vals]
+      use_FF_ratio_err = FF_ratio_err[use_vals]
+      use_midpoints    = midpoints[use_vals]
+
+    least_squares = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, line) # line is a function defined above
+    m = Minuit(least_squares, a=0, b=0)
+    m.migrad()
+
+    a_fit = m.values["a"] 
+    b_fit = m.values["b"]
+
+    print(var, a_fit, b_fit)
+    print(m)
+
+    ax_ratio.plot(use_midpoints, line(use_midpoints, a_fit, b_fit), color="red", 
+                                      label=f"y = {a_fit:.3f} x + {b_fit:.2e}")
+
+    spruce_up_single_plot(ax_ratio, label_dictionary[var], "Fake Factor Ratio and Fit", 
+                          title, final_state_mode, jet_mode, yrange=[0.0, 1.0])
+    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region_title) + ".png")
+
+  if hide_plots: pass
+  else: plt.show()
+  log_print(f"Finished plots for FF region!", log_file, time=True)
 
 

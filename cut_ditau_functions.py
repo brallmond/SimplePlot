@@ -61,8 +61,8 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
          # jet cuts need to be made before FS cuts
     #passKinems = (lep_pt[l1_idx] >= 40.0 and lep_pt[l2_idx] >= 40.0)
     # Medium v Jet, VLoose v Muon, VVVLoose v Ele
-    t1passDT   = (vJet[tau_idx[l1_idx]] >= 5 and vMu[tau_idx[l1_idx]] >= 1 and vEle[tau_idx[l1_idx]] >= 1)
-    t2passDT   = (vJet[tau_idx[l2_idx]] >= 5 and vMu[tau_idx[l2_idx]] >= 1 and vEle[tau_idx[l2_idx]] >= 1)
+    t1passDT   = (vJet[tau_idx[l1_idx]] >= 5 and vMu[tau_idx[l1_idx]] >= 1 and vEle[tau_idx[l1_idx]] >= 2)
+    t2passDT   = (vJet[tau_idx[l2_idx]] >= 5 and vMu[tau_idx[l2_idx]] >= 1 and vEle[tau_idx[l2_idx]] >= 2)
     t1_decayMode = tau_decayMode[tau_idx[l1_idx]]
     t2_decayMode = tau_decayMode[tau_idx[l2_idx]]
     #good_tau_decayMode = ((t1_decayMode == 11) and (t2_decayMode == 11))
@@ -201,10 +201,13 @@ def make_ditau_cut_FF(event_dictionary, DeepTau_version):
     #good_tau_decayMode = ((t1_decayMode == 11) and (t2_decayMode == 11))
     good_tau_decayMode = True
 
+    t1passDT   = (vMu[tau_idx[l1_idx]] >= 1 and vEle[tau_idx[l1_idx]] >= 2)
+    t2passDT   = (vMu[tau_idx[l2_idx]] >= 1 and vEle[tau_idx[l2_idx]] >= 2)
+
     t1_chg = tau_chg[tau_idx[l1_idx]]
     t2_chg = tau_chg[tau_idx[l2_idx]]
   
-    if ( (passKinems and good_tau_decayMode) ):
+    if ( (passKinems and good_tau_decayMode and t1passDT and t2passDT) ):
       pass_cuts.append(i)
       # TODO update me with the variable names used earlier
       FS_t1_pt.append(lep_pt[l1_idx])

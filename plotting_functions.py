@@ -207,6 +207,9 @@ def setup_ratio_plot():
   fig, (upper_ax, lower_ax) = plt.subplots(nrows=2, sharex=True, gridspec_kw=gridspec_kw)
   return (upper_ax, lower_ax)
 
+def setup_single_plot():
+  fig, ax = plt.subplots()
+  return ax
 
 def setup_TnP_plot():
   fig, ax = plt.subplots() #subplot?
@@ -244,6 +247,20 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
             transform=axis.transAxes, fontsize=10)
 
 
+def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, jet_mode, yrange=None):
+  add_CMS_preliminary(axis)
+  add_final_state_and_jet_mode(axis, final_state_mode, jet_mode)
+  axis.set_title(title, loc='right', y=0.98)
+  axis.set_ylabel("events / bin")
+  axis.minorticks_on()
+  axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
+  axis.set_xlabel(variable_name)
+  axis.set_ylabel(ylabel)
+  if (yrange != None): axis.set_ylim(yrange)
+  leg = axis.legend(loc="upper right", frameon=False, bbox_to_anchor=[0.6, 0.4, 0.4, 0.6],
+                    labelspacing=0.35, handlelength=0.8, handleheight=0.8, handletextpad=0.4)
+
+
 def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_state_mode, jet_mode,
                    set_x_log = False, set_y_log = False):
   '''
@@ -256,11 +273,11 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
   add_final_state_and_jet_mode(histogram_axis, final_state_mode, jet_mode)
   #histogram_axis.set_ylim([0, histogram_axis.get_ylim()[1]*1.2]) # scale top of graph up by 20%
   histogram_axis.set_title(title, loc='right', y=0.98)
-  histogram_axis.set_ylabel("Events / Bin")
+  histogram_axis.set_ylabel("events / bin")
   histogram_axis.minorticks_on()
   histogram_axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
   #yticks = histogram_axis.yaxis.get_major_ticks()
-  #yticks[0].label1.set_visible(False) # hides a zero that overlaps with the upper plot
+  #yticks[0].label1.set_visible(false) # hides a zero that overlaps with the upper plot
 
   ratio_plot_axis.set_ylim([0.45, 1.55]) # 0.0, 2.0 also make sense
   ratio_plot_axis.set_xlabel(variable_name) # shared axis label
@@ -324,7 +341,7 @@ def spruce_up_legend(histogram_axis, final_state_mode, data_hists):
     print("Removed samples with yield=0 from legend!")
 
  
-def make_ratio_plot(ratio_axis, xbins, numerator_data, denominator_data):
+def make_ratio_plot(ratio_axis, xbins, numerator_data, denominator_data, label=None):
   '''
   Uses provided numerator and denominator info to make a ratio to add to given plotting axis.
   Errors are also calculated using the same matplotlib function as used in plot_data.
@@ -332,13 +349,16 @@ def make_ratio_plot(ratio_axis, xbins, numerator_data, denominator_data):
   ratio = numerator_data/denominator_data
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
   # TODO : technically errors from stack should be individually calculated, not one stack
-  statistical_error = [ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
+  statistical_error = np.array([ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
                       if ((denominator_data[i] > 0) and (numerator_data[i] >0)) else 0
-                      for i,_ in enumerate(denominator_data)] # ratio error = √ ((1/A) + (1/B)) \
+                      for i,_ in enumerate(denominator_data)]) # ratio error = √ ((1/A) + (1/B)) \
+  statistical_error[np.isnan(statistical_error)] = 0
   midpoints = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2
   ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
-                    color="black", marker="o", linestyle='none', markersize=2)
+                    color="black", marker="o", linestyle='none', markersize=2, label=label)
+
+  return ratio, statistical_error
 
 
 def get_trimmed_Generator_weight_copy(variable, single_background_dictionary, jet_mode):

@@ -23,6 +23,8 @@ from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins
 
 from plotting_functions import get_midpoints
 
+from binning_dictionary import label_dictionary
+
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print
 
@@ -273,7 +275,7 @@ if __name__ == "__main__":
     
     #set_x_log = True if "PNet" in var else False
     set_x_log = False
-    spruce_up_plot(hist_ax, hist_ratio, var, title, final_state_mode, jet_mode, set_x_log = set_x_log)
+    spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, set_x_log = set_x_log)
     spruce_up_legend(hist_ax, final_state_mode, h_data)
 
     plt.savefig(plot_dir + "/" + str(var) + ".png")
