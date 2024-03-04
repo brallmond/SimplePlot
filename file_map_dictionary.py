@@ -2,6 +2,38 @@
 # This file contains mappings of process names (shared with XSec.py) to wildcards for related samples.
 # The :testing" file maps are subsets of full filelists for faster processing times.
 
+
+def update_data_filemap(luminosity_key, file_map): 
+  if luminosity_key == "2022 C":
+    file_map["DataTau"]      = "Data/Tau_Run2022C*"
+    file_map["DataMuon"]     = "Data/Muon_Run2022C*"
+    file_map["DataElectron"] = "Data/EGamma_Run2022C*"
+  if luminosity_key == "2022 D":
+    file_map["DataTau"]      = "Data/Tau_Run2022D*"
+    file_map["DataMuon"]     = "Data/Muon_Run2022D*"
+    file_map["DataElectron"] = "Data/EGamma_Run2022D*"
+  if luminosity_key == "2022 CD":
+    file_map["DataTau"]      = "Data/Tau_Run2022*"
+    file_map["DataMuon"]     = "Data/Muon_Run2022*"
+    file_map["DataElectron"] = "Data/EGamma_Run2022*"
+  if luminosity_key == "2022 E":
+    file_map["DataTau"]      = "Data/Tau_Run2022E*"
+    file_map["DataMuon"]     = "Data/Muon_Run2022E*"
+    file_map["DataElectron"] = "Data/EGamma_Run2022E*"
+  if luminosity_key == "2022 F":
+    file_map["DataTau"]      = "Data/Tau_Run2022F*"
+    file_map["DataMuon"]     = "Data/Muon_Run2022F*"
+    file_map["DataElectron"] = "Data/EGamma_Run2022F*"
+  if luminosity_key == "2022 G":
+    file_map["DataTau"]      = "Data/Tau_Run2022G*"
+    file_map["DataMuon"]     = "Data/Muon_Run2022G*"
+    file_map["DataElectron"] = "Data/EGamma_Run2022G*"
+  if luminosity_key == "2022 EFG":
+    file_map["DataTau"]      = "Data/Tau_Run2022*"
+    file_map["DataMuon"]     = "Data/Muon_Run2022*"
+    file_map["DataElectron"] = "Data/EGamma_Run2022*"
+  return file_map 
+
 # This file is sort of a hellscape
 
 compare_new_old_dimuon_file_map = {
@@ -24,6 +56,8 @@ TnP_file_map = {
 }
 
 testing_file_map = {
+  #"DataTauF"  : "Data/Tau_Run*F*", # still figure this out
+  #"DataTauG"  : "Data/Tau_Run*G*",
   "DataTau"  : "Data/Tau_Run*G*",
   "DataMuon" : "Data/Muon_Run*G*",
   "DataElectron" : "Data/EGamma*G*",
@@ -33,13 +67,17 @@ testing_file_map = {
   "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
   "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
 
+  #"TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
+  #"TTToFullyHadronic" : "TT/TTToFullyHadronic*",
+  #"TTToSemiLeptonic"  : "TT/TTToSemiLeptonic*",
+
   "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
   "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
 
-  "ST_s-channel_Tbar"  : "ST/ST_s-channel_antitop*",
-  "ST_t-channel_Tbar"  : "ST/ST_t-channel_antitop*",
-  "ST_s-channel_T"     : "ST/ST_s-channel_top*",
-  "ST_t-channel_T"     : "ST/ST_t-channel_top*",
+  #"ST_s-channel_Tbar"  : "ST/ST_s-channel_antitop*",
+  #"ST_t-channel_Tbar"  : "ST/ST_t-channel_antitop*",
+  #"ST_s-channel_T"     : "ST/ST_s-channel_top*",
+  #"ST_t-channel_T"     : "ST/ST_t-channel_top*",
 
   #"WWTo2L2Nu" : "VV/WWTo2L2Nu*",
   #"WWTo4Q"    : "VV/WWTo4Q*",

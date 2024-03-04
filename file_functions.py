@@ -35,7 +35,8 @@ def load_process_from_file(process, file_directory, file_map, log_file,
   if data: 
     # if a branch isn't available in Data, don't try to load it
     branches_not_in_data = ["Generator_weight", "NWEvents", "Tau_genPartFlav", "Weight_DY_Zpt", "XSecMCweight",
-                            "TauSFweight", "MuSFweight", "ElSFweight", "PUweight", "Weight_TTbar_NNLO", "Pileup_nPU"]
+                            "TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull",
+                            "PUweight", "Weight_TTbar_NNLO", "Pileup_nPU"]
     for missing_branch in branches_not_in_data:
       branches = [branch for branch in branches if branch != missing_branch]
   try:
@@ -74,6 +75,7 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "TauSFweight": cut_events["TauSFweight"],
       "MuSFweight":  cut_events["MuSFweight"],
       "ElSFweight":  cut_events["ElSFweight"],
+      "BTagSFfull":  cut_events["BTagSFfull"],
       "PUweight"  :  cut_events["PUweight"],
       "SF_weight": np.ones(cut_events["Generator_weight"].shape)
     }
@@ -83,6 +85,8 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "PlotEvents": {},
       "Cuts": {},
     }
+    if ("FF_weight" in cut_events.keys()):
+      combined_processes[process]["FF_weight"] = cut_events["FF_weight"]
   for var in vars_to_plot:
     if ("Data" in process) and ("flav" in var): continue
     combined_processes[process]["PlotEvents"][var] = cut_events[var]

@@ -7,7 +7,7 @@ from calculate_functions import calculate_mt, hasbit, getBin, highest_mjj_pair
 from utility_functions   import time_print, text_options, log_print
 
 from cut_ditau_functions import make_ditau_cut, make_ditau_AR_cut
-from cut_mutau_functions import make_mutau_cut, make_mutau_AR_cut, make_mutau_TnP_cut
+from cut_mutau_functions import make_mutau_cut, make_mutau_SR_cut, make_mutau_AR_cut, make_mutau_TnP_cut
 from cut_etau_functions  import make_etau_cut,  make_etau_AR_cut
 from branch_functions    import add_trigger_branches, add_DeepTau_branches, add_Zpt_branches
 
@@ -188,9 +188,12 @@ def set_FF_values(final_state_mode, jet_mode_and_DeepTau_version, determining_FF
       #"custom_GTE2j_2p5_CH" : [1.1, 0],
 
       ### from V12 samples
-      "custom_0j_2p5_FF" :    [0.277605,-0.000507954],
-      "custom_1j_2p5_FF" :    [0.245381,-0.00054067],
-      "custom_GTE2j_2p5_FF" : [0.232493,-0.000626524],
+      "custom_0j_2p5_FF" :    [0.278,-0.000577],
+      "custom_1j_2p5_FF" :    [0.231,-0.000509],
+      "custom_GTE2j_2p5_FF" :    [0.237,-0.000970],
+      #"custom_0j_2p5_FF" :    [0.277605,-0.000507954],
+      #"custom_1j_2p5_FF" :    [0.245381,-0.00054067],
+      #"custom_GTE2j_2p5_FF" : [0.232493,-0.000626524],
 
       "custom_0j_2p5_CH" :    [1.03281, 0.000366355], # i think this is an underestimate
       "custom_1j_2p5_CH" :    [1.08724, 3.92753e-05], # same here
@@ -272,7 +275,7 @@ def set_FF_values(final_state_mode, jet_mode_and_DeepTau_version, determining_FF
   return intercept, slope
 
 
-def add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version, determining_FF=False):
+def add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version, determining_FF=False, bypass=None):
   unpack_FFVars = ["Lepton_pt", "HTT_m_vis", "l1_indices", "l2_indices"]
   unpack_FFVars = (event_dictionary.get(key) for key in unpack_FFVars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_FFVars]
@@ -324,8 +327,17 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version
   
   FF_key = jet_mode + "_" + DeepTau_version
 
-  intercept, slope = set_FF_values(final_state_mode, "custom_"+jet_mode+"_2p5_FF", determining_FF)
-  OSSS_bias_intercept, OSSS_bias_slope = set_FF_values(final_state_mode, "custom_"+jet_mode+"_2p5_CH", determining_FF)
+  if (bypass != None):
+    intercept = bypass[0]
+    slope     = bypass[1]
+    OSSS_bias_intercept = bypass[2]
+    OSSS_bias_slope     = bypass[3]
+    ditau_weight_map[FF_key] = {}
+    ditau_weight_map[FF_key] = [bins,[1 for i in range(18)]]
+
+  else:
+    intercept, slope = set_FF_values(final_state_mode, "custom_"+jet_mode+"_2p5_FF", determining_FF)
+    OSSS_bias_intercept, OSSS_bias_slope = set_FF_values(final_state_mode, "custom_"+jet_mode+"_2p5_CH", determining_FF)
 
   #intercept, slope = set_FF_values("ditau", FF_key)
   #closure_intercept, closure_slope = set_FF_values("ditau", "Closure_" + DeepTau_version)
@@ -706,6 +718,9 @@ def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, u
     event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "mutau":
+    #event_dictionary = make_mutau_region(event_dictionary, DeepTau_version) # cut SR
+    event_dictionary = make_mutau_SR_cut(event_dictionary, DeepTau_version)
+    event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "mutau_TnP": # special mode for Tau TRG studies
@@ -758,6 +773,7 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, DeepTau_
       event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
     if (final_state_mode == "mutau"):
       event_dictionary = make_mutau_AR_cut(event_dictionary, DeepTau_version)
+      # TODO : replace with make_mutau_region
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
       event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
@@ -818,12 +834,16 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
   protected_branches = ["FS_t1_flav", "FS_t2_flav", "pass_gen_cuts", "event_flavor"]
 
   if ("Data" not in process):
+    if ("TTToSemiLeptonic" in process): process = "TTToSemiLeptonic"
     load_and_store_NWEvents(process, process_events)
     if ("DY" in process): 
       customize_DY(process, final_state_mode)
       #append_Zpt_weight(process_events)
     keep_fakes = False
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
+      # when FF method is finished/improved no longer need to keep TT and WJ fakes
+      keep_fakes = True
+    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="etau")):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
     if (("DY" in process) and (final_state_mode=="ditau")):
@@ -911,11 +931,12 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
 def set_branches(final_state_mode, DeepTau_version, process="None"):
   common_branches = [
     "run", "luminosityBlock", "event", "Generator_weight", "NWEvents", "XSecMCweight",
-    "TauSFweight", "MuSFweight", "ElSFweight", "Weight_DY_Zpt", "PUweight", "Weight_TTbar_NNLO",
+    "TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull", "Weight_DY_Zpt", "PUweight", "Weight_TTbar_NNLO",
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass",
     "HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+    "HTT_pdgId",
     #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
     "PV_npvs", "Pileup_nPU",
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
@@ -939,17 +960,17 @@ def add_final_state_branches(branches_, final_state_mode):
     "mutau"  : ["Muon_dxy", "Muon_dz", "Muon_charge",
                 "Tau_dxy", "Tau_dz", "Tau_charge",
                 "Lepton_tauIdx", "Lepton_muIdx",
-                "PuppiMET_pt", "PuppiMET_phi"],
+                "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
 
     "mutau_TnP"  : ["Muon_dxy", "Muon_dz", "Muon_charge",
                 "Tau_dxy", "Tau_dz", "Tau_charge",
                 "Lepton_tauIdx", "Lepton_muIdx",
-                "PuppiMET_pt", "PuppiMET_phi"],
+                "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
 
     "etau"   : ["Electron_dxy", "Electron_dz", "Electron_charge", 
                 "Tau_dxy", "Tau_dz", "Tau_charge", 
                 "Lepton_tauIdx", "Lepton_elIdx",
-                "PuppiMET_pt", "PuppiMET_phi"],
+                "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
 
     "dimuon" : ["Lepton_pdgId", "Lepton_muIdx",
                 "Muon_dxy", "Muon_dz"],
@@ -994,7 +1015,7 @@ final_state_vars = {
 
     "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_DM",
-                "FS_mt", "FS_t1_flav", "FS_t2_flav", 
+                "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet", 
                 #"FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
                 ],
 
@@ -1004,7 +1025,7 @@ final_state_vars = {
 
     "etau"   : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg",
-                "FS_mt", "FS_t1_flav", "FS_t2_flav"],
+                "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet"],
 
     "dimuon" : ["FS_m1_pt", "FS_m1_eta", "FS_m1_phi", "FS_m1_iso", "FS_m1_dxy", "FS_m1_dz",
                 "FS_m2_pt", "FS_m2_eta", "FS_m2_phi", "FS_m2_iso", "FS_m2_dxy", "FS_m2_dz"],

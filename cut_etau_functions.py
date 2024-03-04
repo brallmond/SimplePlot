@@ -58,7 +58,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     #ROOTmtVal  = calculate_mt_pyROOT(muPtVal, muEtaVal, muPhiVal, mu_M[muLoc], MET_pt, MET_phi)
     #passROOTMT = (ROOTmtVal < 50.0)
 
-    passTauPtAndEta  = ((tauPtVal > 30.0) and (abs(tauEtaVal) < 2.3))
+    passTauPtAndEta  = ((tauPtVal > 30.0) and (abs(tauEtaVal) < 2.5))
     pass33ElPt   = ((trg32el) and (elPtVal > 33.0) and (abs(elEtaVal) < 2.1))
     pass36ElPt   = ((trg35el) and (elPtVal > 36.0) and (abs(elEtaVal) < 2.1))
     # upper bound on cross trigger will change if lower single electron trigger included

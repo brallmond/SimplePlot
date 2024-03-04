@@ -16,6 +16,31 @@ from triggers_dictionary  import triggers_dictionary
 from calculate_functions  import yields_for_CSV, calculate_underoverflow
 
 
+def make_pie_chart(data_hist, MC_dictionary, use_data=False, use_fakes=False):
+      sums, labels, colors = [], [], []
+      for process in MC_dictionary:
+        if ( (use_fakes == False) and (process=="QCD") ): pass
+        else:
+          sums.append(np.sum(MC_dictionary[process]["BinnedEvents"]))
+          color, label, _ = set_MC_process_info(process, luminosity=-1)
+          labels.append(label)
+          colors.append(color)
+      # add Data - MC
+      total_sum = np.sum(sums)
+      disagreement = np.sum(data_hist) - total_sum
+      if (disagreement > 0):
+        sums.append(disagreement)
+        labels.append("Data-MC")
+        colors.append("Grey")
+      if (use_data == True):
+        sums = [np.sum(data_hist)]
+        labels = ["Data"]
+        colors = ["White"]
+      fig, ax = plt.subplots()
+      ax.pie(sums, labels=labels, colors=colors, autopct='%1.1f%%')
+      #ax.legend(loc="upper right")
+
+
 def plot_data(histogram_axis, xbins, data_info, luminosity, 
               color="black", label="Data", marker="o", fillstyle="full"):
   '''
@@ -120,63 +145,6 @@ def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity):
     label += f" [{np.sum(current_hist):>.0f}]"
     stairs = histogram_axis.stairs(current_hist, xbins, color=color, label=label, fill=False)
 
-'''
-def set_MC_process_info(process, luminosity, scaling=False, signal=False):
-  #Obtain process-specific styling and scaling information.
-  #MC_dictionary is maintained in a separate file.
-  print("New process")
-  scaling_val = 1
-  plot_scaling = 1
-  full_process = process
-  for word in ["Genuine", "JetFakes", "LepFakes"]:
-    print(f"process {process}")
-    if word in process:
-      full_process = process.replace(word, "")
-      print(f"full process {full_process}")
-      print(f"process {process}")
-      MC_dictionary[process] = {}
-      #plot_scaling = MC_dictionary[full_process]["plot_scaling"] # 1 for all non-signal processes by default
-      MC_dictionary[process]["plot_scaling"] = 1
-      #scaling = 1000. * plot_scaling * luminosity * MC_dictionary[full_process]["XSec"] / MC_dictionary[full_process]["NWEvents"]
-      #scaling = 1000. * luminosity * MC_dictionary[full_process]["XSec"] / MC_dictionary[full_process]["NWEvents"]
-      scaling_val = 1000. * luminosity * MC_dictionary[full_process]["XSec"] / MC_dictionary[full_process]["NWEvents"]
-     
-      if "Genuine" in process:
-        MC_dictionary[process]["color"] = MC_dictionary[full_process]["color"] # original color
-        MC_dictionary[process]["label"] = MC_dictionary[full_process]["label"] # original label
-      elif "JetFakes" in process:
-        color_hash_string = MC_dictionary[full_process]["color"].replace("#", "0x")
-        print(color_hash_string, type(color_hash_string))
-        #original_color = int(MC_dictionary[full_process]["color"], 16)
-        original_color = int(color_hash_string, 16)
-        updated_color  = str(original_color + 0x000999).replace("0x", "#")
-        MC_dictionary[process]["color"] = updated_color
-        MC_dictionary[process]["label"] = process
-      elif "LepFakes" in process:
-        color_hash_string = MC_dictionary[full_process]["color"].replace("#", "0x")
-        #original_color = int(MC_dictionary[full_process]["color"], 16)
-        original_color = int(color_hash_string, 16)
-        updated_color  = str(original_color - 0x000999).replace("0x", "#")
-        MC_dictionary[process]["color"] = updated_color
-        MC_dictionary[process]["label"] = process
-
-  color = MC_dictionary[process]["color"]
-  label = MC_dictionary[process]["label"]
-  if scaling_val == 1 and scaling==True:
-    scaling = 1000. * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
- 
-  ##if (scaling) and (type(scaling) != int):
-  # factor of 1000 comes from lumi and XSec units of fb^-1 = 10E15 b^-1 and pb = 10E-12 b respectively
-  ##  plot_scaling = MC_dictionary[process]["plot_scaling"] # 1 for all non-signal processes by default
-  ##  scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
-  ##  if process=="QCD": scaling = 1
-    #if process=="DYInc": scaling *=6.482345 # scale-up factor for v12 Dimuon DY in MiniIso
-    #if process=="DYInc": scaling *= 3.3695 # scale-up factor for v11 Dimuon DY in PFRelIso
-  if signal:
-    label += " x" + str(plot_scaling)
-  return (color, label, scaling_val)
-'''
-
 
 def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   '''
@@ -207,9 +175,11 @@ def setup_ratio_plot():
   fig, (upper_ax, lower_ax) = plt.subplots(nrows=2, sharex=True, gridspec_kw=gridspec_kw)
   return (upper_ax, lower_ax)
 
+
 def setup_single_plot():
   fig, ax = plt.subplots()
   return ax
+
 
 def setup_TnP_plot():
   fig, ax = plt.subplots() #subplot?
@@ -298,6 +268,7 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
     histogram_axis.set_yscale('log')
     ratio_plot_axis.set_yscale('log')
 
+
 def spruce_up_TnP_plot(axis, variable_name, title):
   add_CMS_preliminary(axis)
   axis.set_title(title, loc='right', y=0.98)
@@ -351,7 +322,11 @@ def make_ratio_plot(ratio_axis, xbins, numerator_data, denominator_data, label=N
   # TODO : technically errors from stack should be individually calculated, not one stack
   statistical_error = np.array([ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
                       if ((denominator_data[i] > 0) and (numerator_data[i] >0)) else 0
-                      for i,_ in enumerate(denominator_data)]) # ratio error = √ ((1/A) + (1/B)) \
+                      for i,_ in enumerate(denominator_data)]) # ratio error = (A/B) * √ ((1/A) + (1/B)) \
+  # the error bars on a ratio plot of a histogram A divided by a histogram B is:
+  # (A/B) * √[ (errA / A)^2 + (errB / B)^2 ]
+  # but for histograms, error = √[N] (A and B are simply N events in a bin)
+  # so the above reduces to (A/B) * √ [ (1/A) + (1/B) ] 
   statistical_error[np.isnan(statistical_error)] = 0
   midpoints = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2
@@ -393,32 +368,12 @@ def get_trimmed_Generator_weight_copy(variable, single_background_dictionary, je
 
 def make_bins(variable_name, final_state_mode):
   '''
-  Create a linear numpy array to use for histogram binning.
   Information for binning is referenced from a python dictionary in a separate file.
-  A check is made on bin edges to see if they end in 1 or 0.1, which generally 
-  result in better plots with edges that align with axes tickmarks.
-  
-  This method returns only linearly spaced bins
   '''
-  # TODO : re-generalize this function
-  if (final_state_mode == "mutau_TnP") and (variable_name == "FS_tau_pt"):
+  try: 
     xbins = binning_dictionary[final_state_mode][variable_name]
-  elif (final_state_mode == "mutau") and ((variable_name == "FS_tau_rawPNetVSmu") or (variable_name=="FS_tau_rawPNetVSe")):
-    xbins = binning_dictionary[variable_name]
-  elif (final_state_mode == "ditau") and \
-     (("PNet" in variable_name) and (("VSmu" in variable_name) or ("VSe" in variable_name))):
-    xbins = binning_dictionary[variable_name]
-  else:
-    nbins, xmin, xmax = binning_dictionary[variable_name]
-    check_uniformity = (xmax-xmin)/nbins
-    if (check_uniformity % 1 != 0 and 
-        check_uniformity % 0.1 != 0 and 
-        check_uniformity % 0.01 != 0 and
-        check_uniformity % 0.001 != 0):
-      print(f"nbins, xmin, xmax : {nbins}, {xmin}, {xmax}")
-      print(f"(xmax-xmin)/nbins = {check_uniformity}, results in bad bin edges and centers")
-    xbins = np.linspace(xmin, xmax, nbins+1) # TODO with above TODO. everything in binning dict should be remade into a numpy array
-
+  except KeyError:
+    xbins = binning_dictionary["common"][variable_name]
   return xbins
 
 
@@ -571,12 +526,14 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
       process_weights_TauSF  = background_dictionary[process]["TauSFweight"]
       process_weights_MuSF   = background_dictionary[process]["MuSFweight"]
       process_weights_ElSF   = background_dictionary[process]["ElSFweight"]
+      process_weights_BTagSF = background_dictionary[process]["BTagSFfull"]
       process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
       process_weights_TT_NNLO = background_dictionary[process]["Weight_TTbar_NNLO"]
 
       #process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_MuSF # for Oceane
       process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_PU * process_weights_TT_NNLO * \
-                        process_weights_TauSF * process_weights_MuSF * process_weights_ElSF
+                        process_weights_TauSF * process_weights_MuSF * process_weights_ElSF * \
+                        process_weights_BTagSF
     #print("process, variable, variable and weight shapes") # DEBUG 
     #print(process, variable, process_variable.shape, process_weights.shape) # DEBUG
     h_MC_by_process[process] = {}
@@ -630,12 +587,14 @@ def get_binned_signals(signal_dictionary, variable, xbins_, lumi_, jet_mode):
       signal_weights_TauSF  = signal_dictionary[process]["TauSFweight"]
       signal_weights_MuSF   = signal_dictionary[process]["MuSFweight"]
       signal_weights_ElSF   = signal_dictionary[process]["ElSFweight"]
+      signal_weights_BTagSF = signal_dictionary[process]["BTagSFfull"]
       signal_weights_DY_Zpt = signal_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
       signal_weights_TT_NNLO = signal_dictionary[process]["Weight_TTbar_NNLO"]
 
       #signal_weights = signal_weights_gen * signal_weights_DY_Zpt * signal_weights_MuSF # for Oceane
       signal_weights = signal_weights_gen * signal_weights_DY_Zpt * signal_weights_PU * signal_weights_TT_NNLO * \
-                       signal_weights_TauSF * signal_weights_MuSF * signal_weights_ElSF
+                       signal_weights_TauSF * signal_weights_MuSF * signal_weights_ElSF * \
+                       signal_weights_BTagSF
     h_signals[process] = {}
     h_signals[process]["BinnedEvents"] = get_binned_info(process, signal_variable,
                                                         xbins_, signal_weights, lumi_)

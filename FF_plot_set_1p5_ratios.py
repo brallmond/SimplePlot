@@ -30,13 +30,20 @@ from utility_functions     import time_print, make_directory, print_setup_info, 
 
 from cut_and_study_functions import append_lepton_indices, apply_cut, apply_jet_cut, add_FF_weights
 from cut_and_study_functions import load_and_store_NWEvents, customize_DY, append_flavor_indices, set_protected_branches
-from cut_ditau_functions import make_ditau_AR_cut, make_ditau_SR_cut, make_ditau_cut, make_ditau_cut_FF
+
+from cut_ditau_functions import make_ditau_cut, make_ditau_cut_FF
+from cut_ditau_functions import make_ditau_AR_cut, make_ditau_SR_cut
+from cut_ditau_functions import make_ditau_DRsr_cut, make_ditau_DRar_cut
 from cut_ditau_functions import make_ditau_AR_aiso_cut, make_ditau_SR_aiso_cut
+from cut_ditau_functions import make_ditau_DRsr_aiso_cut, make_ditau_DRar_aiso_cut
+
 
 from binning_dictionary import label_dictionary
 
-def line(x, a, b):
-    return a + x * b
+#def line(x, a, b):
+#    return a + x * b
+def line_np(x, par):
+    return np.polyval(par, x)  # for len(par) == 2, this is a line
 
 if __name__ == "__main__":
   '''
@@ -98,15 +105,9 @@ if __name__ == "__main__":
 
   common_selection = "(METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
   ditau_selection  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
-  final_state_selection = ditau_selection
-  OS_region        = final_state_selection + " & (HTT_pdgId < 0)"
-  SS_region        = final_state_selection + " & (HTT_pdgId > 0)"
-
-  # SR AR are always OS
-  # DR are always SS
-  
-  # you can just do the whole thing in aiso and 
-  # say, well, it's probably fine to do that in SR too
+  mutau_selection  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
+  final_state_selection_dict = {"ditau": ditau_selection, "mutau" : mutau_selection}
+  base_selection = final_state_selection_dict[final_state_mode]
 
   dataset_dictionary = {"ditau" : "DataTau", "mutau" : "DataMuon", "etau" : "DataElectron", "emu" : "DataEMu"}
   reject_dataset_dictionary = {"ditau" : ["DataMuon", "DataElectron", "DataEMu"],
@@ -117,32 +118,14 @@ if __name__ == "__main__":
   dataset = dataset_dictionary[final_state_mode]
   reject_datasets = reject_dataset_dictionary[final_state_mode]
 
-  region_dict = { "OS" :  OS_region, "SS" : SS_region}
-
-
-  #"AR",   OS_region, make_ditau_AR_cut ("pass_AR_cuts")
-  #"SR",   OS_region, make_ditau_SR_cut ("pass_SR_cuts") # not plotted with this script
-  #"DRar", SS_region, make_ditau_AR_cut ("pass_AR_cuts")
-  #"DRsr", SS_region, make_ditau_SR_cut ("pass_SR_cuts")
-
-  #"AR-aiso", OS_region, make_ditau_AR_aiso_cut ("pass_AR_aiso_cuts")
-  #"SR-aiso", OS_region, make_ditau_SR_aiso_cut ("pass_SR_aiso_cuts")
-  #"DRar-aiso", SS_region, make_ditau_AR_aiso_cut ("pass_AR_aiso_cuts")
-  #"DRsr-aiso", SS_region, make_ditau_SR_aiso_cut ("pass_SR_aiso_cuts")
-
   store_region_data_dictionary = {}
   store_region_bkgd_dictionary = {}
   store_region_sgnl_dictionary = {}
-  numerator = "DRsr-aiso"
-  denominator = "DRar-aiso"
+  numerator = "DRsr"
+  denominator = "DRar"
   for region in [numerator, denominator]:
 
-    region_title = region
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
-
-    if ("DR" in region_title): sign_region = SS_region
-    else: sign_region = OS_region
-
 
     # make and apply cuts to any loaded events, store in new dictionaries for plotting
     combined_process_dictionary = {}
@@ -153,7 +136,7 @@ if __name__ == "__main__":
       if (process in reject_datasets): continue
 
       new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
-                                              branches, sign_region, final_state_mode,
+                                              branches, base_selection, final_state_mode,
                                               data=("Data" in process), testing=testing)
       event_dictionary = new_process_dictionary[process]["info"]
       if (event_dictionary == None): continue
@@ -165,19 +148,15 @@ if __name__ == "__main__":
         if ("DY" in process): customize_DY(process, final_state_mode)
         event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
 
-
-      if (region_title == "DRsr"):
-        event_dictionary   = make_ditau_SR_cut(event_dictionary, DeepTau_version)
-        event_dictionary   = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
-      if (region_title == "AR") or (region_title == "DRar"):
-        event_dictionary   = make_ditau_AR_cut(event_dictionary, DeepTau_version)
-        event_dictionary   = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
-      if (region_title == "SR-aiso") or (region_title == "DRsr-aiso"):
-        event_dictionary   = make_ditau_SR_aiso_cut(event_dictionary, DeepTau_version)
-        event_dictionary   = apply_cut(event_dictionary, "pass_SR_aiso_cuts", protected_branches)
-      if (region_title == "AR-aiso") or (region_title == "DRar-aiso"): 
-        event_dictionary   = make_ditau_AR_aiso_cut(event_dictionary, DeepTau_version)
-        event_dictionary   = apply_cut(event_dictionary, "pass_AR_aiso_cuts", protected_branches)
+      if (final_state_mode == "ditau"):
+        if (region == "DRsr"):      event_dictionary   = make_ditau_DRsr_cut(event_dictionary, DeepTau_version)
+        if (region == "DRar"):      event_dictionary   = make_ditau_DRar_cut(event_dictionary, DeepTau_version)
+        if (region == "AR"):        event_dictionary   = make_ditau_AR_cut(event_dictionary, DeepTau_version)
+        if (region == "DRsr_aiso"): event_dictionary   = make_ditau_DRsr_aiso_cut(event_dictionary, DeepTau_version)
+        if (region == "DRar_aiso"): event_dictionary   = make_ditau_DRar_aiso_cut(event_dictionary, DeepTau_version)
+        if (region == "AR_aiso"):   event_dictionary   = make_ditau_AR_aiso_cut(event_dictionary, DeepTau_version)
+        if (region == "SR_aiso"):   event_dictionary   = make_ditau_SR_aiso_cut(event_dictionary, DeepTau_version)
+        event_dictionary   = apply_cut(event_dictionary, "pass_"+region+"_cuts", protected_branches)
 
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
       event_dictionary   = apply_jet_cut(event_dictionary, jet_mode)
@@ -188,9 +167,6 @@ if __name__ == "__main__":
       event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
-      #event_dictionary = add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version,
-      #                                  determining_FF=True)
- 
 
       # TODO : extendable to jet cuts (something I've meant to do for some time)
       if "DY" in process:
@@ -236,9 +212,9 @@ if __name__ == "__main__":
     data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
     # store dictionaries
-    store_region_data_dictionary[region_title] = data_dictionary
-    store_region_bkgd_dictionary[region_title] = background_dictionary
-    store_region_sgnl_dictionary[region_title] = signal_dictionary
+    store_region_data_dictionary[region] = data_dictionary
+    store_region_bkgd_dictionary[region] = background_dictionary
+    store_region_sgnl_dictionary[region] = signal_dictionary
 
 
   numerator_data = store_region_data_dictionary[numerator]
@@ -255,7 +231,8 @@ if __name__ == "__main__":
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")
-  vars_to_plot = ["HTT_m_vis-KSUbinning", 
+  if (final_state_mode == "ditau"):
+    vars_to_plot = ["HTT_m_vis-KSUbinning", 
                   "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",
                   "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt"]
   # and add back variables unique to the jet mode
@@ -275,8 +252,6 @@ if __name__ == "__main__":
     h_denominator_data = get_binned_data(denominator_data, var, xbins, lumi)
     h_numerator_backgrounds, h_numerator_summed_backgrounds = get_binned_backgrounds(numerator_bkgd, var, xbins, lumi, jet_mode)
     h_denominator_backgrounds, h_denominator_summed_backgrounds = get_binned_backgrounds(denominator_bkgd, var, xbins, lumi, jet_mode)
-    #h_numerator_signals = get_binned_signals(numerator_sgnl, var, xbins, lumi, jet_mode) 
-    #h_denominator_signals = get_binned_signals(denominator_sgnl, var, xbins, lumi, jet_mode) 
     var = temp_var
 
     h_numerator_data_m_MC = h_numerator_data - h_numerator_summed_backgrounds
@@ -290,7 +265,7 @@ if __name__ == "__main__":
     plot_data(ax_compare, xbins, h_numerator_data_m_MC, lumi, color="black", label=f"{numerator} : Data-MC")
     plot_data(ax_compare, xbins, h_denominator_data_m_MC, lumi, color="green",  label=f"{denominator} : Data-MC")
     spruce_up_single_plot(ax_compare, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
-    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region_title) + ".png")
+    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
 
     FF_ratio, FF_ratio_err = make_ratio_plot(ax_ratio, xbins, h_numerator_data_m_MC, h_denominator_data_m_MC, 
                                              label=f"{numerator} / {denominator}")
@@ -324,22 +299,32 @@ if __name__ == "__main__":
       use_FF_ratio_err = FF_ratio_err[use_vals]
       use_midpoints    = midpoints[use_vals]
 
-    least_squares = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, line) # line is a function defined above
-    m = Minuit(least_squares, a=0, b=0)
+    least_squares = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, line_np) # line is a function defined above
+    #m = Minuit(least_squares, a=0, b=0) # add more values for higher orders
+    m = Minuit(least_squares, (5, 5, 5), name=("a", "b", "c")) # add more values for higher orders
+    # need something that adds orders until it converges, right? 
     m.migrad()
 
     a_fit = m.values["a"] 
     b_fit = m.values["b"]
+    c_fit = m.values["c"]
 
-    print(var, a_fit, b_fit)
+    print(var, a_fit, b_fit, c_fit)
     print(m)
 
-    ax_ratio.plot(use_midpoints, line(use_midpoints, a_fit, b_fit), color="red", 
-                                      label=f"y = {a_fit:.3f} x + {b_fit:.2e}")
+    # check reduced chi2, goodness-of-fit estimate, should be around 1 # from Minuit manual
+    chi_squared = m.fval 
+    ndof =  len(use_FF_ratio) - len(m.values)
+    reduced_chi_squared = chi_squared / ndof
+    print(reduced_chi_squared)
+
+    label = f"y = {a_fit:.3f} x + {b_fit:.2e}\n$\chi^2$/ndof = {chi_squared:.2f}/{ndof} = {reduced_chi_squared:.2f}"
+    #ax_ratio.plot(use_midpoints, line(use_midpoints, a_fit, b_fit), color="red", 
+    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (a_fit, b_fit, c_fit)), color="red", label=label)
 
     spruce_up_single_plot(ax_ratio, label_dictionary[var], "Fake Factor Ratio and Fit", 
                           title, final_state_mode, jet_mode, yrange=[0.0, 1.0])
-    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region_title) + ".png")
+    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
 
   if hide_plots: pass
   else: plt.show()

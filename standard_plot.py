@@ -9,7 +9,7 @@ import copy
 
 # explicitly import used functions from user files, grouped roughly by call order and relatedness
 from file_map_dictionary   import testing_file_map, full_file_map, testing_dimuon_file_map, dimuon_file_map
-from file_map_dictionary   import pre2022_file_map
+from file_map_dictionary   import pre2022_file_map, update_data_filemap
 from file_functions        import load_process_from_file, append_to_combined_processes, sort_combined_processes
 
 from luminosity_dictionary import luminosities_with_normtag as luminosities
@@ -19,7 +19,7 @@ from cut_and_study_functions import apply_HTT_FS_cuts_to_process, apply_AR_cut
 
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
-from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins
+from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart
 
 from plotting_functions import get_midpoints
 
@@ -65,14 +65,15 @@ if __name__ == "__main__":
   parser.add_argument('--lumi',        dest='lumi',        default="2022 EFG",  action='store')
   parser.add_argument('--jet_mode',    dest='jet_mode',    default="Inclusive", action='store')
   parser.add_argument('--DeepTau',     dest='DeepTau_version', default="2p5",   action='store')
-  parser.add_argument('--use_NLO',  dest='use_NLO',  default=True,        action='store')
+  parser.add_argument('--use_NLO',  dest='use_NLO',  default=False,        action='store')
 
   args = parser.parse_args() 
   testing     = args.testing     # False by default, do full dataset unless otherwise specified
   hide_plots  = args.hide_plots  # False by default, show plots unless otherwise specified
   hide_yields = args.hide_yields # False by default, show yields unless otherwise specified
-  use_NLO  = args.use_NLO  # True  by default, use LO DY if False
+  use_NLO  = args.use_NLO  # False by default, use LO DY if False
   lumi = luminosities["2022 G"] if testing else luminosities[args.lumi]
+  if testing: args.lumi = "2022 G"
   DeepTau_version = args.DeepTau_version # default is 2p5 [possible values 2p1 and 2p5]
 
   # final_state_mode affects many things automatically, including good_events, datasets, plotting vars, etc.
@@ -110,10 +111,12 @@ if __name__ == "__main__":
     file_map.pop("WJetsIncNLO")
 
   # add FF weights :) # almost the same as SR, except SS and 1st tau fails iso (applied in AR_cuts)
-  AR_region_ditau = "(HTT_pdgId < 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
-  AR_region_mutau = "(HTT_pdgId < 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
-  AR_region_etau  = "(HTT_pdgId < 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
-  AR_region_emu   = "(HTT_pdgId < 0) & (METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==11*13) & (Trigger_emu)"
+
+  common_selection = "(METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
+  AR_region_ditau = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
+  AR_region_mutau = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
+  AR_region_etau  = common_selection + " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
+  AR_region_emu   = common_selection + " & (abs(HTT_pdgId)==11*13) & (Trigger_emu)"
 
   dataset_dictionary = {"ditau" : "DataTau", "mutau" : "DataMuon", "etau" : "DataElectron", "emu" : "DataEMu"}
   reject_dataset_dictionary = {"ditau" : ["DataMuon", "DataElectron", "DataEMu"],
@@ -125,6 +128,9 @@ if __name__ == "__main__":
   dataset = dataset_dictionary[final_state_mode]
   reject_datasets = reject_dataset_dictionary[final_state_mode]
   AR_region = AR_region_dictionary[final_state_mode]
+
+  update_data_filemap(args.lumi, file_map)
+ 
 
   do_QCD = True
   if (jet_mode != "Inclusive") and (do_QCD==True):
@@ -178,6 +184,7 @@ if __name__ == "__main__":
 
     FF_dictionary = temp_dict
 
+
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
   for process in file_map: 
@@ -194,7 +201,6 @@ if __name__ == "__main__":
     cut_events = apply_HTT_FS_cuts_to_process(process, new_process_dictionary, log_file, final_state_mode, jet_mode,
                                               DeepTau_version=DeepTau_version)
     if cut_events == None: continue
-
 
     # TODO : extendable to jet cuts (something I've meant to do for some time)
     if "DY" in process:
@@ -263,9 +269,9 @@ if __name__ == "__main__":
     var = temp_var
 
     # plot everything :)
-    plot_data(hist_ax, xbins, h_data, lumi)
-    plot_MC(hist_ax, xbins, h_backgrounds, lumi)
-    plot_signal(hist_ax, xbins, h_signals, lumi)
+    plot_data(   hist_ax, xbins, h_data,        lumi)
+    plot_MC(     hist_ax, xbins, h_backgrounds, lumi)
+    plot_signal( hist_ax, xbins, h_signals,     lumi)
 
     make_ratio_plot(hist_ratio, xbins, h_data, h_summed_backgrounds)
 
@@ -279,6 +285,8 @@ if __name__ == "__main__":
     spruce_up_legend(hist_ax, final_state_mode, h_data)
 
     plt.savefig(plot_dir + "/" + str(var) + ".png")
+
+    if (var == "HTT_m_vis-KSUbinning"): make_pie_chart(h_data, h_backgrounds)
 
     # calculate and print these quantities only once
     if (var == "HTT_m_vis"): 

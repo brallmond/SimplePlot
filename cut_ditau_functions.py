@@ -206,15 +206,21 @@ def make_ditau_cut_FF(event_dictionary, DeepTau_version):
 
     t1_chg = tau_chg[tau_idx[l1_idx]]
     t2_chg = tau_chg[tau_idx[l2_idx]]
+
+    t1_dz = abs(tau_dz[tau_idx[l1_idx]])
+    t2_dz = abs(tau_dz[tau_idx[l2_idx]])
+    t1passDz = (t1_dz < 0.2)
+    t2passDz = (t2_dz < 0.2)
   
-    if ( (passKinems and good_tau_decayMode and t1passDT and t2passDT) ):
+    if ( (passKinems and good_tau_decayMode and t1passDT and t2passDT and t1passDz and t2passDz) ):
       pass_cuts.append(i)
       # TODO update me with the variable names used earlier
       FS_t1_pt.append(lep_pt[l1_idx])
       FS_t1_eta.append(lep_eta[l1_idx])
       FS_t1_phi.append(lep_phi[l1_idx])
       FS_t1_dxy.append(abs(tau_dxy[tau_idx[l1_idx]]))
-      FS_t1_dz.append(abs(tau_dz[tau_idx[l1_idx]]))
+      #FS_t1_dz.append(abs(tau_dz[tau_idx[l1_idx]]))
+      FS_t1_dz.append(t1_dz)
       FS_t1_chg.append(t1_chg)
       FS_t1_DM.append(t1_decayMode)
       #FS_t1_PNet_v_jet.append(PNetvJet[tau_idx[l1_idx]])
@@ -227,7 +233,8 @@ def make_ditau_cut_FF(event_dictionary, DeepTau_version):
       FS_t2_eta.append(lep_eta[l2_idx])
       FS_t2_phi.append(lep_phi[l2_idx])
       FS_t2_dxy.append(abs(tau_dxy[tau_idx[l2_idx]]))
-      FS_t2_dz.append(abs(tau_dz[tau_idx[l2_idx]]))
+      #FS_t2_dz.append(abs(tau_dz[tau_idx[l2_idx]]))
+      FS_t2_dz.append(t2_dz)
       FS_t2_chg.append(t2_chg)
       FS_t2_DM.append(t2_decayMode)
       #FS_t2_PNet_v_jet.append(PNetvJet[tau_idx[l2_idx]])
@@ -310,63 +317,120 @@ def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta,
   passKinems = (passTrig and passTauKinems and passJetKinems)
   return passKinems
 
-#TODO make into one function
 def make_ditau_AR_cut(event_dictionary, DeepTau_version):
-  unpack_ditau_AR_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices"]
+  # keep indices where first tau fails and second tau passes
+  unpack_ditau_AR_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices", "HTT_pdgId"]
   unpack_ditau_AR_vars = add_DeepTau_branches(unpack_ditau_AR_vars, DeepTau_version)
   unpack_ditau_AR_vars = (event_dictionary.get(key) for key in unpack_ditau_AR_vars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_ditau_AR_vars]
   pass_AR_cuts = []
-  for i, tau_idx, l1_idx, l2_idx, vJet, _, _ in zip(*to_check):
-    # keep indices where first tau fails and 2nd passes
-    if (vJet[tau_idx[l1_idx]] < 5) and (vJet[tau_idx[l2_idx]] >= 5):
+  for i, tau_idx, l1_idx, l2_idx, signed_pdgId, vJet, _, _ in zip(*to_check):
+    if (vJet[tau_idx[l1_idx]] < 5) and (vJet[tau_idx[l2_idx]] >= 5) and (signed_pdgId < 0):
       pass_AR_cuts.append(i)
   
   event_dictionary["pass_AR_cuts"] = np.array(pass_AR_cuts)
   return event_dictionary
 
 def make_ditau_SR_cut(event_dictionary, DeepTau_version):
-  unpack_ditau_SR_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices"]
+  # keep indices where both taus pass
+  unpack_ditau_SR_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices", "HTT_pdgId"]
   unpack_ditau_SR_vars = add_DeepTau_branches(unpack_ditau_SR_vars, DeepTau_version)
   unpack_ditau_SR_vars = (event_dictionary.get(key) for key in unpack_ditau_SR_vars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_ditau_SR_vars]
   pass_SR_cuts = []
-  for i, tau_idx, l1_idx, l2_idx, vJet, _, _ in zip(*to_check):
-    # keep indices where first tau fails and 2nd passes
-    if (vJet[tau_idx[l1_idx]] >= 5) and (vJet[tau_idx[l2_idx]] >= 5):
+  for i, tau_idx, l1_idx, l2_idx, signed_pdgId, vJet, _, _ in zip(*to_check):
+    if (vJet[tau_idx[l1_idx]] >= 5) and (vJet[tau_idx[l2_idx]] >= 5) and (signed_pdgId < 0):
       pass_SR_cuts.append(i)
   
   event_dictionary["pass_SR_cuts"] = np.array(pass_SR_cuts)
   return event_dictionary
 
+
+def make_ditau_DRar_cut(event_dictionary, DeepTau_version):
+  # keep indices where first tau fails and second tau passes and are same sign
+  unpack_ditau_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices", "HTT_pdgId"]
+  unpack_ditau_vars = add_DeepTau_branches(unpack_ditau_vars, DeepTau_version)
+  unpack_ditau_vars = (event_dictionary.get(key) for key in unpack_ditau_vars)
+  to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_ditau_vars]
+  pass_DRar_cuts = []
+  for i, tau_idx, l1_idx, l2_idx, signed_pdgId, vJet, _, _ in zip(*to_check):
+    if (vJet[tau_idx[l1_idx]] < 5) and (vJet[tau_idx[l2_idx]] >= 5) and (signed_pdgId > 0):
+      pass_DRar_cuts.append(i)
+  
+  event_dictionary["pass_DRar_cuts"] = np.array(pass_DRar_cuts)
+  return event_dictionary
+
+def make_ditau_DRsr_cut(event_dictionary, DeepTau_version):
+  # keep indices where both taus pass and are same sign
+  unpack_ditau_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices", "HTT_pdgId"]
+  unpack_ditau_vars = add_DeepTau_branches(unpack_ditau_vars, DeepTau_version)
+  unpack_ditau_vars = (event_dictionary.get(key) for key in unpack_ditau_vars)
+  to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_ditau_vars]
+  pass_DRsr_cuts = []
+  for i, tau_idx, l1_idx, l2_idx, signed_pdgId, vJet, _, _ in zip(*to_check):
+    if (vJet[tau_idx[l1_idx]] >= 5) and (vJet[tau_idx[l2_idx]] >= 5) and (signed_pdgId > 0):
+      pass_DRsr_cuts.append(i)
+
+  event_dictionary["pass_DRsr_cuts"] = np.array(pass_DRsr_cuts)
+  return event_dictionary
+
+
 def make_ditau_AR_aiso_cut(event_dictionary, DeepTau_version):
-  unpack_ditau_AR_aiso_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices"]
+  # keep indices where both taus fail
+  unpack_ditau_AR_aiso_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices", "HTT_pdgId"]
   unpack_ditau_AR_aiso_vars = add_DeepTau_branches(unpack_ditau_AR_aiso_vars, DeepTau_version)
   unpack_ditau_AR_aiso_vars = (event_dictionary.get(key) for key in unpack_ditau_AR_aiso_vars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_ditau_AR_aiso_vars]
   pass_AR_aiso_cuts = []
-  for i, tau_idx, l1_idx, l2_idx, vJet, _, _ in zip(*to_check):
-    # keep indices where first tau fails and 2nd passes
-    if (vJet[tau_idx[l1_idx]] < 5) and (vJet[tau_idx[l2_idx]] < 5):
+  for i, tau_idx, l1_idx, l2_idx, signed_pdgId, vJet, _, _ in zip(*to_check):
+    if (vJet[tau_idx[l1_idx]] < 5) and (vJet[tau_idx[l2_idx]] < 5) and (signed_pdgId < 0):
       pass_AR_aiso_cuts.append(i)
   
   event_dictionary["pass_AR_aiso_cuts"] = np.array(pass_AR_aiso_cuts)
   return event_dictionary
 
 def make_ditau_SR_aiso_cut(event_dictionary, DeepTau_version):
-  unpack_ditau_SR_aiso_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices"]
+  # keep indices where first tau passes and second fails and opposite sign
+  unpack_ditau_SR_aiso_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices", "HTT_pdgId"]
   unpack_ditau_SR_aiso_vars = add_DeepTau_branches(unpack_ditau_SR_aiso_vars, DeepTau_version)
   unpack_ditau_SR_aiso_vars = (event_dictionary.get(key) for key in unpack_ditau_SR_aiso_vars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_ditau_SR_aiso_vars]
   pass_SR_aiso_cuts = []
-  for i, tau_idx, l1_idx, l2_idx, vJet, _, _ in zip(*to_check):
-    # keep indices where first tau fails and 2nd passes
-    if (vJet[tau_idx[l1_idx]] >= 5) and (vJet[tau_idx[l2_idx]] < 5):
+  for i, tau_idx, l1_idx, l2_idx, signed_pdgId, vJet, _, _ in zip(*to_check):
+    if (vJet[tau_idx[l1_idx]] >= 5) and (vJet[tau_idx[l2_idx]] < 5) and (signed_pdgId < 0):
       pass_SR_aiso_cuts.append(i)
   
   event_dictionary["pass_SR_aiso_cuts"] = np.array(pass_SR_aiso_cuts)
   return event_dictionary
 
 
+def make_ditau_DRsr_aiso_cut(event_dictionary, DeepTau_version):
+  # keep indices where first tau passes and second fails and same sign
+  unpack_ditau_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices", "HTT_pdgId"]
+  unpack_ditau_vars = add_DeepTau_branches(unpack_ditau_vars, DeepTau_version)
+  unpack_ditau_vars = (event_dictionary.get(key) for key in unpack_ditau_vars)
+  to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_ditau_vars]
+  pass_DRsr_aiso_cuts = []
+  for i, tau_idx, l1_idx, l2_idx, signed_pdgId, vJet, _, _ in zip(*to_check):
+    if (vJet[tau_idx[l1_idx]] >= 5) and (vJet[tau_idx[l2_idx]] < 5) and (signed_pdgId > 0):
+      pass_DRsr_aiso_cuts.append(i)
+  
+  event_dictionary["pass_DRsr_aiso_cuts"] = np.array(pass_DRsr_aiso_cuts)
+  return event_dictionary
+
+
+def make_ditau_DRar_aiso_cut(event_dictionary, DeepTau_version):
+  # keep indices where both taus fail and same sign
+  unpack_ditau_vars = ["Lepton_tauIdx", "l1_indices", "l2_indices", "HTT_pdgId"]
+  unpack_ditau_vars = add_DeepTau_branches(unpack_ditau_vars, DeepTau_version)
+  unpack_ditau_vars = (event_dictionary.get(key) for key in unpack_ditau_vars)
+  to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_ditau_vars]
+  pass_DRar_aiso_cuts = []
+  for i, tau_idx, l1_idx, l2_idx, signed_pdgId, vJet, _, _ in zip(*to_check):
+    if (vJet[tau_idx[l1_idx]] < 5) and (vJet[tau_idx[l2_idx]] < 5) and (signed_pdgId > 0):
+      pass_DRar_aiso_cuts.append(i)
+  
+  event_dictionary["pass_DRar_aiso_cuts"] = np.array(pass_DRar_aiso_cuts)
+  return event_dictionary
 
 
