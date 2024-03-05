@@ -6,7 +6,7 @@ import numpy as np
 from calculate_functions import calculate_mt, hasbit, getBin, highest_mjj_pair
 from utility_functions   import time_print, text_options, log_print
 
-from cut_ditau_functions import make_ditau_cut, make_ditau_AR_cut
+from cut_ditau_functions import make_ditau_cut, make_ditau_SR_cut, make_ditau_AR_cut
 from cut_mutau_functions import make_mutau_cut, make_mutau_SR_cut, make_mutau_AR_cut, make_mutau_TnP_cut
 from cut_etau_functions  import make_etau_cut,  make_etau_AR_cut
 from branch_functions    import add_trigger_branches, add_DeepTau_branches, add_Zpt_branches
@@ -715,10 +715,11 @@ def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, u
   #else:
   protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="Inclusive")
   if final_state_mode == "ditau":
+    event_dictionary = make_ditau_SR_cut(event_dictionary, DeepTau_version)
+    event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "mutau":
-    #event_dictionary = make_mutau_region(event_dictionary, DeepTau_version) # cut SR
     event_dictionary = make_mutau_SR_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version)

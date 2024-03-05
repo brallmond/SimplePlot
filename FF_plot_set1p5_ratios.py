@@ -31,7 +31,7 @@ from utility_functions     import time_print, make_directory, print_setup_info, 
 from cut_and_study_functions import append_lepton_indices, apply_cut, apply_jet_cut, add_FF_weights
 from cut_and_study_functions import load_and_store_NWEvents, customize_DY, append_flavor_indices, set_protected_branches
 
-from cut_ditau_functions import make_ditau_cut, make_ditau_cut_FF
+from cut_ditau_functions import make_ditau_cut
 from cut_ditau_functions import make_ditau_AR_cut, make_ditau_SR_cut
 from cut_ditau_functions import make_ditau_DRsr_cut, make_ditau_DRar_cut
 from cut_ditau_functions import make_ditau_AR_aiso_cut, make_ditau_SR_aiso_cut
@@ -161,7 +161,7 @@ if __name__ == "__main__":
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
       event_dictionary   = apply_jet_cut(event_dictionary, jet_mode)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
-      event_dictionary   = make_ditau_cut_FF(event_dictionary, DeepTau_version) # no DeepTau or Charge requirements
+      event_dictionary   = make_ditau_cut(event_dictionary, DeepTau_version) # no DeepTau or Charge requirements
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
       protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
       event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)

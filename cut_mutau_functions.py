@@ -69,10 +69,9 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     #tauPNetvMuVal  = PNetvMu[tauBranchLoc]
     #tauPNetvEVal   = PNetvE[tauBranchLoc]
 
-    # my selection
-    passTauPtAndEta  = ((tauPtVal > 30.0) and (abs(tauEtaVal) < 2.5)) # mine
-    pass25MuPt   = ((trg24mu) and (muPtVal > 25.0) and (abs(muEtaVal) < 2.4)) #mine
-    pass28MuPt   = ((trg27mu) and (muPtVal > 28.0) and (abs(muEtaVal) < 2.4)) #mine
+    passTauPtAndEta  = ((tauPtVal > 30.0) and (abs(tauEtaVal) < 2.5))
+    pass25MuPt   = ((trg24mu) and (muPtVal > 25.0) and (abs(muEtaVal) < 2.4))
+    pass28MuPt   = ((trg27mu) and (muPtVal > 28.0) and (abs(muEtaVal) < 2.4))
     # HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1
     passMuPtCrossTrigger = ((crosstrg) and ((21.0 < muPtVal < 25.0) and (abs(muEtaVal) < 2.1))
                                        and ((tauPtVal > 32.0)       and (abs(tauEtaVal) < 2.1)) ) 
@@ -80,18 +79,6 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
 
     # Tight v Muon, VVVLoose v Ele
     passTauDTLep  = ((vMu[tauBranchLoc] >= 4) and (vEle[tauBranchLoc] >= 2))
-    # end my selection
-
-    # SF group's selection
-    #passTauPtAndEta  = ((tauPtVal > 20.0) and (abs(tauEtaVal) < 2.5))
-    #pass25MuPt    = (trg24mu or trg27mu) and (muPtVal > 25.0) and (abs(muEtaVal) < 2.4)
- 
-    # Medium v Jet, Tight v Muon, VVLoose v Ele
-    #passTauDT  = ((vMu[tauBranchLoc] >= 4) and (vEle[tauBranchLoc] >= 2))
-    #skip_DM2 = (tau_decayMode[tauBranchLoc] != 2)
-    # end SF group's selection
-
-    if skip_DeepTau: passTauDT = False; # makes OR below mutually exclusive # for ARregion
 
     #restrict_tau_decayMode = (tau_decayMode[tauBranchLoc] == 0)
 
@@ -103,10 +90,6 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
         nbJet += 1
 
     if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep): # mine
-    #if ( (passMT and (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger)) and passTauDT and pass_bTag) # mine
-    #  or (passMT and (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger)) and skip_DeepTau) ):
-    #if ( (passMT and (passTauPtAndEta and pass25MuPt and passTauDT) and skip_DM2) # SF groups
-    #  or (passMT and (passTauPtAndEta and pass25MuPt and skip_DeepTau) and skip_DM2) ):
       pass_cuts.append(i)
       FS_mu_pt.append(muPtVal)
       FS_mu_eta.append(muEtaVal)
