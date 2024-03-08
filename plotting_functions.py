@@ -321,12 +321,14 @@ def make_ratio_plot(ratio_axis, xbins, numerator_data, denominator_data, label=N
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
   # TODO : technically errors from stack should be individually calculated, not one stack
   statistical_error = np.array([ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
-                      if ((denominator_data[i] > 0) and (numerator_data[i] >0)) else 0
+                      if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
                       for i,_ in enumerate(denominator_data)]) # ratio error = (A/B) * √ ((1/A) + (1/B)) \
   # the error bars on a ratio plot of a histogram A divided by a histogram B is:
   # (A/B) * √[ (errA / A)^2 + (errB / B)^2 ]
   # but for histograms, error = √[N] (A and B are simply N events in a bin)
   # so the above reduces to (A/B) * √ [ (1/A) + (1/B) ] 
+  # TODO: correct the above, error cancelation only applies to data
+  # so you ignore the case where A = MC and B = Data or A and B both = MC
   statistical_error[np.isnan(statistical_error)] = 0
   midpoints = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2

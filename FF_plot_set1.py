@@ -30,13 +30,9 @@ from cut_and_study_functions import append_lepton_indices, apply_cut, apply_jet_
 from cut_and_study_functions import load_and_store_NWEvents, customize_DY, append_flavor_indices, set_protected_branches
 
 from cut_ditau_functions import make_ditau_cut
-from cut_ditau_functions import make_ditau_AR_cut, make_ditau_SR_cut
-from cut_ditau_functions import make_ditau_DRsr_cut, make_ditau_DRar_cut
-from cut_ditau_functions import make_ditau_AR_aiso_cut, make_ditau_SR_aiso_cut
-from cut_ditau_functions import make_ditau_DRsr_aiso_cut, make_ditau_DRar_aiso_cut
-
 from cut_mutau_functions import make_mutau_cut
-from cut_mutau_functions import make_mutau_region
+
+from FF_functions import *
 
 from binning_dictionary import label_dictionary
 
@@ -114,9 +110,9 @@ if __name__ == "__main__":
   reject_datasets = reject_dataset_dictionary[final_state_mode]
 
 
+  semilep_mode = "QCD" #"QCD" or "WJ"
   #for region in ["AR", "DRsr", "DRar", "SR_aiso", "AR_aiso", "DRsr_aiso", "DRar_aiso"]:
-  for region in ["DRsr_aiso", "DRar_aiso"]:
-  #for region in ["AR"]:
+  for region in ["DRsr", "DRar"]:
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
 
@@ -140,37 +136,8 @@ if __name__ == "__main__":
         if ("DY" in process): customize_DY(process, final_state_mode)
         event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
 
-      if (final_state_mode == "ditau"):
-        if (region == "DRsr"):      event_dictionary   = make_ditau_DRsr_cut(event_dictionary, DeepTau_version)
-        if (region == "DRar"):      event_dictionary   = make_ditau_DRar_cut(event_dictionary, DeepTau_version)
-        if (region == "AR"):        event_dictionary   = make_ditau_AR_cut(event_dictionary, DeepTau_version)
-        if (region == "DRsr_aiso"): event_dictionary   = make_ditau_DRsr_aiso_cut(event_dictionary, DeepTau_version)
-        if (region == "DRar_aiso"): event_dictionary   = make_ditau_DRar_aiso_cut(event_dictionary, DeepTau_version)
-        if (region == "AR_aiso"):   event_dictionary   = make_ditau_AR_aiso_cut(event_dictionary, DeepTau_version)
-        if (region == "SR_aiso"):   event_dictionary   = make_ditau_SR_aiso_cut(event_dictionary, DeepTau_version)
-        event_dictionary   = apply_cut(event_dictionary, "pass_"+region+"_cuts", protected_branches)
-
-      if (final_state_mode == "mutau"):
-        if (region == "DRsr"):  event_dictionary   = make_mutau_region(event_dictionary,
-                                 "pass_DRsr_cuts",
-                                 FS_pair_sign=1, pass_mu_iso_req=True, mu_iso_value=0.15,
-                                 pass_DeepTau_req=False, DeepTau_value=5, DeepTau_version="2p5",
-                                 pass_mt_req=False, mt_value=50, pass_BTag_req=True)
-        if (region == "DRar"):  event_dictionary   = make_mutau_region(event_dictionary,
-                                 "pass_DRar_cuts",
-                                 FS_pair_sign=1, pass_mu_iso_req=True, mu_iso_value=0.15,
-                                 pass_DeepTau_req=False, DeepTau_value=5, DeepTau_version="2p5",
-                                 pass_mt_req=True, mt_value=50, pass_BTag_req=True)
-        if (region == "AR"):    event_dictionary   = make_mutau_region(event_dictionary, 
-                                 "pass_AR_cuts", 
-                                 FS_pair_sign=-1, pass_mu_iso_req=True, mu_iso_value=0.15,
-                                 pass_DeepTau_req=False, DeepTau_value=5, DeepTau_version="2p5",
-                                 pass_mt_req=True, mt_value=50, pass_BTag_req=True)
-        if (region == "DRsr-aiso"): event_dictionary   = make_mutau_DRsr_aiso_cut(event_dictionary, DeepTau_version)
-        if (region == "DRar-aiso"): event_dictionary   = make_mutau_DRar_aiso_cut(event_dictionary, DeepTau_version)
-        if (region == "AR-aiso"):   event_dictionary   = make_mutau_AR_aiso_cut(event_dictionary, DeepTau_version)
-        if (region == "SR-aiso"):   event_dictionary   = make_mutau_SR_aiso_cut(event_dictionary, DeepTau_version)
-        event_dictionary   = apply_cut(event_dictionary, "pass_"+region+"_cuts", protected_branches)
+      event_dictionary = FF_control_flow(final_state_mode, semilep_mode, region, event_dictionary, DeepTau_version)
+      event_dictionary = apply_cut(event_dictionary, "pass_"+region+"_cuts", protected_branches)
 
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
       event_dictionary   = apply_jet_cut(event_dictionary, jet_mode)

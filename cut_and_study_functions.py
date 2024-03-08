@@ -6,8 +6,9 @@ import numpy as np
 from calculate_functions import calculate_mt, hasbit, getBin, highest_mjj_pair
 from utility_functions   import time_print, text_options, log_print
 
-from cut_ditau_functions import make_ditau_cut, make_ditau_SR_cut, make_ditau_AR_cut
-from cut_mutau_functions import make_mutau_cut, make_mutau_SR_cut, make_mutau_AR_cut, make_mutau_TnP_cut
+from cut_ditau_functions import make_ditau_cut 
+from cut_mutau_functions import make_mutau_cut, make_mutau_TnP_cut
+from FF_functions        import make_ditau_SR_cut, make_ditau_AR_cut, make_mutau_SR_cut, make_mutau_AR_cut
 from cut_etau_functions  import make_etau_cut,  make_etau_AR_cut
 from branch_functions    import add_trigger_branches, add_DeepTau_branches, add_Zpt_branches
 

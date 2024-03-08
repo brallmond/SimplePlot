@@ -177,23 +177,6 @@ def make_mutau_region(event_dictionary, new_branch_name, FS_pair_sign, pass_mu_i
   event_dictionary[new_branch_name] = np.array(pass_cuts)
   return event_dictionary
 
-
-def make_mutau_AR_cut(event_dictionary, DeepTau_version):
-  event_dictionary   = make_mutau_region(event_dictionary, "pass_AR_cuts", 
-                         FS_pair_sign=-1, pass_mu_iso_req=True, mu_iso_value=0.15,
-                         pass_DeepTau_req=False, DeepTau_value=5, DeepTau_version=DeepTau_version,
-                         pass_mt_req=True, mt_value=50, pass_BTag_req=True)
-  return event_dictionary
- 
-
-def make_mutau_SR_cut(event_dictionary, DeepTau_version):
-  event_dictionary   = make_mutau_region(event_dictionary, "pass_SR_cuts", 
-                         FS_pair_sign=-1, pass_mu_iso_req=True, mu_iso_value=0.15,
-                         pass_DeepTau_req=True, DeepTau_value=5, DeepTau_version=DeepTau_version,
-                         pass_mt_req=True, mt_value=50, pass_BTag_req=True)
-  return event_dictionary
- 
-
 def make_mutau_TnP_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, requireProbe=False):
   '''
   Works similarly to 'make_ditau_cut'. 

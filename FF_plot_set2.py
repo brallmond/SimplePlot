@@ -37,40 +37,8 @@ from FF_functions import *
 
 from binning_dictionary import label_dictionary
 
-#def line(x, a, b):
-#    return a + x * b
-
-def line_np(x, par):
-    return np.polyval(par, x)  # for len(par) == 2, this is a line
-
-def make_fit(method, order):
-  nvals = order + 1
-  starting_vals = [5]*nvals
-  name_string = "abcdefghijklmnop" # order > 10
-  name_vals = [name_string[i] for i in range(nvals)]
-  m = Minuit(least_squares, starting_vals, name=name_vals)
-  m.migrad()
-  #print(m)
-
-  # check reduced chi2, goodness-of-fit estimate, should be around 1 # from Minuit manual
-  chi_squared = m.fval 
-  ndof =  len(use_FF_ratio) - len(m.values)
-  reduced_chi_squared = chi_squared / ndof
-
-  y_eqn = make_order_label(order, m.values)
-  label = f"{y_eqn}\
-          \n$\chi^2$/ndof = {chi_squared:.2f}/{ndof} = {reduced_chi_squared:.2f}"
-
-  return m.values, label # m.values returns highest order first
-
-def make_order_label(order, fit_values):
-  nfit_values = len(fit_values)
-  label = "y ="
-  for i,val in enumerate(fit_values):
-    label += f" + {val:.2e}*x^{nfit_values - i - 1}"
-  label = label.replace("*x^0", "")
-  return label
-
+def line(x, a, b):
+    return a + x * b
 
 if __name__ == "__main__":
   '''
@@ -148,10 +116,14 @@ if __name__ == "__main__":
   store_region_data_dictionary = {}
   store_region_bkgd_dictionary = {}
   store_region_sgnl_dictionary = {}
-  semilep_mode = "QCD" # "QCD" or "WJ"
-  numerator = "DRsr_aiso"
-  denominator = "DRar_aiso"
-  for region in [numerator, denominator]:
+  # this is treated like data in your plots
+  semilep_mode = "QCD" #"QCD" or "WJ"
+  pseudo_SR = "SR_aiso" # need the data from here to compare to
+  #pseudo_AR = "DRar_aiso" # need the events from here to make the QCD estimate #
+  # this is treated like MC in your plots (i.e. it's the pink bars)
+  #pseudo_AR = "AR_aiso" # need the events from here to make the QCD estimate
+  pseudo_AR = "AR_aiso" # need the events from here to make the QCD estimate
+  for region in [pseudo_SR, pseudo_AR]:
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
 
@@ -195,6 +167,11 @@ if __name__ == "__main__":
       event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
+      if ("Data" in process): event_dictionary = add_FF_weights(event_dictionary, final_state_mode, 
+                                                   jet_mode, DeepTau_version, determining_FF=False,
+                                                   # [FF int, slope, OS SS int, slope]
+                                                   #bypass = [0.278, -0.000577, 1, 0])
+                                                   bypass = [1.91e-01, -7.43e-06, 1, 0]) #DRsr/ar aiso validation
 
       # TODO : extendable to jet cuts (something I've meant to do for some time)
       if "DY" in process:
@@ -245,12 +222,21 @@ if __name__ == "__main__":
     store_region_sgnl_dictionary[region] = signal_dictionary
 
 
-  numerator_data = store_region_data_dictionary[numerator]
-  numerator_bkgd = store_region_bkgd_dictionary[numerator]
-  numerator_sgnl = store_region_sgnl_dictionary[numerator]
-  denominator_data = store_region_data_dictionary[denominator]
-  denominator_bkgd = store_region_bkgd_dictionary[denominator]
-  denominator_sgnl = store_region_sgnl_dictionary[denominator]
+  pseudo_SR_data = store_region_data_dictionary[pseudo_SR] # this has FF weights
+  pseudo_SR_bkgd = store_region_bkgd_dictionary[pseudo_SR]
+  pseudo_SR_sgnl = store_region_sgnl_dictionary[pseudo_SR]
+  pseudo_AR_data = store_region_data_dictionary[pseudo_AR] # this also has FF weights
+  pseudo_AR_bkgd = store_region_bkgd_dictionary[pseudo_AR]
+  pseudo_AR_sgnl = store_region_sgnl_dictionary[pseudo_AR]
+
+
+  QCD_dictionary = {}
+  QCD_dictionary["QCD"] = {}
+  QCD_dictionary["QCD"]["PlotEvents"] = {}
+  QCD_dictionary["QCD"]["FF_weight"]  = pseudo_AR_data[dataset]["FF_weight"]
+  for var in vars_to_plot:
+    if ("flav" in var): continue
+    QCD_dictionary["QCD"]["PlotEvents"][var] = pseudo_AR_data[dataset]["PlotEvents"][var]
 
   log_print("Processing finished!", log_file, time=True)
   ## end processing loop, begin plotting
@@ -275,94 +261,39 @@ if __name__ == "__main__":
 
     xbins = make_bins(var, final_state_mode)
 
-    ax_compare = setup_single_plot()
-    ax_ratio   = setup_single_plot()
+    ax_hist, ax_ratio = setup_ratio_plot()
 
     temp_var = var
     if "HTT_m_vis" in var: var = "HTT_m_vis"
-    h_numerator_data = get_binned_data(numerator_data, var, xbins, lumi)
-    h_denominator_data = get_binned_data(denominator_data, var, xbins, lumi)
-    h_numerator_backgrounds, h_numerator_summed_backgrounds = get_binned_backgrounds(numerator_bkgd, var, xbins, lumi, jet_mode)
-    h_denominator_backgrounds, h_denominator_summed_backgrounds = get_binned_backgrounds(denominator_bkgd, var, xbins, lumi, jet_mode)
+    h_pseudo_SR_data = get_binned_data(pseudo_SR_data, var, xbins, lumi)
+    h_pseudo_AR_data = get_binned_data(pseudo_AR_data, var, xbins, lumi)
+    h_pseudo_SR_backgrounds, h_pseudo_SR_summed_backgrounds = get_binned_backgrounds(pseudo_SR_bkgd, var, xbins, lumi, jet_mode)
+    h_pseudo_AR_backgrounds, h_pseudo_AR_summed_backgrounds = get_binned_backgrounds(pseudo_AR_bkgd, var, xbins, lumi, jet_mode)
+    #h_pseudo_SR_signals = get_binned_signals(pseudo_SR_sgnl, var, xbins, lumi, jet_mode) 
+    #h_pseudo_AR_signals = get_binned_signals(pseudo_AR_sgnl, var, xbins, lumi, jet_mode) 
+    h_QCD, h_QCD_for_ratio = get_binned_backgrounds(QCD_dictionary, var, xbins, 1, jet_mode)
     var = temp_var
 
-    h_numerator_data_m_MC = h_numerator_data - h_numerator_summed_backgrounds
-    h_denominator_data_m_MC = h_denominator_data - h_denominator_summed_backgrounds
+    h_pseudo_SR_data_m_MC = h_pseudo_SR_data - h_pseudo_SR_summed_backgrounds
+    h_pseudo_AR_weight = (h_pseudo_AR_data - h_pseudo_AR_summed_backgrounds) / h_pseudo_AR_data
 
     # reversed dictionary search for era name based on lumi 
     title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
     title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
 
     # plot everything :)
-    plot_data(ax_compare, xbins, h_numerator_data_m_MC, lumi, color="black", label=f"{numerator} : Data-MC")
-    plot_data(ax_compare, xbins, h_denominator_data_m_MC, lumi, color="green",  label=f"{denominator} : Data-MC")
-    spruce_up_single_plot(ax_compare, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
-    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
+    plot_data(ax_hist, xbins, h_pseudo_SR_data_m_MC, lumi, color="black", label=f"{pseudo_SR} : Data-MC")
+    plot_MC(ax_hist, xbins, h_QCD, lumi) # weight = h_pseudo_AR_weight
 
-    FF_ratio, FF_ratio_err = make_ratio_plot(ax_ratio, xbins, h_numerator_data_m_MC, h_denominator_data_m_MC, 
-                                             label=f"{numerator} / {denominator}")
+    make_ratio_plot(ax_ratio, xbins, h_pseudo_SR_data_m_MC, h_QCD_for_ratio)
 
-    # remove entry if val or error is zero (and is next to another zero)
-    identify_zeros = np.array([(FF_ratio[i] == 0) for i in range(len(FF_ratio))]) # mask for all zeros
-    # finds zeros neighboring zeros
-    silly_zeros = []
-    for i,val in enumerate(FF_ratio):
-      if (val == 0):
-        if (i == 0):
-          if (FF_ratio[i+1] == 0): silly_zeros.append(True)
-          else: silly_zeros.append(False)
-        elif (i == len(FF_ratio)-1):
-          if (FF_ratio[i-1] == 0): silly_zeros.append(True)
-          else: silly_zeros.append(False)
-        elif ((FF_ratio[i+1] == 0) or (FF_ratio[i-1] == 0)): silly_zeros.append(True)
-        else: silly_zeros.append(False)
-      else: silly_zeros.append(False)
-    silly_zeros = np.array(silly_zeros)
+    spruce_up_plot(ax_hist, ax_ratio, label_dictionary[var], title, final_state_mode, jet_mode)
+    spruce_up_legend(ax_hist, final_state_mode, h_pseudo_SR_data_m_MC)
 
-    midpoints = get_midpoints(xbins)
+    plt.savefig(plot_dir + "/" + str(var) + ".png")
 
-    # cludging
-    use_FF_ratio     = FF_ratio[~silly_zeros]
-    use_FF_ratio_err = FF_ratio_err[~silly_zeros]
-    use_midpoints    = midpoints[~silly_zeros]
-
-    if (var == "FS_t1_pt") or (var == "FS_tau_pt"):
-      use_vals = np.array([((midpoints[i] > 40) and (midpoints[i] < 150)) for i in range(len(midpoints))])
-      use_FF_ratio     = FF_ratio[use_vals]
-      use_FF_ratio_err = FF_ratio_err[use_vals]
-      use_midpoints    = midpoints[use_vals]
-
-    least_squares = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, line_np) # line is a function defined above
-
-    # "Fo2" = Fit, order 2
-    Fo0_values, Fo0_label = make_fit(least_squares, 0) # const
-    Fo1_values, Fo1_label = make_fit(least_squares, 1) # line # want "order 1" to mean line
-    Fo2_values, Fo2_label = make_fit(least_squares, 2) # qaudratic
-    Fo3_values, Fo3_label = make_fit(least_squares, 3) # 3rd order polynomial
-    Fo4_values, Fo4_label = make_fit(least_squares, 4) # 4th order polynomial
-
-    # check reduced chi2, goodness-of-fit estimate, should be around 1 # from Minuit manual
-
-    # need to store line and label of each fit
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo0_values)), color="blue",   label="0th order")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo1_values)), color="red",    label="1st order")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo2_values)), color="green",  label="2nd order")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo3_values)), color="pink",   label="3rd order")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo4_values)), color="purple", label="4th order")
-
-    print("FIT COEFFICIENTS")
-    print(f"0th order: {Fo0_label}")
-    print(f"1st order: {Fo1_label}")
-    print(f"2nd order: {Fo2_label}")
-    print(f"3rd order: {Fo3_label}")
-    print(f"4th order: {Fo4_label}")
-
-    spruce_up_single_plot(ax_ratio, label_dictionary[var], "Fake Factor Ratio and Fit", 
-                          title, final_state_mode, jet_mode, yrange=[0.0, 1.0])
-    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
 
   if hide_plots: pass
   else: plt.show()
   log_print(f"Finished plots for FF region!", log_file, time=True)
-
 
