@@ -37,9 +37,6 @@ from FF_functions import *
 
 from binning_dictionary import label_dictionary
 
-#def line(x, a, b):
-#    return a + x * b
-
 def line_np(x, par):
     return np.polyval(par, x)  # for len(par) == 2, this is a line
 
@@ -56,12 +53,13 @@ def make_fit(method, order):
   chi_squared = m.fval 
   ndof =  len(use_FF_ratio) - len(m.values)
   reduced_chi_squared = chi_squared / ndof
+  RX2 = reduced_chi_squared
 
   y_eqn = make_order_label(order, m.values)
   label = f"{y_eqn}\
           \n$\chi^2$/ndof = {chi_squared:.2f}/{ndof} = {reduced_chi_squared:.2f}"
 
-  return m.values, label # m.values returns highest order first
+  return m.values, label, RX2 # m.values returns highest order first
 
 def make_order_label(order, fit_values):
   nfit_values = len(fit_values)
@@ -71,6 +69,31 @@ def make_order_label(order, fit_values):
   label = label.replace("*x^0", "")
   return label
 
+def mask_zeros(input_list, mask_all=False):
+  '''
+  remove entry if val or error is zero (and is next to another zero)
+  or, return mask for all zeros if mask_all is set to true
+  '''
+  adjacent_zeros = []
+  for i, val in enumerate(input_list):
+    if (val == 0):
+      # first value in list, only check for adjacenet zero to the right
+      if (i == 0):
+        if (input_list[i+1] == 0): adjacent_zeros.append(True)
+        else: adjacent_zeros.append(False)
+      # last value in list, only check for adjacent zero to the left
+      elif (i == len(input_list)-1):
+        if (input_list[i-1] == 0): adjacent_zeros.append(True)
+        else: adjacent_zeros.append(False)
+      # all other values in the list, check both sides for another zero
+      elif ((input_list[i+1] == 0) or (input_list[i-1] == 0)): adjacent_zeros.append(True)
+      # not adjacent to another zero
+      else: adjacent_zeros.append(False) 
+    # not zero
+    else: adjacent_zeros.append(False)
+  all_zeros = np.array([(input_list[i] == 0) for i in range(len(input_list))])
+  adjacent_zeros = all_zeros if mask_all else np.array(adjacent_zeros) 
+  return adjacent_zeros
 
 if __name__ == "__main__":
   '''
@@ -148,9 +171,9 @@ if __name__ == "__main__":
   store_region_data_dictionary = {}
   store_region_bkgd_dictionary = {}
   store_region_sgnl_dictionary = {}
-  semilep_mode = "QCD" # "QCD" or "WJ"
-  numerator = "DRsr_aiso"
-  denominator = "DRar_aiso"
+  semilep_mode = "WJ" # "QCD" or "WJ"
+  numerator = "DRsr"
+  denominator = "DRar"
   for region in [numerator, denominator]:
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
@@ -260,16 +283,19 @@ if __name__ == "__main__":
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")
   if (final_state_mode == "ditau"):
-    vars_to_plot = ["HTT_m_vis-KSUbinning", 
+    #vars_to_plot = ["HTT_m_vis-KSUbinning", 
+    vars_to_plot = [
                   "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",
                   "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt"]
   if (final_state_mode == "mutau"):
-    vars_to_plot = ["HTT_m_vis-KSUbinning", 
+    #vars_to_plot = ["HTT_m_vis-KSUbinning", 
+    vars_to_plot = [
                   "FS_tau_pt", "FS_tau_eta", "FS_tau_phi",
                   "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "PuppiMET_pt", "FS_mt"]
   # and add back variables unique to the jet mode
   if (jet_mode == "1j") or (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_1")
   if (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_2")
+  #vars_to_plot = ["FS_t1_pt"]
   for var in vars_to_plot:
     log_print(f"Plotting {var}", log_file, time=True)
 
@@ -294,30 +320,21 @@ if __name__ == "__main__":
     title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
 
     # plot everything :)
-    plot_data(ax_compare, xbins, h_numerator_data_m_MC, lumi, color="black", label=f"{numerator} : Data-MC")
-    plot_data(ax_compare, xbins, h_denominator_data_m_MC, lumi, color="green",  label=f"{denominator} : Data-MC")
-    spruce_up_single_plot(ax_compare, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
-    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
+    #plot_data(ax_compare, xbins, h_numerator_data_m_MC, lumi, color="black", label=f"{numerator} : Data-MC")
+    #plot_data(ax_compare, xbins, h_denominator_data_m_MC, lumi, color="green",  label=f"{denominator} : Data-MC")
+    #spruce_up_single_plot(ax_compare, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
+    #plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
 
-    FF_ratio, FF_ratio_err = make_ratio_plot(ax_ratio, xbins, h_numerator_data_m_MC, h_denominator_data_m_MC, 
-                                             label=f"{numerator} / {denominator}")
+    #dummy axis
+    ax_iter = setup_single_plot()
+    FF_ratio, FF_ratio_err = make_ratio_plot(ax_iter, xbins, 
+                                  h_numerator_data_m_MC, "Data", np.ones(np.shape(h_numerator_data_m_MC)),
+                                  h_denominator_data_m_MC, "Data", np.ones(np.shape(h_denominator_data_m_MC)),
+                                  label=f"{numerator} / {denominator}")
 
-    # remove entry if val or error is zero (and is next to another zero)
-    identify_zeros = np.array([(FF_ratio[i] == 0) for i in range(len(FF_ratio))]) # mask for all zeros
-    # finds zeros neighboring zeros
-    silly_zeros = []
-    for i,val in enumerate(FF_ratio):
-      if (val == 0):
-        if (i == 0):
-          if (FF_ratio[i+1] == 0): silly_zeros.append(True)
-          else: silly_zeros.append(False)
-        elif (i == len(FF_ratio)-1):
-          if (FF_ratio[i-1] == 0): silly_zeros.append(True)
-          else: silly_zeros.append(False)
-        elif ((FF_ratio[i+1] == 0) or (FF_ratio[i-1] == 0)): silly_zeros.append(True)
-        else: silly_zeros.append(False)
-      else: silly_zeros.append(False)
-    silly_zeros = np.array(silly_zeros)
+
+    silly_zeros = mask_zeros(FF_ratio)
+    #silly_zeros = mask_zeros(FF_ratio, mask_all = True)
 
     midpoints = get_midpoints(xbins)
 
@@ -325,30 +342,111 @@ if __name__ == "__main__":
     use_FF_ratio     = FF_ratio[~silly_zeros]
     use_FF_ratio_err = FF_ratio_err[~silly_zeros]
     use_midpoints    = midpoints[~silly_zeros]
+    # would be easier to say by FS what cut off pt to start at. No end, handled by rebinning?
+
+    # trying auto-rebinning, revisit
+    if (var == "FS_t1_pt") or (var == "FS_tau_pt"):
+      iteration = 0
+      iter_color = {0: "black", 1: "blue", 2: "red", 3: "green", 4: "grey"}
+      #while (iteration < 5):
+      while (iteration < 2):
+        # where err is zero or > 0.05, combine bin with nearby bins
+        bad_values_loc = ((use_FF_ratio_err>0.05) | (use_FF_ratio_err == 0.0)).nonzero()
+        first_bad_val = bad_values_loc[0][0]
+        # make chopped linspace with good vals
+        keep_xbins = xbins[(xbins < xbins[first_bad_val]).nonzero()]
+        # make new linspace with new vals to attempt
+        try_xbins = np.linspace(xbins[first_bad_val], xbins[-1], (len(xbins)-len(keep_xbins))//2)
+        # combine arrays
+        new_xbins = np.concatenate([keep_xbins, try_xbins])
+    
+        xbins = new_xbins
+        midpoints = get_midpoints(xbins)
+  
+        h_numerator_data = get_binned_data(numerator_data, var, xbins, lumi)
+        h_denominator_data = get_binned_data(denominator_data, var, xbins, lumi)
+        h_numerator_backgrounds, h_numerator_summed_backgrounds = get_binned_backgrounds(numerator_bkgd, var, xbins, lumi, jet_mode)
+        h_denominator_backgrounds, h_denominator_summed_backgrounds = get_binned_backgrounds(denominator_bkgd, var, xbins, lumi, jet_mode)
+        
+        h_numerator_data_m_MC = h_numerator_data - h_numerator_summed_backgrounds
+        h_denominator_data_m_MC = h_denominator_data - h_denominator_summed_backgrounds
+
+        # TODO : fix me, summed backgrounds should neglect WJ in the case of semilep_mode==WJ
+        print(h_numerator_backgrounds)
+        if (semilep_mode == "QCD"):
+          pass
+        else: # add back contribution from process under study, canceling its above subtraction
+          h_numerator_data_m_MC += h_numerator_backgrounds[semilep_mode]["BinnedEvents"]
+          h_denominator_data_m_MC += h_denominator_backgrounds[semilep_mode]["BinnedEvents"]
+          #h_numerator_summed_backgrounds += h_numerator_backgrounds[semilep_mode]["BinnedEvents"]
+          #h_denominator_summed_backgrounds += h_denominator_backgrounds[semilep_mode]["BinnedEvents"]
+ 
+ 
+        FF_ratio, FF_ratio_err = make_ratio_plot(ax_iter, xbins, 
+                                    h_numerator_data_m_MC, "Data", np.ones(np.shape(h_numerator_data_m_MC)),
+                                    h_denominator_data_m_MC, "Data", np.ones(np.shape(h_denominator_data_m_MC)),
+                                    label=f"iter {iteration}", color=iter_color[iteration])
+        iteration += 1
+    spruce_up_single_plot(ax_iter, label_dictionary[var], "Fake Factor Ratio Iteration", 
+                          title, final_state_mode, jet_mode)
+    # end iteration
+    
+
+    # reversed dictionary search for era name based on lumi 
+    title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
+    title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
+
+    # plot everything :)
+    plot_data(ax_compare, xbins, h_numerator_data_m_MC, lumi, color="grey", label=f"{numerator} : Data-MC")
+    plot_data(ax_compare, xbins, h_denominator_data_m_MC, lumi, color="blue",  label=f"{denominator} : Data-MC")
+    spruce_up_single_plot(ax_compare, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
+    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
+
+    # puts last value from above on final plot
+    FF_ratio, FF_ratio_err = make_ratio_plot(ax_ratio, xbins, 
+                                  h_numerator_data_m_MC, "Data", np.ones(np.shape(h_numerator_data_m_MC)),
+                                  h_denominator_data_m_MC, "Data", np.ones(np.shape(h_denominator_data_m_MC)),
+                                  label=f"{numerator} / {denominator}")
+
+    silly_zeros = mask_zeros(FF_ratio)
+    #silly_zeros = mask_zeros(FF_ratio, mask_all = True)
+    midpoints = get_midpoints(xbins)
+
+    # cludging
+    # used to be use_ all
+    FF_ratio     = FF_ratio[~silly_zeros]
+    FF_ratio_err = FF_ratio_err[~silly_zeros]
+    midpoints    = midpoints[~silly_zeros]
+    # would be easier to say by FS what cut off pt to start at. No end, handled by rebinning?
 
     if (var == "FS_t1_pt") or (var == "FS_tau_pt"):
-      use_vals = np.array([((midpoints[i] > 40) and (midpoints[i] < 150)) for i in range(len(midpoints))])
+      low_val = 30 if var == "FS_tau_pt" else 40
+      use_vals = np.array([((midpoints[i] > low_val) and (midpoints[i] < midpoints[-1])) for i in range(len(midpoints))])
+      #use_vals = np.array([((midpoints[i] > low_val) and (midpoints[i] < 200)) for i in range(len(midpoints))])
+      # remove upper bound # fails
+      #use_vals = np.array([(midpoints[i] > low_val) for i in range(len(midpoints))])
       use_FF_ratio     = FF_ratio[use_vals]
       use_FF_ratio_err = FF_ratio_err[use_vals]
       use_midpoints    = midpoints[use_vals]
 
     least_squares = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, line_np) # line is a function defined above
+    #least_squares = LeastSquares(midpoints, FF_ratio, FF_ratio_err, line_np) # line is a function defined above
 
     # "Fo2" = Fit, order 2
-    Fo0_values, Fo0_label = make_fit(least_squares, 0) # const
-    Fo1_values, Fo1_label = make_fit(least_squares, 1) # line # want "order 1" to mean line
-    Fo2_values, Fo2_label = make_fit(least_squares, 2) # qaudratic
-    Fo3_values, Fo3_label = make_fit(least_squares, 3) # 3rd order polynomial
-    Fo4_values, Fo4_label = make_fit(least_squares, 4) # 4th order polynomial
+    Fo0_values, Fo0_label, Fo0_RX2 = make_fit(least_squares, 0) # const
+    Fo1_values, Fo1_label, Fo1_RX2 = make_fit(least_squares, 1) # line # want "order 1" to mean line
+    Fo2_values, Fo2_label, Fo2_RX2 = make_fit(least_squares, 2) # qaudratic
+    Fo3_values, Fo3_label, Fo3_RX2 = make_fit(least_squares, 3) # 3rd order polynomial
+    Fo4_values, Fo4_label, Fo4_RX2 = make_fit(least_squares, 4) # 4th order polynomial
 
     # check reduced chi2, goodness-of-fit estimate, should be around 1 # from Minuit manual
 
     # need to store line and label of each fit
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo0_values)), color="blue",   label="0th order")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo1_values)), color="red",    label="1st order")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo2_values)), color="green",  label="2nd order")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo3_values)), color="pink",   label="3rd order")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo4_values)), color="purple", label="4th order")
+    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo0_values)), color="blue",   label=f"0th order: {Fo0_RX2:.3f}")
+    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo1_values)), color="red",    label=f"1st order: {Fo1_RX2:.3f}")
+    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo2_values)), color="green",  label=f"2nd order: {Fo2_RX2:.3f}")
+    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo3_values)), color="pink",   label=f"3rd order: {Fo3_RX2:.3f}")
+    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo4_values)), color="purple", label=f"4th order: {Fo4_RX2:.3f}")
 
     print("FIT COEFFICIENTS")
     print(f"0th order: {Fo0_label}")
@@ -359,8 +457,9 @@ if __name__ == "__main__":
 
     spruce_up_single_plot(ax_ratio, label_dictionary[var], "Fake Factor Ratio and Fit", 
                           title, final_state_mode, jet_mode, yrange=[0.0, 1.0])
-    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
+    plt.savefig(plot_dir + "/" + str(var) + ".png")
 
+  print(f"plots are in {plot_dir}")
   if hide_plots: pass
   else: plt.show()
   log_print(f"Finished plots for FF region!", log_file, time=True)

@@ -19,9 +19,10 @@ from cut_and_study_functions import apply_HTT_FS_cuts_to_process, apply_AR_cut
 
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
+from plotting_functions    import setup_single_plot, spruce_up_single_plot
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart
 
-from plotting_functions import get_midpoints
+from plotting_functions import get_midpoints, make_two_dimensional_plot
 
 from binning_dictionary import label_dictionary
 
@@ -113,18 +114,22 @@ if __name__ == "__main__":
   # add FF weights :) # almost the same as SR, except SS and 1st tau fails iso (applied in AR_cuts)
 
   common_selection = "(METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
-  AR_region_ditau = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
-  AR_region_mutau = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
-  AR_region_etau  = common_selection + " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
-  AR_region_emu   = common_selection + " & (abs(HTT_pdgId)==11*13) & (Trigger_emu)"
+  AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
+  AR_region_mutau  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
+  AR_region_etau   = common_selection + " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
+  AR_region_emu    = common_selection + " & (abs(HTT_pdgId)==11*13) & (Trigger_emu)"
+  AR_region_dimuon = common_selection + " & (abs(HTT_pdgId)==13*13) & (HLT_IsoMu24)"
 
-  dataset_dictionary = {"ditau" : "DataTau", "mutau" : "DataMuon", "etau" : "DataElectron", "emu" : "DataEMu"}
+  dataset_dictionary = {"ditau" : "DataTau", "mutau" : "DataMuon", "etau" : "DataElectron", "emu" : "DataEMu",
+                        "dimuon": "DataMuon"}
   reject_dataset_dictionary = {"ditau" : ["DataMuon", "DataElectron", "DataEMu"],
                                "mutau" : ["DataTau",  "DataElectron", "DataEMu"],
                                "etau"  : ["DataMuon", "DataTau",      "DataEMu"],
-                               "emu"   : ["DataMuon", "DataElectron", "DataTau"]}
+                               "emu"   : ["DataMuon", "DataElectron", "DataTau"],
+                               "dimuon": ["DataTau",  "DataElectron", "DataEMu"], }
   AR_region_dictionary = {"ditau" : AR_region_ditau, "mutau" : AR_region_mutau, 
-                          "etau" : AR_region_etau, "emu" : AR_region_emu}
+                          "etau" : AR_region_etau, "emu" : AR_region_emu,
+                          "dimuon" : AR_region_dimuon}
   dataset = dataset_dictionary[final_state_mode]
   reject_datasets = reject_dataset_dictionary[final_state_mode]
   AR_region = AR_region_dictionary[final_state_mode]
@@ -142,12 +147,12 @@ if __name__ == "__main__":
     cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, DeepTau_version,
                                  determining_FF = False)
     FF_dictionary = {}
-    FF_dictionary["QCD"] = {}
-    FF_dictionary["QCD"]["PlotEvents"] = {}
-    FF_dictionary["QCD"]["FF_weight"]  = cut_events_AR["FF_weight"]
+    FF_dictionary["myQCD"] = {}
+    FF_dictionary["myQCD"]["PlotEvents"] = {}
+    FF_dictionary["myQCD"]["FF_weight"]  = cut_events_AR["FF_weight"]
     for var in vars_to_plot:
       if ("flav" in var): continue
-      FF_dictionary["QCD"]["PlotEvents"][var] = cut_events_AR[var]
+      FF_dictionary["myQCD"]["PlotEvents"][var] = cut_events_AR[var]
 
   if (jet_mode == "Inclusive") and (do_QCD == True):
     temp_FF_dictionary = {}
@@ -162,25 +167,25 @@ if __name__ == "__main__":
       cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, internal_jet_mode, DeepTau_version,
                                    determining_FF = False)
       temp_FF_dictionary[internal_jet_mode] = {}
-      temp_FF_dictionary[internal_jet_mode]["QCD"] = {}
-      temp_FF_dictionary[internal_jet_mode]["QCD"]["PlotEvents"] = {}
-      temp_FF_dictionary[internal_jet_mode]["QCD"]["FF_weight"]  = cut_events_AR["FF_weight"]
+      temp_FF_dictionary[internal_jet_mode]["myQCD"] = {}
+      temp_FF_dictionary[internal_jet_mode]["myQCD"]["PlotEvents"] = {}
+      temp_FF_dictionary[internal_jet_mode]["myQCD"]["FF_weight"]  = cut_events_AR["FF_weight"]
       for var in vars_to_plot:
         if ("flav" in var): continue
-        temp_FF_dictionary[internal_jet_mode]["QCD"]["PlotEvents"][var] = cut_events_AR[var]
+        temp_FF_dictionary[internal_jet_mode]["myQCD"]["PlotEvents"][var] = cut_events_AR[var]
 
     temp_dict = {}
     if (do_QCD==True):
-      temp_dict["QCD"] = {}
-      temp_dict["QCD"]["PlotEvents"] = {}
-      temp_dict["QCD"]["FF_weight"]  = np.concatenate((temp_FF_dictionary["0j"]["QCD"]["FF_weight"], 
-                                                       temp_FF_dictionary["1j"]["QCD"]["FF_weight"],
-                                                       temp_FF_dictionary["GTE2j"]["QCD"]["FF_weight"]))
+      temp_dict["myQCD"] = {}
+      temp_dict["myQCD"]["PlotEvents"] = {}
+      temp_dict["myQCD"]["FF_weight"]  = np.concatenate((temp_FF_dictionary["0j"]["myQCD"]["FF_weight"], 
+                                                       temp_FF_dictionary["1j"]["myQCD"]["FF_weight"],
+                                                       temp_FF_dictionary["GTE2j"]["myQCD"]["FF_weight"]))
       for var in vars_to_plot:
         if ("flav" in var): continue
-        temp_dict["QCD"]["PlotEvents"][var] = np.concatenate((temp_FF_dictionary["0j"]["QCD"]["PlotEvents"][var],
-                                                              temp_FF_dictionary["1j"]["QCD"]["PlotEvents"][var],
-                                                              temp_FF_dictionary["GTE2j"]["QCD"]["PlotEvents"][var]))
+        temp_dict["myQCD"]["PlotEvents"][var] = np.concatenate((temp_FF_dictionary["0j"]["myQCD"]["PlotEvents"][var],
+                                                              temp_FF_dictionary["1j"]["myQCD"]["PlotEvents"][var],
+                                                              temp_FF_dictionary["GTE2j"]["myQCD"]["PlotEvents"][var]))
 
     FF_dictionary = temp_dict
 
@@ -203,7 +208,7 @@ if __name__ == "__main__":
     if cut_events == None: continue
 
     # TODO : extendable to jet cuts (something I've meant to do for some time)
-    if "DY" in process:
+    if ("DY" in process) and (final_state_mode != "dimuon"):
       event_flavor_arr = cut_events["event_flavor"]
       pass_gen_flav, pass_lep_flav, pass_jet_flav = [], [], []
       for i, event_flavor in enumerate(event_flavor_arr):
@@ -248,6 +253,31 @@ if __name__ == "__main__":
   log_print("Processing finished!", log_file, time=True)
   ## end processing loop, begin plotting
 
+  eta_phi_plot = True
+  if (eta_phi_plot == True):
+    processes = [process for process in background_dictionary.keys()]
+    processes.append(dataset)
+    do_processes = []
+    eta_phi_by_FS_dict = {"ditau"  : ["FS_t1_eta", "FS_t1_phi", "FS_t2_eta", "FS_t2_phi"],
+                          "mutau"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
+                          "etau"   : ["FS_el_eta", "FS_el_phi", "FS_tau_eta", "FS_tau_phi"],
+                          "dimuon" : ["FS_m1_eta", "FS_m1_phi", "FS_m2_eta", "FS_m2_phi"]}
+    eta_phi_by_FS = eta_phi_by_FS_dict[final_state_mode]
+    for process in processes:
+      if ("Data" in process):
+        make_two_dimensional_plot(data_dictionary[dataset]["PlotEvents"], final_state_mode,
+                                 eta_phi_by_FS[0], eta_phi_by_FS[1], add_to_title="Data")
+        make_two_dimensional_plot(data_dictionary[dataset]["PlotEvents"], final_state_mode,
+                                 eta_phi_by_FS[2], eta_phi_by_FS[3], add_to_title="Data")
+        if (jet_mode == "1j"):
+          make_two_dimensional_plot(data_dictionary[dataset]["PlotEvents"], final_state_mode,
+                                   "CleanJetGT30_eta_1", "CleanJetGT30_phi_1", add_to_title="Data")
+      elif (process in do_processes):
+        make_two_dimensional_plot(background_dictionary[process]["PlotEvents"], final_state_mode,
+                                 "FS_t1_eta", "FS_t1_phi", add_to_title=process)
+      else:
+        print(f"skipping eta-phi plot for {process}")
+
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
@@ -258,12 +288,13 @@ if __name__ == "__main__":
 
     xbins = make_bins(var, final_state_mode)
     hist_ax, hist_ratio = setup_ratio_plot()
+    #hist_ax = setup_single_plot()
 
     temp_var = var # hack to plot the same variable twice with two different binnings
     if "HTT_m_vis" in var: var = "HTT_m_vis"
     h_data = get_binned_data(data_dictionary, var, xbins, lumi)
     if (final_state_mode != "dimuon") and (do_QCD == True):
-      background_dictionary["QCD"] = FF_dictionary["QCD"] # manually include QCD as background
+      background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
     h_backgrounds, h_summed_backgrounds = get_binned_backgrounds(background_dictionary, var, xbins, lumi, jet_mode)
     h_signals = get_binned_signals(signal_dictionary, var, xbins, lumi, jet_mode) 
     var = temp_var
@@ -273,7 +304,9 @@ if __name__ == "__main__":
     plot_MC(     hist_ax, xbins, h_backgrounds, lumi)
     plot_signal( hist_ax, xbins, h_signals,     lumi)
 
-    make_ratio_plot(hist_ratio, xbins, h_data, h_summed_backgrounds)
+    make_ratio_plot(hist_ratio, xbins, 
+                    h_data, "Data", np.ones(np.shape(h_data)),
+                    h_summed_backgrounds, "Data", np.ones(np.shape(h_summed_backgrounds)))
 
     # reversed dictionary search for era name based on lumi 
     title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
@@ -282,6 +315,7 @@ if __name__ == "__main__":
     #set_x_log = True if "PNet" in var else False
     set_x_log = False
     spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, set_x_log = set_x_log)
+    #spruce_up_single_plot(hist_ax, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
     spruce_up_legend(hist_ax, final_state_mode, h_data)
 
     plt.savefig(plot_dir + "/" + str(var) + ".png")

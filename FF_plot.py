@@ -293,8 +293,6 @@ if __name__ == "__main__":
     #h_pseudo_SR_signals = get_binned_signals(pseudo_SR_sgnl, var, xbins, lumi, jet_mode) 
     #h_pseudo_AR_signals = get_binned_signals(pseudo_AR_sgnl, var, xbins, lumi, jet_mode) 
     h_QCD, h_QCD_for_ratio = get_binned_backgrounds(QCD_dictionary, var, xbins, 1, jet_mode)
-    print(h_QCD)
-    print(h_QCD_for_ratio)
     var = temp_var
 
     h_pseudo_SR_data_m_MC = h_pseudo_SR_data - h_pseudo_SR_summed_backgrounds
@@ -318,7 +316,7 @@ if __name__ == "__main__":
     spruce_up_plot(ax_hist, ax_ratio, label_dictionary[var], title, final_state_mode, jet_mode)
     spruce_up_legend(ax_hist, final_state_mode, h_pseudo_SR_data_m_MC)
 
-    plt.savefig(plot_dir + "/" + str(var) + ".png")
+    plt.savefig(plot_dir + "/" + str(var) + "_" + region + ".png")
 
 
   if hide_plots: pass

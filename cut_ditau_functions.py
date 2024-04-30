@@ -1,5 +1,6 @@
 import numpy as np
 
+from calculate_functions import calculate_acoplan 
 from branch_functions import add_trigger_branches, add_DeepTau_branches
 
 def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
@@ -152,6 +153,7 @@ def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta,
   if ditau_trig:
     passTrig = True # could put trigger name here, then sort later by what passes
     passTauKinems = (t1_pt > 40 and t2_pt > 40 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
+    #passTauKinems = passTauKinems and (t1_pt < 250 and t2_pt < 250)
     passJetKinems = True # 30 30 600 for 2jet, but will be global cut earlier and just checked here, unsure global 1jet
   if (ditau_jet_low_trig or ditau_jet_high_trig) and not (ditau_trig):
     passTrig = True

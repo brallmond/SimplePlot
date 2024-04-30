@@ -10,7 +10,7 @@ from matplotlib.patches import Rectangle
 # this file contains functions to setup plotting interfaces and draw the plots themselves
 
 from MC_dictionary        import MC_dictionary
-from binning_dictionary   import binning_dictionary
+from binning_dictionary   import binning_dictionary, label_dictionary
 from triggers_dictionary  import triggers_dictionary
 
 from calculate_functions  import yields_for_CSV, calculate_underoverflow
@@ -40,6 +40,21 @@ def make_pie_chart(data_hist, MC_dictionary, use_data=False, use_fakes=False):
       ax.pie(sums, labels=labels, colors=colors, autopct='%1.1f%%')
       #ax.legend(loc="upper right")
 
+def make_two_dimensional_plot(input_dictionary, final_state, x_var, y_var, 
+                              add_to_title="", alt_x_bins=[], alt_y_bins=[]):
+  fig, axis = plt.subplots()
+  x_array = input_dictionary[x_var]
+  y_array = input_dictionary[y_var]
+  x_bins  = binning_dictionary[final_state][x_var] if len(alt_x_bins) == 0 else alt_x_bins
+  y_bins  = binning_dictionary[final_state][y_var] if len(alt_y_bins) == 0 else alt_y_bins
+  h2d, xbins, ybins = np.histogram2d(x_array, y_array, bins=(x_bins, y_bins))
+  h2d = h2d.T # transpose from image coordinates to data coordinates
+  cmesh = axis.pcolormesh(xbins, ybins, h2d) #pcolormesh uses data coordinates by default, imshow uses array of 1x1 squares
+  axis.set_title(f"{final_state} :" + f" {add_to_title}")
+  axis.set_xlabel(label_dictionary[x_var])
+  axis.set_ylabel(label_dictionary[y_var])
+  plt.colorbar(cmesh)
+
 
 def plot_data(histogram_axis, xbins, data_info, luminosity, 
               color="black", label="Data", marker="o", fillstyle="full"):
@@ -51,7 +66,7 @@ def plot_data(histogram_axis, xbins, data_info, luminosity,
   sum_of_data = np.sum(data_info)
   stat_error = np.array([np.sqrt(entry) if entry > 0 else 0 for entry in data_info]) #error = √N
   midpoints   = get_midpoints(xbins)
-  bin_width  = abs(xbins[0:-1]-xbins[1:])/2
+  bin_width  = abs(xbins[0:-1]-xbins[1:])/2 # only works for uniform bin widths
   label = f"Data [{sum_of_data:>.0f}]" if label == "Data" else label
   histogram_axis.errorbar(midpoints, data_info, xerr=bin_width, yerr=stat_error, 
                           color=color, marker=marker, fillstyle=fillstyle, label=label,
@@ -157,9 +172,10 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   # factor of 1000 comes from lumi and XSec units of fb^-1 = 10E15 b^-1 and pb = 10E-12 b respectively
     plot_scaling = MC_dictionary[process]["plot_scaling"] # 1 for all non-signal processes by default
     scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
-    #scaling = plot_scaling * MC_dictionary[process]["XSecMCweight"] * 1.025 # somehow wrong
-    # difference between normtag and non-normtag lumi, V12 made without normtag
-    if process=="QCD": scaling = 1
+    if process=="myQCD": scaling = 1
+    # TODO pass "testing" boolean through here too
+    if process=="TTTo2L2Nu": scaling *= 15 # scale up by n*ignored files
+    if process=="TTToSemiLeptonic": scaling *= 27 # scale up by n*ignored files
     #if process=="DYInc": scaling *=6.482345 # scale up factor for New Dimuon DY
   if signal:
     label += " x" + str(plot_scaling)
@@ -221,7 +237,7 @@ def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, 
   add_CMS_preliminary(axis)
   add_final_state_and_jet_mode(axis, final_state_mode, jet_mode)
   axis.set_title(title, loc='right', y=0.98)
-  axis.set_ylabel("events / bin")
+  axis.set_ylabel("Events / bin")
   axis.minorticks_on()
   axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
   axis.set_xlabel(variable_name)
@@ -243,7 +259,7 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
   add_final_state_and_jet_mode(histogram_axis, final_state_mode, jet_mode)
   #histogram_axis.set_ylim([0, histogram_axis.get_ylim()[1]*1.2]) # scale top of graph up by 20%
   histogram_axis.set_title(title, loc='right', y=0.98)
-  histogram_axis.set_ylabel("events / bin")
+  histogram_axis.set_ylabel("Events / bin")
   histogram_axis.minorticks_on()
   histogram_axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
   #yticks = histogram_axis.yaxis.get_major_ticks()
@@ -312,7 +328,10 @@ def spruce_up_legend(histogram_axis, final_state_mode, data_hists):
     print("Removed samples with yield=0 from legend!")
 
  
-def make_ratio_plot(ratio_axis, xbins, numerator_data, denominator_data, label=None):
+def make_ratio_plot(ratio_axis, xbins, 
+                    numerator_data, numerator_type, numerator_weight,
+                    denominator_data, denominator_type, denominator_weight,
+                    label=None, color="black"):
   '''
   Uses provided numerator and denominator info to make a ratio to add to given plotting axis.
   Errors are also calculated using the same matplotlib function as used in plot_data.
@@ -320,20 +339,32 @@ def make_ratio_plot(ratio_axis, xbins, numerator_data, denominator_data, label=N
   ratio = numerator_data/denominator_data
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
   # TODO : technically errors from stack should be individually calculated, not one stack
-  statistical_error = np.array([ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
-                      if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
-                      for i,_ in enumerate(denominator_data)]) # ratio error = (A/B) * √ ((1/A) + (1/B)) \
+  
   # the error bars on a ratio plot of a histogram A divided by a histogram B is:
   # (A/B) * √[ (errA / A)^2 + (errB / B)^2 ]
-  # but for histograms, error = √[N] (A and B are simply N events in a bin)
-  # so the above reduces to (A/B) * √ [ (1/A) + (1/B) ] 
-  # TODO: correct the above, error cancelation only applies to data
-  # so you ignore the case where A = MC and B = Data or A and B both = MC
+  # for data, error = √ [N] \ where A and B are simply N events in a bin
+  # for MC  , error = √ [ Σ (w)^2] \ where w is "event weights" in a bin
+  #if (numerator_type=="MC") and (denominator_type=="MC"):
+    # ratio error = (A/B) * √ [ ( √ [Σ (w_A)^2] / A)^2 + ( √ [Σ (w_B)^2] / B)^2 ] \
+  #if (numerator_type=="Data") and (denominator_type=="MC"):
+    # ratio error = (A/B) * √ [ (1/A) + ( √ [Σ (w_B)^2] / B)^2 ] \
+  if (numerator_type=="Data") and (denominator_type=="Data"):
+    # ratio error = (A/B) * √ [ (1/A) + (1/B) ] \
+    statistical_error = np.array([ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
+                        if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
+                        for i,_ in enumerate(denominator_data)]) 
   statistical_error[np.isnan(statistical_error)] = 0
   midpoints = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2
+  #print(bin_width, len(bin_width)) # TODO COME BACK HERE soon
+  #print(statistical_error, len(statistical_error))
+  #bin_width = []
+  #bin_width.extend([xbins[i+1] - xbins[i] for i in range(len(xbins)-1)])
+  #print(bin_width)
+  #bin_width.append(xbins[-1] - xbins[-2]) 
+  #print(bin_width)
   ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
-                    color="black", marker="o", linestyle='none', markersize=2, label=label)
+                    color=color, marker="o", linestyle='none', markersize=2, label=label)
 
   return ratio, statistical_error
 
@@ -405,7 +436,9 @@ def get_binned_info(process_name, process_variable, xbins, process_weights, lumi
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
   binned_values[0]   += underflow
   binned_values[-1]  += overflow
-  return binned_values
+  binned_weight_2, _  = np.histogram(weights, xbins, weights=weights*weights)
+  binned_errors       = np.array([np.sqrt(value) for value in binned_weight_2])
+  return binned_values, binned_errors
 
 
 def get_binned_data(data_dictionary, variable, xbins_, lumi_):
@@ -433,8 +466,9 @@ def get_binned_data(data_dictionary, variable, xbins_, lumi_):
     #print(f"For {dataset} using weights:") # DEBUG
     #print(data_weights) # DEBUG
     h_data_by_dataset[dataset] = {}
-    h_data_by_dataset[dataset]["BinnedEvents"] = get_binned_info(dataset, data_variable, 
-                                                                 xbins_, data_weights, lumi_)
+    binned_values, binned_errors = get_binned_info(dataset, data_variable, xbins_, data_weights, lumi_)
+    h_data_by_dataset[dataset]["BinnedEvents"] = binned_values
+    h_data_by_dataset[dataset]["BinnedErrors"] = binned_errors
   h_data = accumulate_datasets(h_data_by_dataset)
   return h_data
 
@@ -493,6 +527,7 @@ def get_parent_process(MC_process, skip_process=False):
   #elif "Genuine"  in MC_process:  parent_process = "DY" # DEBUG
   if skip_process: parent_process = MC_process
   #if "DY" in MC_process: parent_process = "DY"
+  elif ("QCD" in MC_process) and (MC_process != "myQCD"): parent_process = "QCD"
   elif "WJets" in MC_process:  parent_process = "WJ"
   elif "TT"    in MC_process:  parent_process = "TT"
   elif "ST"    in MC_process:  parent_process = "ST"
@@ -516,39 +551,29 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
   for process in background_dictionary:
     process_variable = background_dictionary[process]["PlotEvents"][variable]
     if len(process_variable) == 0: continue
-    if process == "QCD":  
+    if process == "myQCD":  
       process_weights = background_dictionary[process]["FF_weight"]
     #if ( (("JetGT30_" in variable or "fromHighestMjj" in variable) and (jet_mode=="Inclusive")) or 
     #     ((variable == "CleanJetGT30_pt_3" or variable == "CleanJetGT30_eta3") and (jet_mode=="GTE2j")) ):
     ##if ("JetGT30_" in variable) and (jet_mode=="Inclusive"):
     #  process_weights = get_trimmed_Generator_weight_copy(variable, background_dictionary[process], jet_mode)
     else:
-      process_weights_gen    = background_dictionary[process]["Generator_weight"]
-      process_weights_PU     = background_dictionary[process]["PUweight"]
-      process_weights_TauSF  = background_dictionary[process]["TauSFweight"]
-      process_weights_MuSF   = background_dictionary[process]["MuSFweight"]
-      process_weights_ElSF   = background_dictionary[process]["ElSFweight"]
-      process_weights_BTagSF = background_dictionary[process]["BTagSFfull"]
-      process_weights_DY_Zpt = background_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
-      process_weights_TT_NNLO = background_dictionary[process]["Weight_TTbar_NNLO"]
-
-      #process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_MuSF # for Oceane
-      process_weights = process_weights_gen * process_weights_DY_Zpt * process_weights_PU * process_weights_TT_NNLO * \
-                        process_weights_TauSF * process_weights_MuSF * process_weights_ElSF * \
-                        process_weights_BTagSF
+      process_weights = get_MC_weights(background_dictionary, process)
     #print("process, variable, variable and weight shapes") # DEBUG 
     #print(process, variable, process_variable.shape, process_weights.shape) # DEBUG
     h_MC_by_process[process] = {}
-    h_MC_by_process[process]["BinnedEvents"] = get_binned_info(process, process_variable, 
-                                                               xbins_, process_weights, lumi_)
+    binned_values, binned_errors = get_binned_info(process, process_variable, xbins_, process_weights, lumi_)
+    h_MC_by_process[process]["BinnedEvents"] = binned_values
+    h_MC_by_process[process]["BinnedErrors"] = binned_errors
   # add together subprocesses of each MC family
   h_MC_by_family = {}
   # see what processes exist in the dictionary
-  if "QCD" in background_dictionary.keys(): # QCD is on bottom of stack since it is first called
-    h_MC_by_family["QCD"] = {}
-    h_MC_by_family["QCD"]["BinnedEvents"] = h_MC_by_process["QCD"]["BinnedEvents"]
-  #all_MC_families  = ["JetFakes", "LepFakes", "DY", "TT", "ST", "WJ", "VV"] # determines stack order, far left is bottom
-  all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # determines stack order, far left is bottom, QCD at bottom
+  if "myQCD" in background_dictionary.keys(): # QCD is on bottom of stack since it is first called
+    h_MC_by_family["myQCD"] = {}
+    h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
+    all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
+  else:
+    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
   used_MC_families = []
   for family in all_MC_families:
     for process in h_MC_by_process:
@@ -571,8 +596,9 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
 
 
 def get_binned_signals(signal_dictionary, variable, xbins_, lumi_, jet_mode):
+  #TODO : bundle with background above
   '''
-  Signal is put in a separate dictionary from MC, but they are processed very similarly
+  Signal is put in a separate dictionary from MC, but they are processed identically 
   '''
   h_signals = {}
   for process in signal_dictionary:
@@ -584,22 +610,23 @@ def get_binned_signals(signal_dictionary, variable, xbins_, lumi_, jet_mode):
     #if ("JetGT30_" in variable) and (jet_mode=="Inclusive"):
       signal_weights = get_trimmed_Generator_weight_copy(variable, signal_dictionary[process], jet_mode)
     else:
-      signal_weights_gen    = signal_dictionary[process]["Generator_weight"]
-      signal_weights_PU     = signal_dictionary[process]["PUweight"]
-      signal_weights_TauSF  = signal_dictionary[process]["TauSFweight"]
-      signal_weights_MuSF   = signal_dictionary[process]["MuSFweight"]
-      signal_weights_ElSF   = signal_dictionary[process]["ElSFweight"]
-      signal_weights_BTagSF = signal_dictionary[process]["BTagSFfull"]
-      signal_weights_DY_Zpt = signal_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
-      signal_weights_TT_NNLO = signal_dictionary[process]["Weight_TTbar_NNLO"]
-
-      #signal_weights = signal_weights_gen * signal_weights_DY_Zpt * signal_weights_MuSF # for Oceane
-      signal_weights = signal_weights_gen * signal_weights_DY_Zpt * signal_weights_PU * signal_weights_TT_NNLO * \
-                       signal_weights_TauSF * signal_weights_MuSF * signal_weights_ElSF * \
-                       signal_weights_BTagSF
+      signal_weights = get_MC_weights(signal_dictionary, process)
     h_signals[process] = {}
-    h_signals[process]["BinnedEvents"] = get_binned_info(process, signal_variable,
-                                                        xbins_, signal_weights, lumi_)
+    binned_values, binned_errors = get_binned_info(process, signal_variable, xbins_, signal_weights, lumi_)
+    h_signals[process]["BinnedEvents"] = binned_values
+    h_signals[process]["BinnedErrors"] = binned_errors
   return h_signals
 
 
+def get_MC_weights(MC_dictionary, process):
+  gen     = MC_dictionary[process]["Generator_weight"]
+  PU      = MC_dictionary[process]["PUweight"]
+  TauSF   = MC_dictionary[process]["TauSFweight"]
+  MuSF    = MC_dictionary[process]["MuSFweight"]
+  ElSF    = MC_dictionary[process]["ElSFweight"]
+  BTagSF  = MC_dictionary[process]["BTagSFfull"]
+  DY_Zpt  = MC_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
+  TT_NNLO = MC_dictionary[process]["Weight_TTbar_NNLO"]
+  full_weights = gen * PU * TauSF * MuSF * ElSF *\
+                 BTagSF * DY_Zpt * TT_NNLO
+  return full_weights

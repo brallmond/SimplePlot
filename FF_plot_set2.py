@@ -116,13 +116,11 @@ if __name__ == "__main__":
   store_region_data_dictionary = {}
   store_region_bkgd_dictionary = {}
   store_region_sgnl_dictionary = {}
-  # this is treated like data in your plots
   semilep_mode = "QCD" #"QCD" or "WJ"
-  pseudo_SR = "SR_aiso" # need the data from here to compare to
-  #pseudo_AR = "DRar_aiso" # need the events from here to make the QCD estimate #
-  # this is treated like MC in your plots (i.e. it's the pink bars)
-  #pseudo_AR = "AR_aiso" # need the events from here to make the QCD estimate
-  pseudo_AR = "AR_aiso" # need the events from here to make the QCD estimate
+  # this is treated like data in your plots (i.e. it's the black dots)
+  pseudo_SR = "DRsr" # need the data from here to compare to
+  # this is treated like MC in your plots (i.e. it's multiplied by the FF to make the pink bars)
+  pseudo_AR = "AR" # need the events from here to make the QCD estimate
   for region in [pseudo_SR, pseudo_AR]:
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
@@ -169,9 +167,19 @@ if __name__ == "__main__":
 
       if ("Data" in process): event_dictionary = add_FF_weights(event_dictionary, final_state_mode, 
                                                    jet_mode, DeepTau_version, determining_FF=False,
-                                                   # [FF int, slope, OS SS int, slope]
-                                                   #bypass = [0.278, -0.000577, 1, 0])
-                                                   bypass = [1.91e-01, -7.43e-06, 1, 0]) #DRsr/ar aiso validation
+                                                # [FF int, slope, OS SS int, slope]
+                                                #bypass = [0.278, -0.000577, 1, 0])
+                                                # Medium
+                                                bypass = [2.27e-01, -3.19e-06, 1, 0]) #DRsr/ar iso eras EFG Inc
+                                                #bypass = [2.78e-01, -5.70e-04, 1, 0]) #DRsr/ar iso eras EFG 0j RedX=4.14
+                                                #bypass = [2.30e-01, -4.93e-04, 1, 0]) #DRsr/ar iso eras EFG 1j RedX=4.15
+                                                #bypass = [2.36e-01, -9.53e-04, 1, 0]) #DRsr/ar iso eras EFG 2j RedX=3.70
+                                                # Tight
+                                                #bypass = [1.74e-01, -4.71e-04, 1, 0]) #DRsr/ar iso eras EFG Inc RedX=2.52
+                                                # Medium aiso
+                                                #bypass = [1.91e-01, -7.43e-06, 1, 0]) #DRsr/ar aiso era G
+                                                #bypass = [2.41e-01, -6.12e-04, 1, 0]) #DRsr/ar aiso eras EFG
+
 
       # TODO : extendable to jet cuts (something I've meant to do for some time)
       if "DY" in process:
@@ -230,13 +238,14 @@ if __name__ == "__main__":
   pseudo_AR_sgnl = store_region_sgnl_dictionary[pseudo_AR]
 
 
+  # switch to "QCD" to use MC
   QCD_dictionary = {}
-  QCD_dictionary["QCD"] = {}
-  QCD_dictionary["QCD"]["PlotEvents"] = {}
-  QCD_dictionary["QCD"]["FF_weight"]  = pseudo_AR_data[dataset]["FF_weight"]
+  QCD_dictionary["myQCD"] = {}
+  QCD_dictionary["myQCD"]["PlotEvents"] = {}
+  QCD_dictionary["myQCD"]["FF_weight"]  = pseudo_AR_data[dataset]["FF_weight"]
   for var in vars_to_plot:
     if ("flav" in var): continue
-    QCD_dictionary["QCD"]["PlotEvents"][var] = pseudo_AR_data[dataset]["PlotEvents"][var]
+    QCD_dictionary["myQCD"]["PlotEvents"][var] = pseudo_AR_data[dataset]["PlotEvents"][var]
 
   log_print("Processing finished!", log_file, time=True)
   ## end processing loop, begin plotting
@@ -275,6 +284,9 @@ if __name__ == "__main__":
     var = temp_var
 
     h_pseudo_SR_data_m_MC = h_pseudo_SR_data - h_pseudo_SR_summed_backgrounds
+    # set negative values to zero
+    # ratio[np.isnan(ratio)] = 0
+    h_pseudo_SR_data_m_MC[np.where(h_pseudo_SR_data_m_MC < 0)] = 0
     h_pseudo_AR_weight = (h_pseudo_AR_data - h_pseudo_AR_summed_backgrounds) / h_pseudo_AR_data
 
     # reversed dictionary search for era name based on lumi 
@@ -285,7 +297,12 @@ if __name__ == "__main__":
     plot_data(ax_hist, xbins, h_pseudo_SR_data_m_MC, lumi, color="black", label=f"{pseudo_SR} : Data-MC")
     plot_MC(ax_hist, xbins, h_QCD, lumi) # weight = h_pseudo_AR_weight
 
-    make_ratio_plot(ax_ratio, xbins, h_pseudo_SR_data_m_MC, h_QCD_for_ratio)
+    #make_ratio_plot(ax_ratio, xbins, h_pseudo_SR_data_m_MC, h_QCD_for_ratio)
+    make_ratio_plot(ax_ratio, xbins, 
+                    h_pseudo_SR_data_m_MC, "Data", np.ones(np.shape(h_pseudo_SR_data_m_MC)),
+                    h_QCD_for_ratio, "Data", np.ones(np.shape(h_QCD_for_ratio)))
+
+
 
     spruce_up_plot(ax_hist, ax_ratio, label_dictionary[var], title, final_state_mode, jet_mode)
     spruce_up_legend(ax_hist, final_state_mode, h_pseudo_SR_data_m_MC)

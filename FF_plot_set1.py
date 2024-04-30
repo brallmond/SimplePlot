@@ -110,9 +110,9 @@ if __name__ == "__main__":
   reject_datasets = reject_dataset_dictionary[final_state_mode]
 
 
-  semilep_mode = "QCD" #"QCD" or "WJ"
+  semilep_mode = "WJ" #"QCD" or "WJ"
   #for region in ["AR", "DRsr", "DRar", "SR_aiso", "AR_aiso", "DRsr_aiso", "DRar_aiso"]:
-  for region in ["DRsr", "DRar"]:
+  for region in ["AR"]:
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
 
@@ -129,6 +129,26 @@ if __name__ == "__main__":
       event_dictionary = new_process_dictionary[process]["info"]
       if (event_dictionary == None): continue
 
+      #protected_branches = ["FS_t1_flav", "FS_t2_flav", "pass_gen_cuts", "event_flavor"]
+      #event_dictionary = append_lepton_indices(event_dictionary)
+      #if ("Data" not in process):
+      #  load_and_store_NWEvents(process, event_dictionary)
+      #  if ("DY" in process): customize_DY(process, final_state_mode)
+      #  #event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
+      #  keep_fakes = False
+      #  if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
+      #    # when FF method is finished/improved no longer need to keep TT and WJ fakes
+      #    keep_fakes = True
+      #  if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="etau")):
+      #    # when FF method is finished/improved no longer need to keep TT and WJ fakes
+      #    keep_fakes = True
+      #  if (("DY" in process) and (final_state_mode=="ditau")):
+      #    keep_fakes = True
+      #  #event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=keep_fakes)
+      #  event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False)
+      #  event_dictionary = apply_cut(event_dictionary, "pass_gen_cuts", protected_branches=protected_branches)
+      #  if (event_dictionary==None or len(event_dictionary["run"])==0): continue
+      
       protected_branches = ["None"]
       event_dictionary = append_lepton_indices(event_dictionary)
       if ("Data" not in process):
@@ -143,6 +163,7 @@ if __name__ == "__main__":
       event_dictionary   = apply_jet_cut(event_dictionary, jet_mode)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
+
       if (final_state_mode == "ditau"):
         event_dictionary   = make_ditau_cut(event_dictionary, DeepTau_version) # no DeepTau or Charge requirements
         if (event_dictionary==None or len(event_dictionary["run"])==0): continue
@@ -154,6 +175,29 @@ if __name__ == "__main__":
       protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
       event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
+
+
+      if ((final_state_mode == "mutau") or (final_state_mode == "etau")) and (semilep_mode == "WJ"):
+        if ("Data" in process): event_dictionary = add_FF_weights(event_dictionary, final_state_mode, 
+                                                     jet_mode, DeepTau_version, determining_FF=False,
+                                                # [FF int, slope, OS SS int, slope]
+                                                #bypass = [0.278, -0.000577, 1, 0])
+                                                # ditau
+                                                # Medium
+                                                #bypass = [2.27e-01, -3.19e-06, 1, 0] #DRsr/ar iso eras EFG Inc
+                                                #bypass = [2.78e-01, -5.70e-04, 1, 0] #DRsr/ar iso eras EFG 0j RedX=4.14
+                                                #bypass = [2.30e-01, -4.93e-04, 1, 0] #DRsr/ar iso eras EFG 1j RedX=4.15
+                                                #bypass = [2.36e-01, -9.53e-04, 1, 0] #DRsr/ar iso eras EFG 2j RedX=3.70
+                                                # Tight
+                                                #bypass = [1.74e-01, -4.71e-04, 1, 0] #DRsr/ar iso eras EFG Inc RedX=2.52
+                                                # Medium aiso
+                                                #bypass = [1.91e-01, -7.43e-06, 1, 0] #DRsr/ar aiso era G
+                                                #bypass = [2.41e-01, -6.12e-04, 1, 0] #DRsr/ar aiso eras EFG
+                                                # mutau
+                                                #bypass = [0.0262364,-1.88738e-05, 1, 0] # old, hacky
+                                                bypass = [0.0790, 0.000444, 1, 0] # DRsr/ar iso eras EFG Inc RedX=27 # 30min
+                                                )
+
 
 
       # TODO : extendable to jet cuts (something I've meant to do for some time)
@@ -199,6 +243,17 @@ if __name__ == "__main__":
     # after loop, sort big dictionary into three smaller ones
     data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
+    if ((final_state_mode == "mutau") or (final_state_mode == "etau")) and (semilep_mode == "WJ"):
+      QCD_dictionary = {}
+      QCD_dictionary["myQCD"] = {}
+      QCD_dictionary["myQCD"]["PlotEvents"] = {}
+      QCD_dictionary["myQCD"]["FF_weight"]  = data_dictionary[dataset]["FF_weight"]
+      for var in vars_to_plot:
+        if ("flav" in var): continue
+        QCD_dictionary["myQCD"]["PlotEvents"][var] = data_dictionary[dataset]["PlotEvents"][var]
+
+      background_dictionary["myQCD"] = QCD_dictionary["myQCD"] # manually include QCD as background
+
     log_print("Processing finished!", log_file, time=True)
     ## end processing loop, begin plotting
 
@@ -237,12 +292,12 @@ if __name__ == "__main__":
 
       # reversed dictionary search for era name based on lumi 
       title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
-      title = f"{region} {title_era}, {lumi:.2f}" + r"$fb^{-1}$"
+      title = f"{semilep_mode} {region} {title_era}, {lumi:.2f}" + r"$fb^{-1}$"
       
       spruce_up_single_plot(hist_ax, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
       spruce_up_legend(hist_ax, final_state_mode, h_data)
 
-      plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
+      plt.savefig(plot_dir + "/" + str(var) + "_" + semilep_mode + "_" + region + ".png")
 
       if (var == "HTT_m_vis-KSUbinning"): make_pie_chart(h_data, h_backgrounds)
 

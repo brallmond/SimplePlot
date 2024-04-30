@@ -56,39 +56,22 @@ TnP_file_map = {
 }
 
 testing_file_map = {
-  #"DataTauF"  : "Data/Tau_Run*F*", # still figure this out
-  #"DataTauG"  : "Data/Tau_Run*G*",
   "DataTau"  : "Data/Tau_Run*G*",
   "DataMuon" : "Data/Muon_Run*G*",
   "DataElectron" : "Data/EGamma*G*",
   "DataEMu"  : "Data/MuonEG_Run*G*",
 
-  #"DYInc" : "DY/DYJets*part1",
+
   "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
   "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
 
-  #"TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
-  #"TTToFullyHadronic" : "TT/TTToFullyHadronic*",
-  #"TTToSemiLeptonic"  : "TT/TTToSemiLeptonic*",
+  # for faster mutau testing / comment out for ditau
+  "TTTo2L2Nu"         : "TT/TTTo2L2Nu_HTauTau_2022postEE_step2_part1",
+  "TTToFullyHadronic" : "TT/TTToFullyHadronic_HTauTau_2022postEE_step2_part1",
+  "TTToSemiLeptonic"  : "TT/TTToSemiLeptonic_HTauTau_2022postEE_step2_part1",
 
   "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
   "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
-
-  #"ST_s-channel_Tbar"  : "ST/ST_s-channel_antitop*",
-  #"ST_t-channel_Tbar"  : "ST/ST_t-channel_antitop*",
-  #"ST_s-channel_T"     : "ST/ST_s-channel_top*",
-  #"ST_t-channel_T"     : "ST/ST_t-channel_top*",
-
-  #"WWTo2L2Nu" : "VV/WWTo2L2Nu*",
-  #"WWTo4Q"    : "VV/WWTo4Q*",
-  #"WWToLNu2Q" : "VV/WWToLNu2Q*",
-  #"WZTo3LNu"  : "VV/WZTo3LNu*",
-  #"WZTo2L2Q"  : "VV/WZTo2L2Q*",
-  #"WZToLNu2Q" : "VV/WZToLNu2Q*",
-  #"ZZTo2L2Nu" : "VV/ZZTo2L2Nu*",
-  #"ZZTo2L2Q"  : "VV/ZZTo2L2Q*", 
-  #"ZZTo2Nu2Q" : "VV/ZZTo2Nu2Q*",
-  #"ZZTo4L"    : "VV/ZZTo4L*", 
 
   "VBF"   : "Signal/VBF*private*",
   "ggH"   : "Signal/ggH*private*",
@@ -134,6 +117,8 @@ full_file_map = {
   "TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
   "TTToSemiLeptonic"  : "TT/TTToSemiLeptonic*",
+  #"TTTo2L2Nu"         : "TT/TTTo2L2Nu_HTauTau_2022postEE_step2_part1",
+  #"TTToSemiLeptonic"  : "TT/TTToSemiLeptonic_HTauTau_2022postEE_step2_part1",
 
   "ST_s-channel_Tbar"  : "ST/ST_s-channel_antitop*",
   "ST_t-channel_Tbar"  : "ST/ST_t-channel_antitop*",
@@ -169,6 +154,18 @@ full_file_map = {
   "ZZTo2L2Q"  : "VV/ZZTo2L2Q*", 
   "ZZTo2Nu2Q" : "VV/ZZTo2Nu2Q*",
   "ZZTo4L"    : "VV/ZZTo4L*", 
+
+  # Do Not Use
+  #"QCD_HT-70to100"    : "QCD/QCD_HT70to100_HTauTau*",
+  #"QCD_HT-100to200"   : "QCD/QCD_HT100to200_HTauTau*",
+  #"QCD_HT-200to400"   : "QCD/QCD_HT200to400_HTauTau*",
+  #"QCD_HT-400to600"   : "QCD/QCD_HT400to600_HTauTau*",
+  #"QCD_HT-600to800"   : "QCD/QCD_HT600to800_HTauTau*",
+  #"QCD_HT-800to1000"  : "QCD/QCD_HT800to1000_HTauTau*",
+  #"QCD_HT-1000to1200" : "QCD/QCD_HT1000to1200_HTauTau*",
+  #"QCD_HT-1200to1500" : "QCD/QCD_HT1200to1500_HTauTau*",
+  #"QCD_HT-1500to2000" : "QCD/QCD_HT1500to2000_HTauTau*",
+  #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
 
   "VBF"   : "Signal/VBF*private*",
   "ggH"   : "Signal/ggH*private*",

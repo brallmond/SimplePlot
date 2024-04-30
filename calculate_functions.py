@@ -114,6 +114,11 @@ def calculate_mt_pyROOT(lep_pt, lep_eta, lep_phi, lep_mass, # import ROOT to use
   #mt = ROOT.TMath.Sqrt( mt2 )
   '''
   return mt
+
+def calculate_acoplan(l1_phi, l2_phi):
+  '''return value of acoplanarity defined by two leptons (small in elastic collisions)'''
+  #A = 1 − |∆φ(l, l′)|/π
+  return 1 - (abs(phi_mpi_pi(l1_phi - l2_phi))/np.pi)
   
 
 def calculate_dR(eta1, phi1, eta2, phi2): 

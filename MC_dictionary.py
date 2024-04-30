@@ -41,14 +41,17 @@ label_dictionary = {
  "WJ"  : "WJ",
  "VV"  : "VV",
  "QCD" : "QCD",
+ "myQCD" : "FF Jet Fakes",
 }
  
 MC_dictionary = {
-  "DY" : {"label": "DY", "color": color_dictionary["DY"]},
-  "TT" : {"label": "TT", "color": color_dictionary["TT"]},
-  "ST" : {"label": "ST", "color": color_dictionary["ST"]},
-  "WJ" : {"label": "W+Jets", "color": color_dictionary["WJ"]},
-  "VV" : {"label": "Diboson", "color": color_dictionary["VV"]},
+  "myQCD" : {"label": "QCD", "color": color_dictionary["QCD"]},
+  "QCD" : {"label": "QCD", "color": color_dictionary["QCD"]},
+  "DY"  : {"label": "DY", "color": color_dictionary["DY"]},
+  "TT"  : {"label": "TT", "color": color_dictionary["TT"]},
+  "ST"  : {"label": "ST", "color": color_dictionary["ST"]},
+  "WJ"  : {"label": "W+Jets", "color": color_dictionary["WJ"]},
+  "VV"  : {"label": "Diboson", "color": color_dictionary["VV"]},
 
   #########################################################
   # above are dummy dictionaries for grouped subprocesses #
@@ -194,8 +197,39 @@ MC_dictionary = {
                     "label": "VV", "color": color_dictionary["VV"],
                     "plot_scaling" : 1},
 
-  "QCD"   : {"XSec": 1, "NWEvents": 1,
+  "myQCD"   : {"XSec": 1, "NWEvents": 1,
              "label": "Jet Fakes", "color": color_dictionary["QCD"],
              "plot_scaling" : 1, "XSecMCweight" : 1},  # dummy value for MCweight
+
+  "QCD_HT-70to100"    : {"XSec": XSec["QCD_HT-70to100"],    "NWEvents": 1.973e+16, # branch value
+                         "label": "MC QCD", "color": color_dictionary["QCD"],
+                         "plot_scaling" : 1},
+  "QCD_HT-100to200"   : {"XSec": XSec["QCD_HT-100to200"],   "NWEvents": 1.142e+16, # branch value
+                         "label": "MC QCD", "color": color_dictionary["QCD"],
+                         "plot_scaling" : 1},
+  "QCD_HT-200to400"   : {"XSec": XSec["QCD_HT-200to400"],   "NWEvents": 1.208e+15, # branch value
+                       "label": "MC QCD", "color": color_dictionary["QCD"],
+                       "plot_scaling" : 1},
+  "QCD_HT-400to600"   : {"XSec": XSec["QCD_HT-400to600"],   "NWEvents": 7.184e+13, # branch value
+                       "label": "MC QCD", "color": color_dictionary["QCD"],
+                       "plot_scaling" : 1},
+  "QCD_HT-600to800"   : {"XSec": XSec["QCD_HT-600to800"],   "NWEvents": 1.019e+13, # branch value
+                         "label": "MC QCD", "color": color_dictionary["QCD"],
+                         "plot_scaling" : 1},
+  "QCD_HT-800to1000"  : {"XSec": XSec["QCD_HT-800to1000"],  "NWEvents": 2.530e+12, # branch value
+                         "label": "MC QCD", "color": color_dictionary["QCD"],
+                         "plot_scaling" : 1},
+  "QCD_HT-1000to1200" : {"XSec": XSec["QCD_HT-1000to1200"], "NWEvents": 8.112e+11, # branch value
+                         "label": "MC QCD", "color": color_dictionary["QCD"],
+                         "plot_scaling" : 1},
+  "QCD_HT-1200to1500" : {"XSec": XSec["QCD_HT-1200to1500"], "NWEvents": 3.579e+11, # branch value
+                         "label": "MC QCD", "color": color_dictionary["QCD"],
+                         "plot_scaling" : 1},
+  "QCD_HT-1500to2000" : {"XSec": XSec["QCD_HT-1500to2000"], "NWEvents": 1.063e+11, # branch value
+                         "label": "MC QCD", "color": color_dictionary["QCD"],
+                         "plot_scaling" : 1},
+  "QCD_HT-2000"       : {"XSec": XSec["QCD_HT-2000"],       "NWEvents": 2.274e+10, # branch value
+                         "label": "MC QCD", "color": color_dictionary["QCD"],
+                         "plot_scaling" : 1},
 
 }
