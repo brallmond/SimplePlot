@@ -20,7 +20,7 @@ from cut_and_study_functions import set_branches, set_vars_to_plot, set_good_eve
 from cut_and_study_functions import apply_HTT_FS_cuts_to_process, apply_AR_cut
 
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
-from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
+from plotting_functions    import setup_ratio_plot, make_ratio_plot, make_ratio_no_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins
 
 from plotting_functions import get_midpoints, setup_single_plot, spruce_up_single_plot
@@ -40,12 +40,28 @@ from binning_dictionary import label_dictionary
 def line_np(x, par):
     return np.polyval(par, x)  # for len(par) == 2, this is a line
 
-def make_fit(method, order):
+def user_square_root(x, a, b, c):
+    return a*np.sqrt(x-b) + c
+
+def user_exp(x, a, b, c, d):
+    return a*np.exp(-b*(x-c)) + d
+
+def make_exp_fit(method, starting_vals):
+  m = Minuit(method, starting_vals, name=name_vals)
+  m.migrad()
+  chi_squared = m.fval
+  ndof = len(use_FF_ratio) - len(m.values)
+  RX2 = chi_squared / ndof
+
+  return m.values, RX2
+
+def make_pol_fit(method, order):
   nvals = order + 1
   starting_vals = [5]*nvals
   name_string = "abcdefghijklmnop" # order > 10
   name_vals = [name_string[i] for i in range(nvals)]
-  m = Minuit(least_squares, starting_vals, name=name_vals)
+  m = Minuit(method, starting_vals, name=name_vals)
+  #m = Minuit(least_squares, starting_vals, name=name_vals)
   m.migrad()
   #print(m)
 
@@ -69,6 +85,38 @@ def make_order_label(order, fit_values):
   label = label.replace("*x^0", "")
   return label
 
+def subtract_data_MC(semilep_mode, h_num_data, h_num_backgrounds, h_num_summed_backgrounds, 
+                     h_den_data, h_den_backgrounds, h_den_summed_backgrounds):
+    '''
+    num = numerator, den = denominator
+    '''
+    
+    h_num_data_m_MC = h_num_data - h_num_summed_backgrounds
+    h_den_data_m_MC = h_den_data - h_den_summed_backgrounds
+
+    if (semilep_mode == "QCD"):
+      pass
+    else: # add back contribution from process under study, canceling its above subtraction
+      h_num_data_m_MC += h_num_backgrounds[semilep_mode]["BinnedEvents"]
+      h_den_data_m_MC += h_den_backgrounds[semilep_mode]["BinnedEvents"]
+
+    return h_num_data_m_MC, h_den_data_m_MC
+
+
+def quick_rebin(num_data, den_data, num_bkgd, den_bkgd,
+                var, xbins, lumi, semilep_mode, underflow=True):
+  h_num_data = get_binned_data(num_data, var, xbins, lumi)
+  h_den_data = get_binned_data(den_data, var, xbins, lumi)
+  h_num_bkgd, h_num_summed_bkgd = get_binned_backgrounds(num_bkgd, var, xbins, lumi, jet_mode)
+  h_den_bkgd, h_den_summed_bkgd = get_binned_backgrounds(den_bkgd, var, xbins, lumi, jet_mode)
+  #return h_num_data, h_den_data, h_num_bkgd, h_num_summed_bkgd, h_den_bkgd, h_den_summed_bkgd
+
+  h_num_data_m_MC, h_den_data_m_MC = subtract_data_MC(semilep_mode, 
+                                   h_num_data, h_num_bkgd, h_num_summed_bkgd,
+                                   h_den_data, h_den_bkgd, h_den_summed_bkgd)
+  return h_num_data_m_MC, h_den_data_m_MC
+ 
+
 def mask_zeros(input_list, mask_all=False):
   '''
   remove entry if val or error is zero (and is next to another zero)
@@ -91,7 +139,7 @@ def mask_zeros(input_list, mask_all=False):
       else: adjacent_zeros.append(False) 
     # not zero
     else: adjacent_zeros.append(False)
-  all_zeros = np.array([(input_list[i] == 0) for i in range(len(input_list))])
+  all_zeros = np.array([(input_list[i] <= 0) for i in range(len(input_list))])
   adjacent_zeros = all_zeros if mask_all else np.array(adjacent_zeros) 
   return adjacent_zeros
 
@@ -171,7 +219,7 @@ if __name__ == "__main__":
   store_region_data_dictionary = {}
   store_region_bkgd_dictionary = {}
   store_region_sgnl_dictionary = {}
-  semilep_mode = "WJ" # "QCD" or "WJ"
+  semilep_mode = "QCD" # "QCD" or "WJ"
   numerator = "DRsr"
   denominator = "DRar"
   for region in [numerator, denominator]:
@@ -285,21 +333,25 @@ if __name__ == "__main__":
   if (final_state_mode == "ditau"):
     #vars_to_plot = ["HTT_m_vis-KSUbinning", 
     vars_to_plot = [
-                  "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",
-                  "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt"]
+                  "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",]
+                  #"FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt"]
   if (final_state_mode == "mutau"):
     #vars_to_plot = ["HTT_m_vis-KSUbinning", 
     vars_to_plot = [
-                  "FS_tau_pt", "FS_tau_eta", "FS_tau_phi",
-                  "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "PuppiMET_pt", "FS_mt"]
+                  "FS_tau_pt", "FS_tau_eta", "FS_tau_phi",]
+                  #"FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "PuppiMET_pt", "FS_mt"]
   # and add back variables unique to the jet mode
   if (jet_mode == "1j") or (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_1")
   if (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_2")
-  #vars_to_plot = ["FS_t1_pt"]
   for var in vars_to_plot:
     log_print(f"Plotting {var}", log_file, time=True)
 
     xbins = make_bins(var, final_state_mode)
+    if (var == "FS_t1_pt") or (var == "FS_tau_pt"): # FS_tau_pt belongs to mutau/etau, FS_t1_pt is ditau
+      print(f"old xbins = {xbins}")
+      xbins = np.array([0, 5, 10, 15, 20, 25, 30, 32.5, 35, 37.5, 40, 45, 60, 200])
+      #xbins = np.array([0, 5, 10, 15, 20, 25, 30, 31.25, 32.5, 33.75, 35, 36.25, 37.5, 38.75, 40, 42.25, 45, 52.5, 60, 120, 200])
+      print(f"new xbins = {xbins}")
 
     ax_compare = setup_single_plot()
     ax_ratio   = setup_single_plot()
@@ -312,151 +364,137 @@ if __name__ == "__main__":
     h_denominator_backgrounds, h_denominator_summed_backgrounds = get_binned_backgrounds(denominator_bkgd, var, xbins, lumi, jet_mode)
     var = temp_var
 
-    h_numerator_data_m_MC = h_numerator_data - h_numerator_summed_backgrounds
-    h_denominator_data_m_MC = h_denominator_data - h_denominator_summed_backgrounds
+    h_num_data_m_MC, h_den_data_m_MC = subtract_data_MC(semilep_mode, 
+                     h_numerator_data, h_numerator_backgrounds, h_numerator_summed_backgrounds, 
+                     h_denominator_data, h_denominator_backgrounds, h_denominator_summed_backgrounds)
 
     # reversed dictionary search for era name based on lumi 
     title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
     title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
 
     # plot everything :)
-    #plot_data(ax_compare, xbins, h_numerator_data_m_MC, lumi, color="black", label=f"{numerator} : Data-MC")
-    #plot_data(ax_compare, xbins, h_denominator_data_m_MC, lumi, color="green",  label=f"{denominator} : Data-MC")
-    #spruce_up_single_plot(ax_compare, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
-    #plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
+    plot_data(ax_compare, xbins, h_num_data_m_MC, lumi, color="grey", label=f"{numerator} : Data-MC")
+    plot_data(ax_compare, xbins, h_den_data_m_MC, lumi, color="blue",  label=f"{denominator} : Data-MC")
+    spruce_up_single_plot(ax_compare, label_dictionary[var], "Events", title, final_state_mode, jet_mode)
+    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
 
-    #dummy axis
-    ax_iter = setup_single_plot()
-    FF_ratio, FF_ratio_err = make_ratio_plot(ax_iter, xbins, 
-                                  h_numerator_data_m_MC, "Data", np.ones(np.shape(h_numerator_data_m_MC)),
-                                  h_denominator_data_m_MC, "Data", np.ones(np.shape(h_denominator_data_m_MC)),
+    FF_ratio, FF_ratio_err = make_ratio_plot(ax_ratio, xbins, 
+                                  h_num_data_m_MC, "Data", np.ones(np.shape(h_num_data_m_MC)),
+                                  h_den_data_m_MC, "Data", np.ones(np.shape(h_den_data_m_MC)),
                                   label=f"{numerator} / {denominator}")
 
-
     silly_zeros = mask_zeros(FF_ratio)
-    #silly_zeros = mask_zeros(FF_ratio, mask_all = True)
-
     midpoints = get_midpoints(xbins)
 
-    # cludging
+    # cludging for non-fit variable
     use_FF_ratio     = FF_ratio[~silly_zeros]
     use_FF_ratio_err = FF_ratio_err[~silly_zeros]
     use_midpoints    = midpoints[~silly_zeros]
-    # would be easier to say by FS what cut off pt to start at. No end, handled by rebinning?
 
-    # trying auto-rebinning, revisit
-    if (var == "FS_t1_pt") or (var == "FS_tau_pt"):
-      iteration = 0
-      iter_color = {0: "black", 1: "blue", 2: "red", 3: "green", 4: "grey"}
-      #while (iteration < 5):
-      while (iteration < 2):
-        # where err is zero or > 0.05, combine bin with nearby bins
-        bad_values_loc = ((use_FF_ratio_err>0.05) | (use_FF_ratio_err == 0.0)).nonzero()
-        first_bad_val = bad_values_loc[0][0]
-        # make chopped linspace with good vals
-        keep_xbins = xbins[(xbins < xbins[first_bad_val]).nonzero()]
-        # make new linspace with new vals to attempt
-        try_xbins = np.linspace(xbins[first_bad_val], xbins[-1], (len(xbins)-len(keep_xbins))//2)
-        # combine arrays
-        new_xbins = np.concatenate([keep_xbins, try_xbins])
-    
-        xbins = new_xbins
-        midpoints = get_midpoints(xbins)
-  
-        h_numerator_data = get_binned_data(numerator_data, var, xbins, lumi)
-        h_denominator_data = get_binned_data(denominator_data, var, xbins, lumi)
-        h_numerator_backgrounds, h_numerator_summed_backgrounds = get_binned_backgrounds(numerator_bkgd, var, xbins, lumi, jet_mode)
-        h_denominator_backgrounds, h_denominator_summed_backgrounds = get_binned_backgrounds(denominator_bkgd, var, xbins, lumi, jet_mode)
-        
-        h_numerator_data_m_MC = h_numerator_data - h_numerator_summed_backgrounds
-        h_denominator_data_m_MC = h_denominator_data - h_denominator_summed_backgrounds
+    if (var == "FS_t1_pt") or (var == "FS_tau_pt"): # FS_tau_pt belongs to mutau/etau, FS_t1_pt is ditau
 
-        # TODO : fix me, summed backgrounds should neglect WJ in the case of semilep_mode==WJ
-        print(h_numerator_backgrounds)
-        if (semilep_mode == "QCD"):
-          pass
-        else: # add back contribution from process under study, canceling its above subtraction
-          h_numerator_data_m_MC += h_numerator_backgrounds[semilep_mode]["BinnedEvents"]
-          h_denominator_data_m_MC += h_denominator_backgrounds[semilep_mode]["BinnedEvents"]
-          #h_numerator_summed_backgrounds += h_numerator_backgrounds[semilep_mode]["BinnedEvents"]
-          #h_denominator_summed_backgrounds += h_denominator_backgrounds[semilep_mode]["BinnedEvents"]
- 
- 
-        FF_ratio, FF_ratio_err = make_ratio_plot(ax_iter, xbins, 
-                                    h_numerator_data_m_MC, "Data", np.ones(np.shape(h_numerator_data_m_MC)),
-                                    h_denominator_data_m_MC, "Data", np.ones(np.shape(h_denominator_data_m_MC)),
-                                    label=f"iter {iteration}", color=iter_color[iteration])
+      '''
+      temp_bins = xbins
+      while iteration < 10:
+        num_data_m_MC, den_data_m_MC = quick_rebin(h_numerator_data, h_denominator_data,
+                                                   h_numerator_backgrounds, h_denominator_backgrounds,
+                                                   var, temp_bins, lumi, semilep_mode, underflow=True):
+
+        num_sum = np.sum(h_num_data_m_MC)
+        den_sum = np.sum(h_den_data_m_MC)
+        num_thresh = num_sum / 10
+        den_thresh = den_sum / 10
+
+        print("full arrays and sums")
+        print(h_num_data_m_MC)
+        print(np.sum(h_num_data_m_MC))
+        print(h_den_data_m_MC)
+        print(np.sum(h_den_data_m_MC))
+
         iteration += 1
-    spruce_up_single_plot(ax_iter, label_dictionary[var], "Fake Factor Ratio Iteration", 
-                          title, final_state_mode, jet_mode)
-    # end iteration
-    
+      '''
 
-    # reversed dictionary search for era name based on lumi 
-    title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
-    title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
 
-    # plot everything :)
-    plot_data(ax_compare, xbins, h_numerator_data_m_MC, lumi, color="grey", label=f"{numerator} : Data-MC")
-    plot_data(ax_compare, xbins, h_denominator_data_m_MC, lumi, color="blue",  label=f"{denominator} : Data-MC")
-    spruce_up_single_plot(ax_compare, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
-    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
-
-    # puts last value from above on final plot
-    FF_ratio, FF_ratio_err = make_ratio_plot(ax_ratio, xbins, 
-                                  h_numerator_data_m_MC, "Data", np.ones(np.shape(h_numerator_data_m_MC)),
-                                  h_denominator_data_m_MC, "Data", np.ones(np.shape(h_denominator_data_m_MC)),
-                                  label=f"{numerator} / {denominator}")
-
-    silly_zeros = mask_zeros(FF_ratio)
-    #silly_zeros = mask_zeros(FF_ratio, mask_all = True)
-    midpoints = get_midpoints(xbins)
-
-    # cludging
-    # used to be use_ all
-    FF_ratio     = FF_ratio[~silly_zeros]
-    FF_ratio_err = FF_ratio_err[~silly_zeros]
-    midpoints    = midpoints[~silly_zeros]
-    # would be easier to say by FS what cut off pt to start at. No end, handled by rebinning?
-
-    if (var == "FS_t1_pt") or (var == "FS_tau_pt"):
-      low_val = 30 if var == "FS_tau_pt" else 40
-      use_vals = np.array([((midpoints[i] > low_val) and (midpoints[i] < midpoints[-1])) for i in range(len(midpoints))])
-      #use_vals = np.array([((midpoints[i] > low_val) and (midpoints[i] < 200)) for i in range(len(midpoints))])
-      # remove upper bound # fails
-      #use_vals = np.array([(midpoints[i] > low_val) for i in range(len(midpoints))])
+      low_val  = 30 if var == "FS_tau_pt" else 40
+      high_val = 100 if var == "FS_tau_pt" else 150
+      use_vals = np.array([((midpoints[i] > low_val) and (midpoints[i] < high_val)) for i in range(len(midpoints))])
       use_FF_ratio     = FF_ratio[use_vals]
       use_FF_ratio_err = FF_ratio_err[use_vals]
       use_midpoints    = midpoints[use_vals]
+      #
+      mask_all_zeros = mask_zeros(use_FF_ratio, mask_all=True)
+      use_FF_ratio = use_FF_ratio[~mask_all_zeros]
+      use_FF_ratio_err = use_FF_ratio_err[~mask_all_zeros]
+      use_midpoints = use_midpoints[~mask_all_zeros]
 
-    least_squares = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, line_np) # line is a function defined above
-    #least_squares = LeastSquares(midpoints, FF_ratio, FF_ratio_err, line_np) # line is a function defined above
+      # put all bins above cutoff value together, get coefficient from function directly, and slap it on the plot
+      tail_bins = np.array([high_val, xbins[-1]]) # overflows are captured and used by default
+      h_num_data_tail = get_binned_data(numerator_data, var, tail_bins, lumi, underflow=False)
+      h_den_data_tail = get_binned_data(denominator_data, var, tail_bins, lumi, underflow=False)
+      h_num_bkgd_tail, h_num_summed_bkgd_tail = get_binned_backgrounds(numerator_bkgd, var, tail_bins, lumi, jet_mode, underflow=False)
+      h_den_bkgd_tail, h_den_summed_bkgd_tail = get_binned_backgrounds(denominator_bkgd, var, tail_bins, lumi, jet_mode, underflow=False)
+      h_num_data_m_MC_tail, h_den_data_m_MC_tail = subtract_data_MC(semilep_mode, 
+                                     h_num_data_tail, h_num_bkgd_tail, h_num_summed_bkgd_tail,
+                                     h_den_data_tail, h_den_bkgd_tail, h_den_summed_bkgd_tail)
+     
+      tail_ratio, tail_ratio_err = make_ratio_no_plot(h_num_data_m_MC_tail, "Data", np.ones(np.shape(h_num_data_m_MC_tail)),
+                                                      h_den_data_m_MC_tail, "Data", np.ones(np.shape(h_den_data_m_MC_tail)))
+      #ax_ratio.plot([high_val, xbins[-1]], [tail_ratio[0],tail_ratio[0]], color="purple", label=f"high pt const")
+
+    #least_squares_pol = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, line_np) # line is a function defined above
+    #least_squares_sqrt = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_square_root) 
+    print(use_midpoints)
+    least_squares_exp = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_exp) 
 
     # "Fo2" = Fit, order 2
-    Fo0_values, Fo0_label, Fo0_RX2 = make_fit(least_squares, 0) # const
-    Fo1_values, Fo1_label, Fo1_RX2 = make_fit(least_squares, 1) # line # want "order 1" to mean line
-    Fo2_values, Fo2_label, Fo2_RX2 = make_fit(least_squares, 2) # qaudratic
-    Fo3_values, Fo3_label, Fo3_RX2 = make_fit(least_squares, 3) # 3rd order polynomial
-    Fo4_values, Fo4_label, Fo4_RX2 = make_fit(least_squares, 4) # 4th order polynomial
+    #Fo1_values, Fo1_label, Fo1_RX2 = make_pol_fit(least_squares_pol, 1) # line # want "order 1" to mean line
+    #Fo2_values, Fo2_label, Fo2_RX2 = make_pol_fit(least_squares_pol, 2) # qaudratic
+    #Fo3_values, Fo3_label, Fo3_RX2 = make_pol_fit(least_squares_pol, 3) # 3rd order polynomial
+
+    #sqrt_fit = Minuit(least_squares_sqrt, a=0.5, b=30, c=3)
+    #sqrt_fit.migrad()
+    #FoS_values = sqrt_fit.values
+
+    exp_fit = Minuit(least_squares_exp, a=-4, b=0.2, c=6, d=0.1) # give initial values from a fit that worked
+    exp_fit.migrad()
+    FoE_values = exp_fit.values
+    print(exp_fit)
+    chi_squared = exp_fit.fval
+    ndof = len(use_FF_ratio) - len(exp_fit.values)
+    print(FoE_values)
+    func_params = {}
+    for i, val in enumerate(FoE_values):
+      temp = "abcd"
+      print(temp[i], val)
+      func_params[temp[i]] = val
+    print(func_params)
+
+    exp_label = f"func = a*e^-b(x-c)+d \n\
+                 a = {func_params['a']:.4f} \n\
+                 b = {func_params['b']:.4f} \n\
+                 c = {func_params['c']:.4f} \n\
+                 d = {func_params['d']:.4f}"
 
     # check reduced chi2, goodness-of-fit estimate, should be around 1 # from Minuit manual
 
     # need to store line and label of each fit
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo0_values)), color="blue",   label=f"0th order: {Fo0_RX2:.3f}")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo1_values)), color="red",    label=f"1st order: {Fo1_RX2:.3f}")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo2_values)), color="green",  label=f"2nd order: {Fo2_RX2:.3f}")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo3_values)), color="pink",   label=f"3rd order: {Fo3_RX2:.3f}")
-    ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo4_values)), color="purple", label=f"4th order: {Fo4_RX2:.3f}")
+    #ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo1_values)), color="red",    label=f"1st order: {Fo1_RX2:.3f}")
+    #ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo2_values)), color="green",  label=f"2nd order: {Fo2_RX2:.3f}")
+    #ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo3_values)), color="blue",   label=f"3rd order: {Fo3_RX2:.3f}")
+    use_midpoints = get_midpoints(make_bins(var, final_state_mode))
+    #ax_ratio.plot(use_midpoints, user_square_root(use_midpoints, *sqrt_fit.values), color="cyan", label="squareroot")
+    ax_ratio.plot(use_midpoints, user_exp(use_midpoints, *exp_fit.values), color="pink", label=exp_label)
+    #if (var == "FS_t1_pt") or (var == "FS_tau_pt"): # FS_tau_pt belongs to mutau/etau, FS_t1_pt is ditau
+    #  ax_ratio.plot(tail_bins, line_np(tail_bins[0]*np.ones(np.shape(tail_bins)), (Fo1_values)), color="red")
 
-    print("FIT COEFFICIENTS")
-    print(f"0th order: {Fo0_label}")
-    print(f"1st order: {Fo1_label}")
-    print(f"2nd order: {Fo2_label}")
-    print(f"3rd order: {Fo3_label}")
-    print(f"4th order: {Fo4_label}")
+    #  print("FIT COEFFICIENTS")
+    #  print(f"1st order: {Fo1_label}")
+    #  print(f"2nd order: {Fo2_label}")
+    #  print(f"3rd order: {Fo3_label}")
+    #  print(f"high pt (≥{high_val}): {tail_ratio[0]}")
 
     spruce_up_single_plot(ax_ratio, label_dictionary[var], "Fake Factor Ratio and Fit", 
-                          title, final_state_mode, jet_mode, yrange=[0.0, 1.0])
+                          title, final_state_mode, jet_mode, yrange=[0.0, 0.3])
     plt.savefig(plot_dir + "/" + str(var) + ".png")
 
   print(f"plots are in {plot_dir}")

@@ -21,7 +21,7 @@ from plotting_functions    import get_binned_data, get_binned_backgrounds, get_b
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, setup_single_plot, spruce_up_single_plot
 
-from plotting_functions import get_midpoints, make_pie_chart
+from plotting_functions import get_midpoints, make_pie_chart, make_fraction_all_events, make_fraction_fakes
 
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print
@@ -110,7 +110,8 @@ if __name__ == "__main__":
   reject_datasets = reject_dataset_dictionary[final_state_mode]
 
 
-  semilep_mode = "WJ" #"QCD" or "WJ"
+  do_QCD = False
+  semilep_mode = "QCD" #"QCD" or "WJ"
   #for region in ["AR", "DRsr", "DRar", "SR_aiso", "AR_aiso", "DRsr_aiso", "DRar_aiso"]:
   for region in ["AR"]:
 
@@ -178,8 +179,9 @@ if __name__ == "__main__":
 
 
       if ((final_state_mode == "mutau") or (final_state_mode == "etau")) and (semilep_mode == "WJ"):
-        if ("Data" in process): event_dictionary = add_FF_weights(event_dictionary, final_state_mode, 
-                                                     jet_mode, DeepTau_version, determining_FF=False,
+        if ("Data" in process) and (do_QCD == True): 
+          event_dictionary = add_FF_weights(event_dictionary, final_state_mode, 
+                                            jet_mode, DeepTau_version, determining_FF=False,
                                                 # [FF int, slope, OS SS int, slope]
                                                 #bypass = [0.278, -0.000577, 1, 0])
                                                 # ditau
@@ -299,7 +301,16 @@ if __name__ == "__main__":
 
       plt.savefig(plot_dir + "/" + str(var) + "_" + semilep_mode + "_" + region + ".png")
 
-      if (var == "HTT_m_vis-KSUbinning"): make_pie_chart(h_data, h_backgrounds)
+      if (var == "HTT_m_vis-KSUbinning"): 
+        make_pie_chart(h_data, h_backgrounds)
+        # fraction should be of fakes only, not including genuine background
+        new_ax = setup_single_plot()
+        make_fraction_all_events(new_ax, xbins, h_data, h_backgrounds)
+        spruce_up_single_plot(new_ax, label_dictionary[var], "Fraction of All Events", title, final_state_mode, jet_mode)
+
+        newer_ax = setup_single_plot()
+        make_fraction_fakes(newer_ax, xbins, h_data, h_backgrounds, fake_processes=["TT", "WJ", "DYJet"])
+        spruce_up_single_plot(newer_ax, label_dictionary[var], "Fraction of All Jet Fakes", title, final_state_mode, jet_mode)
 
       # calculate and print these quantities only once
       if (var == "HTT_m_vis"): 

@@ -38,7 +38,54 @@ def make_pie_chart(data_hist, MC_dictionary, use_data=False, use_fakes=False):
         colors = ["White"]
       fig, ax = plt.subplots()
       ax.pie(sums, labels=labels, colors=colors, autopct='%1.1f%%')
-      #ax.legend(loc="upper right")
+
+
+def make_fraction_all_events(axis, xbins, h_data, h_backgrounds):
+  color_array, label_array, percent_stack_array = [], [], []
+  percent_QCD = np.ones(np.shape(h_data))
+  for process in h_backgrounds.keys():
+    color, label, _ = set_MC_process_info(process, luminosity=-1)
+    color_array.append(color)
+    label_array.append(label)
+    h_bkgd = h_backgrounds[process]["BinnedEvents"]
+    h_diff = h_data - h_bkgd
+    h_percent = h_bkgd / h_data
+    percent_stack_array.append(h_percent)
+    percent_QCD -= h_percent
+  percent_stack_array.append(percent_QCD)
+  QCD_color, QCD_label, _ = set_MC_process_info("QCD", luminosity=-1)
+  color_array.append(QCD_color)
+  label_array.append(QCD_label)
+  axis.stackplot(xbins[0:-1], percent_stack_array, step="post", edgecolor="black", colors=color_array, labels=label_array)
+
+
+def make_fraction_fakes(axis, xbins, h_data, h_backgrounds, fake_processes=["TT", "WJ", "DYJet"]):
+  color_array, label_array = [], []
+  fakes_percent = []
+  h_fakes_total = np.zeros(np.shape(h_data))
+  h_bkgd_total = np.zeros(np.shape(h_data))
+  for process in h_backgrounds.keys():
+    h_bkgd = h_backgrounds[process]["BinnedEvents"]
+    h_bkgd_total += h_bkgd
+    if (process in fake_processes):
+      color, label, _ = set_MC_process_info(process, luminosity=-1)
+      color_array.append(color)
+      label_array.append(label)
+      h_fakes_total += h_bkgd
+  h_QCD = h_data - h_bkgd_total
+  h_fakes_total += h_QCD
+  for process in fake_processes:
+    h_bkgd = h_backgrounds[process]["BinnedEvents"]
+    fakes_percent.append(h_bkgd / h_fakes_total)
+  fakes_percent.append(h_QCD / h_fakes_total)
+  QCD_color, QCD_label, _ = set_MC_process_info("QCD", luminosity=-1)
+  QCD_label += " (Data-MC)"
+  color_array.append(QCD_color)
+  label_array.append(QCD_label)
+  print(fake_processes, "QCD")
+  print(fakes_percent)
+  axis.stackplot(xbins[0:-1], fakes_percent, step="post", edgecolor="black", colors=color_array, labels=label_array)
+ 
 
 def make_two_dimensional_plot(input_dictionary, final_state, x_var, y_var, 
                               add_to_title="", alt_x_bins=[], alt_y_bins=[]):
@@ -225,6 +272,7 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
     "Inclusive" : "≥0j",
     "0j"    : "0j",
     "1j"    : "1j",
+    "GTE1j" : "≥1j",
     "GTE2j" : "≥2j",
   }
   axis.text(0.05, 0.92, 
@@ -243,7 +291,7 @@ def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, 
   axis.set_xlabel(variable_name)
   axis.set_ylabel(ylabel)
   if (yrange != None): axis.set_ylim(yrange)
-  leg = axis.legend(loc="upper right", frameon=False, bbox_to_anchor=[0.6, 0.4, 0.4, 0.6],
+  leg = axis.legend(loc="upper right", frameon=True, bbox_to_anchor=[0.6, 0.4, 0.4, 0.6],
                     labelspacing=0.35, handlelength=0.8, handleheight=0.8, handletextpad=0.4)
 
 
@@ -301,7 +349,7 @@ def spruce_up_legend(histogram_axis, final_state_mode, data_hists):
   # https://stackoverflow.com/questions/4700614/how-to-put-the-legend-outside-the-plot
   # defaults are here, but using these to mimic ROOT defaults 
   # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html
-  leg = histogram_axis.legend(loc="upper right", frameon=False, bbox_to_anchor=[0.6, 0.4, 0.4, 0.6],
+  leg = histogram_axis.legend(loc="upper right", frameon=True, bbox_to_anchor=[0.6, 0.4, 0.4, 0.6],
                         labelspacing=0.35, handlelength=0.8, handleheight=0.8, handletextpad=0.4)
 
   # some matplotlib documentation about transforming plotting coordinate systems
@@ -327,6 +375,18 @@ def spruce_up_legend(histogram_axis, final_state_mode, data_hists):
     print(f"Legend lables were previously {original_labels}")
     print("Removed samples with yield=0 from legend!")
 
+def make_ratio_no_plot(numerator_data, numerator_type, numerator_weight,
+                       denominator_data, denominator_type, denominator_weight):
+  ratio = numerator_data/denominator_data
+  ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
+  if (numerator_type=="Data") and (denominator_type=="Data"):
+    # ratio error = (A/B) * √ [ (1/A) + (1/B) ] \
+    statistical_error = np.array([ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
+                        if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
+                        for i,_ in enumerate(denominator_data)]) 
+  statistical_error[np.isnan(statistical_error)] = 0
+  return ratio, statistical_error
+ 
  
 def make_ratio_plot(ratio_axis, xbins, 
                     numerator_data, numerator_type, numerator_weight,
@@ -423,7 +483,7 @@ def get_midpoints(input_bins):
   return midpoints
 
 
-def get_binned_info(process_name, process_variable, xbins, process_weights, luminosity):
+def get_binned_info(process_name, process_variable, xbins, process_weights, luminosity, underflow=True):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
   'scaling' is either set to 1 for data (no scaling) or retrieved from the MC_dictionary.
@@ -434,14 +494,14 @@ def get_binned_info(process_name, process_variable, xbins, process_weights, lumi
   weights = scaling*process_weights
   underflow, overflow = calculate_underoverflow(process_variable, xbins, weights)
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
-  binned_values[0]   += underflow
+  if underflow:  binned_values[0]   += underflow
   binned_values[-1]  += overflow
   binned_weight_2, _  = np.histogram(weights, xbins, weights=weights*weights)
   binned_errors       = np.array([np.sqrt(value) for value in binned_weight_2])
   return binned_values, binned_errors
 
 
-def get_binned_data(data_dictionary, variable, xbins_, lumi_):
+def get_binned_data(data_dictionary, variable, xbins_, lumi_, underflow=True):
   '''
   Standard loop to get only the plotted variable from a dictionary containing data.
 
@@ -466,7 +526,7 @@ def get_binned_data(data_dictionary, variable, xbins_, lumi_):
     #print(f"For {dataset} using weights:") # DEBUG
     #print(data_weights) # DEBUG
     h_data_by_dataset[dataset] = {}
-    binned_values, binned_errors = get_binned_info(dataset, data_variable, xbins_, data_weights, lumi_)
+    binned_values, binned_errors = get_binned_info(dataset, data_variable, xbins_, data_weights, lumi_, underflow)
     h_data_by_dataset[dataset]["BinnedEvents"] = binned_values
     h_data_by_dataset[dataset]["BinnedErrors"] = binned_errors
   h_data = accumulate_datasets(h_data_by_dataset)
@@ -542,7 +602,8 @@ def get_parent_process(MC_process, skip_process=False):
   return parent_process
 
 
-def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_mode):
+# TODO: jetmode not actually used here
+def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_mode, underflow=True):
   '''
   Treat each MC process, then group the output by family into flat dictionaries.
   Also, sum all backgrounds into h_summed_backgrounds to use in ratio plot.
@@ -562,7 +623,7 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
     #print("process, variable, variable and weight shapes") # DEBUG 
     #print(process, variable, process_variable.shape, process_weights.shape) # DEBUG
     h_MC_by_process[process] = {}
-    binned_values, binned_errors = get_binned_info(process, process_variable, xbins_, process_weights, lumi_)
+    binned_values, binned_errors = get_binned_info(process, process_variable, xbins_, process_weights, lumi_, underflow)
     h_MC_by_process[process]["BinnedEvents"] = binned_values
     h_MC_by_process[process]["BinnedErrors"] = binned_errors
   # add together subprocesses of each MC family
