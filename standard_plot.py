@@ -88,7 +88,6 @@ if __name__ == "__main__":
   era_modifier_2022 = "preEE" if (("C" in args.lumi) or ("D" in args.lumi)) else "postEE"
   home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
   #home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/"
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
   using_directory = home_dir
  
   good_events  = set_good_events(final_state_mode)
@@ -138,7 +137,7 @@ if __name__ == "__main__":
   update_data_filemap(args.lumi, file_map)
  
 
-  do_QCD = False
+  do_QCD = True
   if (jet_mode != "Inclusive") and (do_QCD==True):
     log_print(f"Processing ditau AR region!", log_file, time=True)
     AR_process_dictionary = load_process_from_file(dataset, using_directory, file_map, log_file,

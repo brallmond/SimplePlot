@@ -43,8 +43,9 @@ def line_np(x, par):
 def user_square_root(x, a, b, c):
     return a*np.sqrt(x-b) + c
 
-def user_exp(x, a, b, c, d):
-    return a*np.exp(-b*(x-c)) + d
+from calculate_functions import user_exp
+#def user_exp(x, a, b, c, d):
+#    return a*np.exp(-b*(x-c)) + d
 
 def make_exp_fit(method, starting_vals):
   m = Minuit(method, starting_vals, name=name_vals)
@@ -144,9 +145,6 @@ def mask_zeros(input_list, mask_all=False):
   return adjacent_zeros
 
 if __name__ == "__main__":
-  '''
-  '''
-
   import argparse 
   parser = argparse.ArgumentParser(description='Make a standard Data-MC agreement plot.')
   # store_true : when the argument is supplied, store it's value as true

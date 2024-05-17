@@ -116,11 +116,13 @@ if __name__ == "__main__":
   store_region_data_dictionary = {}
   store_region_bkgd_dictionary = {}
   store_region_sgnl_dictionary = {}
-  semilep_mode = "QCD" #"QCD" or "WJ"
+  semilep_mode = "WJ" #"QCD" or "WJ"
   # this is treated like data in your plots (i.e. it's the black dots)
   pseudo_SR = "DRsr" # need the data from here to compare to
   # this is treated like MC in your plots (i.e. it's multiplied by the FF to make the pink bars)
-  pseudo_AR = "AR" # need the events from here to make the QCD estimate
+  pseudo_AR = "DRar" # need the events from here to make the QCD estimate
+  # DRsr DRar is closure check 
+  # # should f_QCD/f_WJ be used in the case of closure?
   for region in [pseudo_SR, pseudo_AR]:
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
@@ -165,12 +167,18 @@ if __name__ == "__main__":
       event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
-      if ("Data" in process): event_dictionary = add_FF_weights(event_dictionary, final_state_mode, 
-                                                   jet_mode, DeepTau_version, determining_FF=False,
+      # add new FF_weight handler, add bypass to function
+      if ("Data" in process):
+        event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, full_FF=False,
+                                            closure = True)
+                                            #bypass = [-1, -1, -1, -1])
+
+      #if ("Data" in process): event_dictionary = add_FF_weights(event_dictionary, final_state_mode, 
+      #                                             jet_mode, DeepTau_version, determining_FF=False,
                                                 # [FF int, slope, OS SS int, slope]
                                                 #bypass = [0.278, -0.000577, 1, 0])
                                                 # Medium
-                                                bypass = [2.27e-01, -3.19e-06, 1, 0]) #DRsr/ar iso eras EFG Inc
+      #                                          bypass = [2.27e-01, -3.19e-06, 1, 0]) #DRsr/ar iso eras EFG Inc
                                                 #bypass = [2.78e-01, -5.70e-04, 1, 0]) #DRsr/ar iso eras EFG 0j RedX=4.14
                                                 #bypass = [2.30e-01, -4.93e-04, 1, 0]) #DRsr/ar iso eras EFG 1j RedX=4.15
                                                 #bypass = [2.36e-01, -9.53e-04, 1, 0]) #DRsr/ar iso eras EFG 2j RedX=3.70
@@ -284,10 +292,15 @@ if __name__ == "__main__":
     var = temp_var
 
     h_pseudo_SR_data_m_MC = h_pseudo_SR_data - h_pseudo_SR_summed_backgrounds
+    # add back the WJ MC 
+    if (semilep_mode == "WJ"):
+      h_pseudo_SR_data_m_MC += h_pseudo_SR_backgrounds[semilep_mode]["BinnedEvents"]
+    
+    
     # set negative values to zero
     # ratio[np.isnan(ratio)] = 0
     h_pseudo_SR_data_m_MC[np.where(h_pseudo_SR_data_m_MC < 0)] = 0
-    h_pseudo_AR_weight = (h_pseudo_AR_data - h_pseudo_AR_summed_backgrounds) / h_pseudo_AR_data
+    h_pseudo_AR_weight = (h_pseudo_AR_data - h_pseudo_AR_summed_backgrounds) / h_pseudo_AR_data # not used.
 
     # reversed dictionary search for era name based on lumi 
     title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
