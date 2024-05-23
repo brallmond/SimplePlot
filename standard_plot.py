@@ -86,8 +86,8 @@ if __name__ == "__main__":
   # there's no place like home :)
   home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/Run3PreEEFSSplitSamples/" + final_state_mode
   era_modifier_2022 = "preEE" if (("C" in args.lumi) or ("D" in args.lumi)) else "postEE"
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
-  #home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/"
+  #home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
+  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/" + final_state_mode
   using_directory = home_dir
  
   good_events  = set_good_events(final_state_mode)
@@ -279,7 +279,6 @@ if __name__ == "__main__":
         print(f"skipping eta-phi plot for {process}")
 
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  vars_to_plot = ["FS_tau_pt", "HTT_m_vis"]
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")

@@ -182,4 +182,20 @@ def highest_mjj_pair(TLorentzVector_Jets):
 def user_exp(x, a, b, c, d):
     return a*np.exp(-b*(x-c)) + d
 
+def user_pol_np(x, par):
+    '''
+    Defines function given length of parameters as
+    par[0]*x^n + par[1]*x^n-1 + ... + par[n]*x^0 
+    '''
+    return np.polyval(par, x)
+
+def user_line(x, a, b):
+    # y = mx + b # par[0]*x^1 + par[1]*x^0
+    #return np.polyval([a, b], x)  # for len(par) == 2, this is a line
+    return a*x + b
+
+
+
+
+
 

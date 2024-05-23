@@ -72,7 +72,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     # Medium (5) v Jet, VLoose (1) v Muon, Tight (6) v Ele
     passTauDTLep  = ((vMu[tauBranchLoc] >= 1) and (vEle[tauBranchLoc] >= 6))
 
-    #restrict_tau_decayMode = (tau_decayMode[tauBranchLoc] == 0)
+    restrict_tau_DM = (tau_decayMode[tauBranchLoc] != 1)
 
     pass_bTag = True
     nbJet = 0
@@ -80,8 +80,14 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
       if (value > 0): 
         pass_bTag = False
         nbJet += 1
-
-    if (passTauPtAndEta and (pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep):
+    # hacky barrel restriction (can you try removing DM2 also?)
+    #if (abs(tauEtaVal) < 1.5):
+    #  passTauPtAndEta = False
+    #if (abs(elEtaVal) < 1.5):
+    #  pass33ElPt, pass36ElPt, passElPtCrossTrigger = False, False, False
+    #if (passTauPtAndEta and (pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep and restrict_tau_DM):
+    #if (passTauPtAndEta and (pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep):
+    if (passTauPtAndEta and (pass33ElPt or pass36ElPt) and passTauDTLep):
       pass_cuts.append(i)
       FS_el_pt.append(elPtVal)
       FS_el_eta.append(elEtaVal)
@@ -97,7 +103,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
       FS_tau_dxy.append(tauDxyVal)
       FS_tau_dz.append(tauDzVal)
       FS_tau_chg.append(tauChgVal)
-      #FS_tau_DM.append(tau_decayMode[tauBranchLog])
+      FS_tau_DM.append(tau_decayMode[tauBranchLoc])
 
       FS_mt.append(mtVal)
       FS_nbJet.append(nbJet)

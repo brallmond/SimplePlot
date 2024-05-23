@@ -8,7 +8,8 @@ from utility_functions   import time_print, text_options, log_print
 
 from cut_ditau_functions import make_ditau_cut 
 from cut_mutau_functions import make_mutau_cut, make_mutau_TnP_cut
-from FF_functions        import make_ditau_SR_cut, make_ditau_AR_cut, make_mutau_SR_cut, make_mutau_AR_cut
+from FF_functions        import make_ditau_SR_cut, make_mutau_SR_cut, make_etau_SR_cut
+from FF_functions        import make_ditau_AR_cut, make_mutau_AR_cut, make_etau_AR_cut
 from FF_functions        import set_FF_values, add_FF_weights
 from cut_etau_functions  import make_etau_cut,  make_etau_AR_cut
 from cut_dimuon_functions import make_dimuon_cut
@@ -307,12 +308,30 @@ def make_jet_cut(event_dictionary, jet_mode):
     event_dictionary["FS_mjj"] = np.array(mjj_array)
     event_dictionary["FS_detajj"] = np.array(detajj_array)
 
-  elif jet_mode == "3j" or jet_mode == "GTE2j" or jet_mode == "GTE1j":
+  elif jet_mode == "3j" or jet_mode == "GTE2j":
     # importantly different from inclusive
     #event_dictionary["pass_2j_cuts"]    = np.array(pass_2j_cuts)
     #event_dictionary["pass_3j_cuts"]    = np.array(pass_3j_cuts)
     #event_dictionary["pass_GTE1j_cuts"]    = np.array(pass_GTE1j_cuts)
     event_dictionary["pass_GTE2j_cuts"]    = np.array(pass_GTE2j_cuts)
+    event_dictionary["CleanJetGT30_pt_1"]  = np.array(CleanJetGT30_pt_1)
+    event_dictionary["CleanJetGT30_pt_2"]  = np.array(CleanJetGT30_pt_2)
+    #event_dictionary["CleanJetGT30_pt_3"]  = np.array(CleanJetGT30_pt_3)
+    event_dictionary["CleanJetGT30_eta_1"] = np.array(CleanJetGT30_eta_1)
+    event_dictionary["CleanJetGT30_eta_2"] = np.array(CleanJetGT30_eta_2)
+    #event_dictionary["CleanJetGT30_eta_3"] = np.array(CleanJetGT30_eta_3)
+    event_dictionary["CleanJetGT30_phi_1"] = np.array(CleanJetGT30_phi_1)
+    event_dictionary["CleanJetGT30_phi_2"] = np.array(CleanJetGT30_phi_2)
+    #event_dictionary["CleanJetGT30_phi_3"] = np.array(CleanJetGT30_phi_3)
+    event_dictionary["FS_mjj"] = np.array(mjj_array)
+    event_dictionary["FS_detajj"] = np.array(detajj_array)
+
+  elif jet_mode == "GTE1j":
+    # importantly different from inclusive
+    #event_dictionary["pass_2j_cuts"]    = np.array(pass_2j_cuts)
+    #event_dictionary["pass_3j_cuts"]    = np.array(pass_3j_cuts)
+    event_dictionary["pass_GTE1j_cuts"]    = np.array(pass_GTE1j_cuts)
+    #event_dictionary["pass_GTE2j_cuts"]    = np.array(pass_GTE2j_cuts)
     event_dictionary["CleanJetGT30_pt_1"]  = np.array(CleanJetGT30_pt_1)
     event_dictionary["CleanJetGT30_pt_2"]  = np.array(CleanJetGT30_pt_2)
     #event_dictionary["CleanJetGT30_pt_3"]  = np.array(CleanJetGT30_pt_3)
@@ -555,6 +574,7 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, DeepTau_
     if (("DY" in process) and (final_state_mode=="ditau")):
       keep_fakes = True
     process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
+    # FIX ME -- reapply gen cuts after etau study
     process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
   if (final_state_mode != "dimuon"):
@@ -645,6 +665,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
     if ( (("DY" in process) or ("QCD" in process)) and (final_state_mode=="ditau")):
       keep_fakes = True
     process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
+    # FIX ME -- reapply gen cuts after etau study
     process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
 
@@ -689,15 +710,15 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
   
   # apply FS cut separately so it can be used with reject_duplicate_events
   # STANDARD!
-  good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
+  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
   # UNDER STUDY!
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_25GeV) & (JetMapVeto_HotCold_25GeV) & "\
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) & "\
   #              "(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE) & (JetMapVeto_TauMuon)"
-  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_25GeV) & (JetMapVeto_HotCold_25GeV) & "\
-                #"(JetMapVeto_TauMuon)"
-                #"(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE)"
+  good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) & "\
+                "(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE)"
                 #"(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE) & (JetMapVeto_TauMuon)"
+                #"(JetMapVeto_TauMuon)"
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0)"
   if final_state_mode == "ditau":
     triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\

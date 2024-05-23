@@ -221,8 +221,13 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
     scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
     if process=="myQCD": scaling = 1
     # TODO pass "testing" boolean through here too
-    if process=="TTTo2L2Nu": scaling *= 15 # scale up by n*ignored files
-    if process=="TTToSemiLeptonic": scaling *= 27 # scale up by n*ignored files
+    # etau speed hack
+    #if process=="TTTo2L2Nu": scaling *= 9 # scale up by n*ignored files
+    #if process=="TTToSemiLeptonic": scaling *= 19 # scale up by n*ignored files
+    # mutau hack
+    #if process=="TTTo2L2Nu": scaling *= 15 # scale up by n*ignored files
+    #if process=="TTToSemiLeptonic": scaling *= 27 # scale up by n*ignored files
+    # dimuon hack
     #if process=="DYInc": scaling *=6.482345 # scale up factor for New Dimuon DY
   if signal:
     label += " x" + str(plot_scaling)
@@ -281,7 +286,8 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
             transform=axis.transAxes, fontsize=10)
 
 
-def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, jet_mode, yrange=None):
+def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, jet_mode, yrange=None,
+                           leg_on=True, leg_loc ="upper right",):
   add_CMS_preliminary(axis)
   add_final_state_and_jet_mode(axis, final_state_mode, jet_mode)
   axis.set_title(title, loc='right', y=0.98)
@@ -291,8 +297,9 @@ def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, 
   axis.set_xlabel(variable_name)
   axis.set_ylabel(ylabel)
   if (yrange != None): axis.set_ylim(yrange)
-  leg = axis.legend(loc="upper right", frameon=True, bbox_to_anchor=[0.6, 0.4, 0.4, 0.6],
-                    labelspacing=0.35, handlelength=0.8, handleheight=0.8, handletextpad=0.4)
+  if (leg_on):
+    leg = axis.legend(loc=leg_loc, frameon=True, bbox_to_anchor=[0.6, 0.4, 0.4, 0.6],
+                      labelspacing=0.35, handlelength=0.8, handleheight=0.8, handletextpad=0.4)
 
 
 def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_state_mode, jet_mode,
@@ -390,7 +397,7 @@ def make_ratio_no_plot(numerator_data, numerator_type, numerator_weight,
  
 def make_ratio_plot(ratio_axis, xbins, 
                     numerator_data, numerator_type, numerator_weight,
-                    denominator_data, denominator_type, denominator_weight,
+                    denominator_data, denominator_type, denominator_weight, no_midpoints = False,
                     label=None, color="black"):
   '''
   Uses provided numerator and denominator info to make a ratio to add to given plotting axis.
@@ -414,6 +421,7 @@ def make_ratio_plot(ratio_axis, xbins,
                         if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
                         for i,_ in enumerate(denominator_data)]) 
   statistical_error[np.isnan(statistical_error)] = 0
+  #xbins = xbins if no_midpoints else get_midpoints(xbins)
   midpoints = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2
   #print(bin_width, len(bin_width)) # TODO COME BACK HERE soon
@@ -490,6 +498,10 @@ def get_binned_info(process_name, process_variable, xbins, process_weights, lumi
   Underflows and overflows are included in the first and final bins of the output histogram by default.
   Note: 'process_variable' is a list of events
   '''
+  # TODO : here is where you would fuck around with scaling if you wanted it to be properly implemented by process and
+  # FS
+  # would need to add FS, and get_binned info is called many places.
+  # nevertheless
   scaling = 1 if "Data" in process_name else set_MC_process_info(process_name, luminosity, scaling=True)[2]
   weights = scaling*process_weights
   underflow, overflow = calculate_underoverflow(process_variable, xbins, weights)

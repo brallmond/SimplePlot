@@ -37,15 +37,7 @@ from FF_functions import *
 
 from binning_dictionary import label_dictionary
 
-def line_np(x, par):
-    return np.polyval(par, x)  # for len(par) == 2, this is a line
-
-def user_square_root(x, a, b, c):
-    return a*np.sqrt(x-b) + c
-
-from calculate_functions import user_exp
-#def user_exp(x, a, b, c, d):
-#    return a*np.exp(-b*(x-c)) + d
+from calculate_functions import user_exp, user_line
 
 def make_exp_fit(method, starting_vals):
   m = Minuit(method, starting_vals, name=name_vals)
@@ -61,7 +53,7 @@ def make_pol_fit(method, order):
   starting_vals = [5]*nvals
   name_string = "abcdefghijklmnop" # order > 10
   name_vals = [name_string[i] for i in range(nvals)]
-  m = Minuit(method, starting_vals, name=name_vals)
+  m = Minuit(method, *starting_vals, name=name_vals)
   #m = Minuit(least_squares, starting_vals, name=name_vals)
   m.migrad()
   #print(m)
@@ -347,8 +339,12 @@ if __name__ == "__main__":
     xbins = make_bins(var, final_state_mode)
     if (var == "FS_t1_pt") or (var == "FS_tau_pt"): # FS_tau_pt belongs to mutau/etau, FS_t1_pt is ditau
       print(f"old xbins = {xbins}")
-      xbins = np.array([0, 5, 10, 15, 20, 25, 30, 32.5, 35, 37.5, 40, 45, 60, 200])
-      #xbins = np.array([0, 5, 10, 15, 20, 25, 30, 31.25, 32.5, 33.75, 35, 36.25, 37.5, 38.75, 40, 42.25, 45, 52.5, 60, 120, 200])
+      if (var == "FS_t1_pt"):
+        xbins = np.array([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 200])
+        #xbins = np.array([0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 47.5, 50, 52.5, 55, 57.5, 60, 65, 70, 75, 90, 200])
+      if (var == "FS_tau_pt"):
+        xbins = np.array([0, 5, 10, 15, 20, 25, 30, 32.5, 35, 37.5, 40, 45, 60, 200])
+        #xbins = np.array([0, 5, 10, 15, 20, 25, 30, 31.25, 32.5, 33.75, 35, 36.25, 37.5, 38.75, 40, 42.25, 45, 52.5, 60, 120, 200])
       print(f"new xbins = {xbins}")
 
     ax_compare = setup_single_plot()
@@ -379,7 +375,7 @@ if __name__ == "__main__":
     FF_ratio, FF_ratio_err = make_ratio_plot(ax_ratio, xbins, 
                                   h_num_data_m_MC, "Data", np.ones(np.shape(h_num_data_m_MC)),
                                   h_den_data_m_MC, "Data", np.ones(np.shape(h_den_data_m_MC)),
-                                  label=f"{numerator} / {denominator}")
+                                  no_midpoints = True, label=f"{numerator} / {denominator}")
 
     silly_zeros = mask_zeros(FF_ratio)
     midpoints = get_midpoints(xbins)
@@ -388,6 +384,7 @@ if __name__ == "__main__":
     use_FF_ratio     = FF_ratio[~silly_zeros]
     use_FF_ratio_err = FF_ratio_err[~silly_zeros]
     use_midpoints    = midpoints[~silly_zeros]
+    #use_xbins        = xbins[~silly_zeros]
 
     if (var == "FS_t1_pt") or (var == "FS_tau_pt"): # FS_tau_pt belongs to mutau/etau, FS_t1_pt is ditau
 
@@ -416,14 +413,17 @@ if __name__ == "__main__":
       low_val  = 30 if var == "FS_tau_pt" else 40
       high_val = 100 if var == "FS_tau_pt" else 150
       use_vals = np.array([((midpoints[i] > low_val) and (midpoints[i] < high_val)) for i in range(len(midpoints))])
+      #use_vals = np.array([((xbins[i] > low_val) and (xbins[i] < high_val)) for i in range(len(xbins))])
       use_FF_ratio     = FF_ratio[use_vals]
       use_FF_ratio_err = FF_ratio_err[use_vals]
       use_midpoints    = midpoints[use_vals]
+      #use_xbins    = xbins[use_vals]
       #
       mask_all_zeros = mask_zeros(use_FF_ratio, mask_all=True)
       use_FF_ratio = use_FF_ratio[~mask_all_zeros]
       use_FF_ratio_err = use_FF_ratio_err[~mask_all_zeros]
       use_midpoints = use_midpoints[~mask_all_zeros]
+      #use_xbins = use_xbins[~mask_all_zeros]
 
       # put all bins above cutoff value together, get coefficient from function directly, and slap it on the plot
       tail_bins = np.array([high_val, xbins[-1]]) # overflows are captured and used by default
@@ -439,19 +439,13 @@ if __name__ == "__main__":
                                                       h_den_data_m_MC_tail, "Data", np.ones(np.shape(h_den_data_m_MC_tail)))
       #ax_ratio.plot([high_val, xbins[-1]], [tail_ratio[0],tail_ratio[0]], color="purple", label=f"high pt const")
 
-    #least_squares_pol = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, line_np) # line is a function defined above
-    #least_squares_sqrt = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_square_root) 
-    print(use_midpoints)
+    least_squares_pol = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_line) # line is a function defined above
     least_squares_exp = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_exp) 
 
     # "Fo2" = Fit, order 2
-    #Fo1_values, Fo1_label, Fo1_RX2 = make_pol_fit(least_squares_pol, 1) # line # want "order 1" to mean line
+    Fo1_values, Fo1_label, Fo1_RX2 = make_pol_fit(least_squares_pol, 1) # line # want "order 1" to mean line
     #Fo2_values, Fo2_label, Fo2_RX2 = make_pol_fit(least_squares_pol, 2) # qaudratic
     #Fo3_values, Fo3_label, Fo3_RX2 = make_pol_fit(least_squares_pol, 3) # 3rd order polynomial
-
-    #sqrt_fit = Minuit(least_squares_sqrt, a=0.5, b=30, c=3)
-    #sqrt_fit.migrad()
-    #FoS_values = sqrt_fit.values
 
     exp_fit = Minuit(least_squares_exp, a=-4, b=0.2, c=6, d=0.1) # give initial values from a fit that worked
     exp_fit.migrad()
@@ -467,7 +461,7 @@ if __name__ == "__main__":
       func_params[temp[i]] = val
     print(func_params)
 
-    exp_label = f"func = a*e^-b(x-c)+d \n\
+    exp_label = f"exp func = a*e^-b(x-c)+d \n\
                  a = {func_params['a']:.4f} \n\
                  b = {func_params['b']:.4f} \n\
                  c = {func_params['c']:.4f} \n\
@@ -476,12 +470,16 @@ if __name__ == "__main__":
     # check reduced chi2, goodness-of-fit estimate, should be around 1 # from Minuit manual
 
     # need to store line and label of each fit
-    #ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo1_values)), color="red",    label=f"1st order: {Fo1_RX2:.3f}")
+    more_xvals = np.linspace(0, xbins[-1], 100)
+    print("LINEAR FIT VALUES")
+    print(Fo1_values)
+    ax_ratio.plot(more_xvals, user_line(more_xvals, *Fo1_values), color="blue",    label=f"1st order: {Fo1_RX2:.3f}")
     #ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo2_values)), color="green",  label=f"2nd order: {Fo2_RX2:.3f}")
     #ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo3_values)), color="blue",   label=f"3rd order: {Fo3_RX2:.3f}")
     use_midpoints = get_midpoints(make_bins(var, final_state_mode))
     #ax_ratio.plot(use_midpoints, user_square_root(use_midpoints, *sqrt_fit.values), color="cyan", label="squareroot")
     ax_ratio.plot(use_midpoints, user_exp(use_midpoints, *exp_fit.values), color="pink", label=exp_label)
+    ax_ratio.plot(more_xvals, user_exp(more_xvals, *exp_fit.values), color="red")
     #if (var == "FS_t1_pt") or (var == "FS_tau_pt"): # FS_tau_pt belongs to mutau/etau, FS_t1_pt is ditau
     #  ax_ratio.plot(tail_bins, line_np(tail_bins[0]*np.ones(np.shape(tail_bins)), (Fo1_values)), color="red")
 

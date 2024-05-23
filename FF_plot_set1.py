@@ -113,7 +113,7 @@ if __name__ == "__main__":
   do_QCD = False
   semilep_mode = "QCD" #"QCD" or "WJ"
   #for region in ["AR", "DRsr", "DRar", "SR_aiso", "AR_aiso", "DRsr_aiso", "DRar_aiso"]:
-  for region in ["AR"]:
+  for region in ["DRar"]:
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
 
@@ -309,7 +309,8 @@ if __name__ == "__main__":
         spruce_up_single_plot(new_ax, label_dictionary[var], "Fraction of All Events", title, final_state_mode, jet_mode)
 
         newer_ax = setup_single_plot()
-        make_fraction_fakes(newer_ax, xbins, h_data, h_backgrounds, fake_processes=["TT", "WJ", "DYJet"])
+        fake_processes = ["TT", "WJ", "DYJet"]
+        make_fraction_fakes(newer_ax, xbins, h_data, h_backgrounds, fake_processes)
         spruce_up_single_plot(newer_ax, label_dictionary[var], "Fraction of All Jet Fakes", title, final_state_mode, jet_mode)
 
       # calculate and print these quantities only once
