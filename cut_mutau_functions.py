@@ -81,7 +81,7 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     # Tight v Muon, VVVLoose v Ele
     passTauDTLep  = ((vMu[tauBranchLoc] >= 4) and (vEle[tauBranchLoc] >= 2))
 
-    #restrict_tau_decayMode = (tau_decayMode[tauBranchLoc] == 0)
+    restrictTauDM = (tau_decayMode[tauBranchLoc] == 0)
 
     pass_bTag = True
     nbJet = 0
@@ -91,6 +91,7 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
         nbJet += 1
 
     if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep):
+    #if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep and restrictTauDM):
       pass_cuts.append(i)
       FS_mu_pt.append(muPtVal)
       FS_mu_eta.append(muEtaVal)

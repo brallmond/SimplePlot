@@ -10,7 +10,7 @@ from cut_ditau_functions import make_ditau_cut
 from cut_mutau_functions import make_mutau_cut, make_mutau_TnP_cut
 from FF_functions        import make_ditau_SR_cut, make_mutau_SR_cut, make_etau_SR_cut
 from FF_functions        import make_ditau_AR_cut, make_mutau_AR_cut, make_etau_AR_cut
-from FF_functions        import set_FF_values, add_FF_weights
+from FF_functions        import add_FF_weights
 from cut_etau_functions  import make_etau_cut,  make_etau_AR_cut
 from cut_dimuon_functions import make_dimuon_cut
 
@@ -408,7 +408,6 @@ def make_run_cut(event_dictionary, good_runs):
   event_dictionary["pass_run_cut"] = np.array(pass_run_cut)
   return event_dictionary
 
-
 def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
   DEBUG = False # set this to true to show print output from this function
   '''
@@ -426,6 +425,11 @@ def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
     delete_sample = True
     return None
  
+  #if ("cut" in cut_branch):
+  #  nEvents_precut  = len(event_dictionary["Lepton_pt"])
+  #  nEvents_postcut = len(event_dictionary[cut_branch])
+  #  log_print(f"nEvents before and after selection cut = {nEvents_precut}, {nEvents_postcut}", open('outputfile.log', 'w'))
+
   if DEBUG: print(f"cut branch: {cut_branch}")
   if DEBUG: print(f"protected branches: {protected_branches}")
   for branch in event_dictionary:
@@ -551,7 +555,7 @@ def apply_flavor_cut(event_dictionary):
   return event_dictionary
 
 
-def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, DeepTau_version, determining_FF):
+def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_mode, DeepTau_version):
   '''
   Organizational function
   added 'skip_DeepTau' to apply a partial selection (all but leading tau deeptau reqs)
@@ -565,7 +569,8 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, DeepTau_
     if ("DY" in process): customize_DY(process, final_state_mode)
     #event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
     keep_fakes = False
-    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
+    #if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
+    if ((("TT" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="etau")):
@@ -574,11 +579,9 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, DeepTau_
     if (("DY" in process) and (final_state_mode=="ditau")):
       keep_fakes = True
     process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
-    # FIX ME -- reapply gen cuts after etau study
     process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
   if (final_state_mode != "dimuon"):
-    # non-standard FS cut
     if (final_state_mode == "ditau"):
       event_dictionary = make_ditau_AR_cut(event_dictionary, DeepTau_version)
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
@@ -596,13 +599,7 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, DeepTau_
       event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
     protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
     event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
-    #
-    semilep_mode = "QCD"
-    event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, full_FF=False)
-    # old version
-    #event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, DeepTau_version,
-    #                                    determining_FF=determining_FF)
-    #determining_FF = False # paranoid thing to prevent leaking the variable
+    event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, full_FF=True)
   else:
     print(f"{final_state_mode} : {jet_mode} not possible. Continuing without AR or FF method applied.")
   return event_dictionary
@@ -710,14 +707,14 @@ def set_good_events(final_state_mode, disable_triggers=False, useMiniIso=False):
   
   # apply FS cut separately so it can be used with reject_duplicate_events
   # STANDARD!
-  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
+  good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
   # UNDER STUDY!
-  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_25GeV) & (JetMapVeto_HotCold_25GeV) & "\
+  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) "\
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) & "\
   #              "(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE) & (JetMapVeto_TauMuon)"
-  good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) & "\
-                "(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE)"
-                #"(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE) & (JetMapVeto_TauMuon)"
+  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) & "\
+  #              "(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE) & (JetMapVeto_TauMuon)"
+  #              "(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE)"
                 #"(JetMapVeto_TauMuon)"
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0)"
   if final_state_mode == "ditau":

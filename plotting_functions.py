@@ -119,7 +119,7 @@ def plot_data(histogram_axis, xbins, data_info, luminosity,
                           color=color, marker=marker, fillstyle=fillstyle, label=label,
                           linestyle='none', markersize=3)
   #below plots without error bars
-  #histogram_axis.plot(midpoints, data_info, color="black", marker="o", linestyle='none', markersize=2, label="Data")
+  #histogram_axis.plot(midpoints, data_info, color="black", marker=marker, linestyle='none', markersize=3, label=label)
 
 
 def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
@@ -384,6 +384,7 @@ def spruce_up_legend(histogram_axis, final_state_mode, data_hists):
 
 def make_ratio_no_plot(numerator_data, numerator_type, numerator_weight,
                        denominator_data, denominator_type, denominator_weight):
+  # a smarter and braver person than me would make this part of the "make_ratio_plot" function below
   ratio = numerator_data/denominator_data
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
   if (numerator_type=="Data") and (denominator_type=="Data"):
@@ -435,36 +436,6 @@ def make_ratio_plot(ratio_axis, xbins,
                     color=color, marker="o", linestyle='none', markersize=2, label=label)
 
   return ratio, statistical_error
-
-
-def get_trimmed_Generator_weight_copy(variable, single_background_dictionary, jet_mode):
-  '''
-  Only to be used with Inclusive jet mode
-
-  When plotting inclusively, we would like to show j1_pt, j2_pt, j3_pt, etc.
-  However, these branches are not available for every event, and to plot them we
-  also need the Generator_weight branch. So, what we do is make copies of the Generator_weight
-  branch for only the events also found in the variable we want to plot. This is
-  possible because the jet_mode cut branch is defined and stored in our dictionary
-  '''
-  Gen_weight = single_background_dictionary["Generator_weight"]
-  Cuts       = single_background_dictionary["Cuts"]
-  if   ("_1" in variable) and (jet_mode=="Inclusive"):
-    # events with ≥1 j
-    pass_jet_cut = sorted(np.concatenate([Cuts["pass_1j_cuts"], Cuts["pass_2j_cuts"], Cuts["pass_3j_cuts"]]))
-  elif (("_2" in variable) or ("fromHighestMjj" in variable)) and (jet_mode=="Inclusive"):
-    # events with ≥2 j
-    pass_jet_cut = sorted(np.concatenate([Cuts["pass_2j_cuts"], Cuts["pass_3j_cuts"]]))
-  elif ("_3" in variable) and ((jet_mode=="Inclusive") or (jet_mode=="GTE2j")):
-    pass_jet_cut = Cuts["pass_3j_cuts"]
-
-    print("gen weight, pass jet cut, and temp weight shapes") # DEBUG
-    print(Gen_weight.shape, pass_jet_cut.shape) # DEBUG
-  temp_weight = np.take(Gen_weight, pass_jet_cut)
-  print("temp_weight.shape")
-  print(temp_weight.shape) # DEBUG
-
-  return temp_weight
 
 
 def make_bins(variable_name, final_state_mode):
@@ -524,19 +495,6 @@ def get_binned_data(data_dictionary, variable, xbins_, lumi_, underflow=True):
   for dataset in data_dictionary:
     data_variable = data_dictionary[dataset]["PlotEvents"][variable]
     data_weights  = np.ones(np.shape(data_variable)) # weights of one for data
-    # normalized to Era D, Era E for some reason is still larger than it should be
-    if dataset == "DataMuonEraC":
-      data_weights = (2.922/4.953)*data_weights
-    if dataset == "DataMuonEraD":
-      data_weights = (2.922/2.922)*data_weights
-    if dataset == "DataMuonEraE":
-      data_weights = (2.922/5.672)*data_weights
-    if dataset == "DataMuonEraF":
-      data_weights = (2.922/17.61)*data_weights
-    if (dataset == "DataMuonEraG") or (dataset=="DataMuonEraGPrompt"):
-      data_weights = (2.922/3.06)*data_weights
-    #print(f"For {dataset} using weights:") # DEBUG
-    #print(data_weights) # DEBUG
     h_data_by_dataset[dataset] = {}
     binned_values, binned_errors = get_binned_info(dataset, data_variable, xbins_, data_weights, lumi_, underflow)
     h_data_by_dataset[dataset]["BinnedEvents"] = binned_values
@@ -626,10 +584,6 @@ def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_m
     if len(process_variable) == 0: continue
     if process == "myQCD":  
       process_weights = background_dictionary[process]["FF_weight"]
-    #if ( (("JetGT30_" in variable or "fromHighestMjj" in variable) and (jet_mode=="Inclusive")) or 
-    #     ((variable == "CleanJetGT30_pt_3" or variable == "CleanJetGT30_eta3") and (jet_mode=="GTE2j")) ):
-    ##if ("JetGT30_" in variable) and (jet_mode=="Inclusive"):
-    #  process_weights = get_trimmed_Generator_weight_copy(variable, background_dictionary[process], jet_mode)
     else:
       process_weights = get_MC_weights(background_dictionary, process)
     #print("process, variable, variable and weight shapes") # DEBUG 
@@ -677,11 +631,6 @@ def get_binned_signals(signal_dictionary, variable, xbins_, lumi_, jet_mode):
   for process in signal_dictionary:
     signal_variable = signal_dictionary[process]["PlotEvents"][variable]
     if len(signal_variable) == 0: continue
-    #if ("JetGT30_" in variable or "fromHighestMjj" in variable) and (jet_mode=="Inclusive" or jet_mode=="GTE2j"):
-    if ( (("JetGT30_" in variable or "fromHighestMjj" in variable) and (jet_mode=="Inclusive")) or 
-         ((variable == "CleanJetGT30_pt_3" or variable == "CleanJetGT30_eta3") and (jet_mode=="GTE2j")) ):
-    #if ("JetGT30_" in variable) and (jet_mode=="Inclusive"):
-      signal_weights = get_trimmed_Generator_weight_copy(variable, signal_dictionary[process], jet_mode)
     else:
       signal_weights = get_MC_weights(signal_dictionary, process)
     h_signals[process] = {}

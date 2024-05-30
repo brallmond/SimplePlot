@@ -86,8 +86,8 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     #if (abs(elEtaVal) < 1.5):
     #  pass33ElPt, pass36ElPt, passElPtCrossTrigger = False, False, False
     #if (passTauPtAndEta and (pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep and restrict_tau_DM):
-    #if (passTauPtAndEta and (pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep):
-    if (passTauPtAndEta and (pass33ElPt or pass36ElPt) and passTauDTLep):
+    if (passTauPtAndEta and (pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep):
+    #if (passTauPtAndEta and (pass33ElPt or pass36ElPt) and passTauDTLep):
       pass_cuts.append(i)
       FS_el_pt.append(elPtVal)
       FS_el_eta.append(elEtaVal)

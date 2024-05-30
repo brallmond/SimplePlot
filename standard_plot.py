@@ -86,8 +86,8 @@ if __name__ == "__main__":
   # there's no place like home :)
   home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/Run3PreEEFSSplitSamples/" + final_state_mode
   era_modifier_2022 = "preEE" if (("C" in args.lumi) or ("D" in args.lumi)) else "postEE"
-  #home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/" + final_state_mode
+  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
+  #home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/" + final_state_mode
   using_directory = home_dir
  
   good_events  = set_good_events(final_state_mode)
@@ -138,14 +138,14 @@ if __name__ == "__main__":
  
 
   do_QCD = True
+  semilep_mode = "QCD"
   if (jet_mode != "Inclusive") and (do_QCD==True):
     log_print(f"Processing ditau AR region!", log_file, time=True)
     AR_process_dictionary = load_process_from_file(dataset, using_directory, file_map, log_file,
                                             branches, AR_region, final_state_mode,
                                             data=True, testing=testing)
     AR_events = AR_process_dictionary[dataset]["info"]
-    cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, DeepTau_version,
-                                 determining_FF = False)
+    cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version)
     FF_dictionary = {}
     FF_dictionary["myQCD"] = {}
     FF_dictionary["myQCD"]["PlotEvents"] = {}
@@ -164,8 +164,7 @@ if __name__ == "__main__":
                                             branches, AR_region, final_state_mode,
                                             data=True, testing=testing)
       AR_events = AR_process_dictionary[dataset]["info"]
-      cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, internal_jet_mode, DeepTau_version,
-                                   determining_FF = False)
+      cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, internal_jet_mode, semilep_mode, DeepTau_version)
       temp_FF_dictionary[internal_jet_mode] = {}
       temp_FF_dictionary[internal_jet_mode]["myQCD"] = {}
       temp_FF_dictionary[internal_jet_mode]["myQCD"]["PlotEvents"] = {}
@@ -189,6 +188,24 @@ if __name__ == "__main__":
 
     FF_dictionary = temp_dict
 
+  do_WJFakes = True
+  #semilep_mode = "WJ"
+  #if (jet_mode != "Inclusive") and (do_QCD==True):
+  #  log_print(f"Processing ditau AR region!", log_file, time=True)
+  #  AR_process_dictionary = load_process_from_file(dataset, using_directory, file_map, log_file,
+  #                                          branches, AR_region, final_state_mode,
+  #                                          data=True, testing=testing)
+  #  AR_events = AR_process_dictionary[dataset]["info"]
+  #  cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version)
+  #  FF_dictionary = {}
+  #  FF_dictionary["myQCD"] = {}
+  #  FF_dictionary["myQCD"]["PlotEvents"] = {}
+  #  FF_dictionary["myQCD"]["FF_weight"]  = cut_events_AR["FF_weight"]
+  #  for var in vars_to_plot:
+  #    if ("flav" in var): continue
+  #    FF_dictionary["myQCD"]["PlotEvents"][var] = cut_events_AR[var]
+
+
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
@@ -197,6 +214,7 @@ if __name__ == "__main__":
     gc.collect()
     if (process in reject_datasets): continue
 
+    if ("WJ" in process) and (do_WJFakes == True): continue
     if "DY" in process: branches = set_branches(final_state_mode, DeepTau_version, process="DY") # Zpt handling
     new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
                                               branches, good_events, final_state_mode,
@@ -279,6 +297,7 @@ if __name__ == "__main__":
         print(f"skipping eta-phi plot for {process}")
 
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
+  vars_to_plot = ["HTT_m_vis"]
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")
