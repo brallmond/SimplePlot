@@ -2,6 +2,8 @@ import uproot
 import numpy as np
 
 from utility_functions import time_print, text_options, log_print
+from MC_dictionary import MC_dictionary
+from XSec import XSecRun3 as XSec 
 
 ### README ###
 # This file contains the main method to load data from root files
@@ -99,3 +101,36 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       combined_processes[process]["Cuts"][cut] = cut_events[cut]
 
   return combined_processes
+
+
+def load_and_store_NWEvents(process, event_dictionary):
+  '''
+  Read the NWEvents value for a sample and store it in the MC_dictionary,
+  overriding the hardcoded values from V11 samples. Delete the NWEvents branch after.
+  '''
+  MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0]
+  MC_dictionary[process]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
+  #print(process, MC_dictionary[process]["NWEvents"]) # DEBUG
+  event_dictionary.pop("NWEvents")
+  event_dictionary.pop("XSecMCweight")
+
+
+def customize_DY(process, final_state_mode):
+  for DYtype in ["DYGen", "DYLep", "DYJet"]:
+    MC_dictionary[DYtype]["XSecMCweight"] = MC_dictionary[process]["XSecMCweight"]
+    MC_dictionary[DYtype]["NWEvents"] = MC_dictionary[process]["NWEvents"]
+  if (process == "DYIncNLO"): # double-check 
+    # overwrite DYGen, DYLep, DYJet values with NLO values
+    for subprocess in ["DYGen", "DYLep", "DYJet"]:
+      MC_dictionary[subprocess]["XSec"]         = XSec["DYJetsToLL_M-50"]
+      MC_dictionary[subprocess]["NWEvents"]     = MC_dictionary["DYIncNLO"]["NWEvents"]
+      MC_dictionary[subprocess]["plot_scaling"] = 1  # override kfactor
+  label_text = { "ditau" : r"$Z{\rightarrow}{\tau_h}{\tau_h}$",
+                 "mutau" : r"$Z{\rightarrow}{tau_{\mu}}{\tau_h}$",
+                 "etau"  : r"$Z{\rightarrow}{tau_e}{\tau_h}$",
+                 "emu"   : r"$Z{\rightarrow}{tau_e}{tau_{\mu}}$",
+                 "mutau_TnP" : r"$Z{\rightarrow}{\mu}{\tau_h}$",
+                 "dimuon": r"$Z{\rightarrow}{\mu}{\mu}$"}
+  MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]
+
+

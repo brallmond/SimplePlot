@@ -268,9 +268,9 @@ def add_CMS_preliminary(axis):
 def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
   final_state_str = {
     "ditau"  : r"${\tau_h}{\tau_h}$",
-    "mutau"  : r"${\mu}{\tau_h}$",
+    "mutau"  : r"${\tau_{\mu}}{\tau_h}$",
     "mutau_TnP"  : r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$",
-    "etau"   : r"$e{\tau_h}$",
+    "etau"   : r"${\tau_e}{\tau_h}$",
     "dimuon" : r"${\mu}{\mu}$",
   }
   jet_mode_str = {
@@ -462,19 +462,41 @@ def get_midpoints(input_bins):
   return midpoints
 
 
-def get_binned_info(process_name, process_variable, xbins, process_weights, luminosity, underflow=True):
+def adjust_scaling(final_state, process, scaling):
+  '''
+  Try to read a dictionary of factors to scale up processes, changing with final state.
+  If it doesn't exist, don't adjust the factor (multiply by one and send it back).
+  Scaling is N ignored files (only ignored during testing)
+  '''
+  adjustment_dictionary = {
+    "mutau" : {
+      "TTTo2L2Nu" : 15,
+      "TTToSemiLeptonic" : 27,
+    },
+    "etau"  : {
+      "TTTo2L2Nu" : 9,
+      "TTToSemiLeptonic" : 19,
+    },
+    "dimuon" : {
+      "DYInc" : 6.482345 # for "New DiMuon DY", whatever that means :)
+    },
+  }
+  try:
+    adjustment_factor = adjustment_dictionary[final_state][process]
+  except KeyError:
+    adjustment_factor = 1
+  return scaling * adjustment_factor
+
+def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
   'scaling' is either set to 1 for data (no scaling) or retrieved from the MC_dictionary.
   Underflows and overflows are included in the first and final bins of the output histogram by default.
   Note: 'process_variable' is a list of events
   '''
-  # TODO : here is where you would fuck around with scaling if you wanted it to be properly implemented by process and
-  # FS
-  # would need to add FS, and get_binned info is called many places.
-  # nevertheless
   scaling = 1 if "Data" in process_name else set_MC_process_info(process_name, luminosity, scaling=True)[2]
-  weights = scaling*process_weights
+  if testing == True: scaling = adjust_scaling(final_state, process_name, scaling)
+  weights = scaling * process_weights
   underflow, overflow = calculate_underoverflow(process_variable, xbins, weights)
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
   if underflow:  binned_values[0]   += underflow
@@ -484,35 +506,81 @@ def get_binned_info(process_name, process_variable, xbins, process_weights, lumi
   return binned_values, binned_errors
 
 
-def get_binned_data(data_dictionary, variable, xbins_, lumi_, underflow=True):
+def get_binned_process(final_state, testing, process_dictionary, variable, xbins_, lumi_):
   '''
-  Standard loop to get only the plotted variable from a dictionary containing data.
+  Standard loop to get only the plotted variable from a dictionary containing info and multiple variables.
+  This is written to only get on process at a time. Other functions combine the processes when necessary.
+  '''
+  h_processes = {}
+  for process in process_dictionary:
+    process_variable = process_dictionary[process]["PlotEvents"][variable]
+    if len(process_variable) == 0: continue
+    if "Data" in process:
+      process_weights = np.ones(np.shape(process_variable)) # weights of one for data
+    elif process == "myQCD":  
+      process_weights = process_dictionary[process]["FF_weight"]
+    else:
+      process_weights = get_MC_weights(process_dictionary, process)
+    h_processes[process] = {}
+    binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, xbins_, process_weights, lumi_)
+    h_processes[process]["BinnedEvents"] = binned_values
+    h_processes[process]["BinnedErrors"] = binned_errors
+  return h_processes
 
-  This is written so that it can be extended to use multiple datasets, but the default
-  usage is only one dataset at a time. 
-  '''
-  h_data_by_dataset = {}
-  for dataset in data_dictionary:
-    data_variable = data_dictionary[dataset]["PlotEvents"][variable]
-    data_weights  = np.ones(np.shape(data_variable)) # weights of one for data
-    h_data_by_dataset[dataset] = {}
-    binned_values, binned_errors = get_binned_info(dataset, data_variable, xbins_, data_weights, lumi_, underflow)
-    h_data_by_dataset[dataset]["BinnedEvents"] = binned_values
-    h_data_by_dataset[dataset]["BinnedErrors"] = binned_errors
+def get_binned_data(final_state, testing, data_dictionary, variable, xbins_, lumi_):
+  h_data_by_dataset = get_binned_process(final_state, testing, data_dictionary, variable, xbins_, lumi_)
   h_data = accumulate_datasets(h_data_by_dataset)
   return h_data
 
-
 def accumulate_datasets(dataset_dictionary):
-  '''
-  Very similar to accumulate_MC_subproceses
-  Written to add datasets (Muon, Tau, EGamma, MuonEG) together
-  '''
+  # Add datasets (Muon, Tau, EGamma, MuonEG) together
   accumulated_values = 0
   for dataset in dataset_dictionary:
     accumulated_values += dataset_dictionary[dataset]["BinnedEvents"]
-
   return accumulated_values
+
+
+def get_binned_backgrounds(final_state, testing, background_dictionary, variable, xbins_, lumi_):
+  '''
+  Treat each MC process, then group the output by family into flat dictionaries.
+  Also, sum all backgrounds into h_summed_backgrounds to use in ratio plot.
+  '''
+  h_MC_by_process = get_binned_process(final_state, testing, background_dictionary, variable, xbins_, lumi_)
+
+  # add together subprocesses of each MC family
+  h_MC_by_family = {}
+  # see what processes exist in the dictionary
+  if "myQCD" in background_dictionary.keys(): # QCD is on bottom of stack since it is first called
+    h_MC_by_family["myQCD"] = {}
+    h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
+    all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
+  else:
+    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
+  used_MC_families = []
+  for family in all_MC_families:
+    for process in h_MC_by_process:
+      if (("WW" in process) or ("WZ" in process) or ("ZZ" in process)) and ("VV" not in used_MC_families):
+        used_MC_families.append("VV")
+      elif (family in process) and (family not in used_MC_families):
+        used_MC_families.append(family)
+
+  for family in used_MC_families:
+    h_MC_by_family[family] = {}
+    h_MC_by_family[family]["BinnedEvents"] = accumulate_MC_subprocesses(family, h_MC_by_process)
+  h_backgrounds = h_MC_by_family
+  #print(h_MC_by_family) # DEBUG
+  # used for ratio plot
+  h_summed_backgrounds = 0
+  for background in h_backgrounds:
+    h_summed_backgrounds += h_backgrounds[background]["BinnedEvents"]
+
+  return h_backgrounds, h_summed_backgrounds
+
+
+def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_, lumi_):
+  h_signals = get_binned_process(final_state, testing, signal_dictionary, variable, xbins_, lumi_)
+  return h_signals
+
 
 
 def accumulate_MC_subprocesses(parent_process, process_dictionary):
@@ -571,73 +639,6 @@ def get_parent_process(MC_process, skip_process=False):
       print(f"No matching parent process for {MC_process}, continuing as individual process...")
   return parent_process
 
-
-# TODO: jetmode not actually used here
-def get_binned_backgrounds(background_dictionary, variable, xbins_, lumi_, jet_mode, underflow=True):
-  '''
-  Treat each MC process, then group the output by family into flat dictionaries.
-  Also, sum all backgrounds into h_summed_backgrounds to use in ratio plot.
-  '''
-  h_MC_by_process = {}
-  for process in background_dictionary:
-    process_variable = background_dictionary[process]["PlotEvents"][variable]
-    if len(process_variable) == 0: continue
-    if process == "myQCD":  
-      process_weights = background_dictionary[process]["FF_weight"]
-    else:
-      process_weights = get_MC_weights(background_dictionary, process)
-    #print("process, variable, variable and weight shapes") # DEBUG 
-    #print(process, variable, process_variable.shape, process_weights.shape) # DEBUG
-    h_MC_by_process[process] = {}
-    binned_values, binned_errors = get_binned_info(process, process_variable, xbins_, process_weights, lumi_, underflow)
-    h_MC_by_process[process]["BinnedEvents"] = binned_values
-    h_MC_by_process[process]["BinnedErrors"] = binned_errors
-  # add together subprocesses of each MC family
-  h_MC_by_family = {}
-  # see what processes exist in the dictionary
-  if "myQCD" in background_dictionary.keys(): # QCD is on bottom of stack since it is first called
-    h_MC_by_family["myQCD"] = {}
-    h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
-    all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
-  else:
-    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
-  used_MC_families = []
-  for family in all_MC_families:
-    for process in h_MC_by_process:
-      if (("WW" in process) or ("WZ" in process) or ("ZZ" in process)) and ("VV" not in used_MC_families):
-        used_MC_families.append("VV")
-      elif (family in process) and (family not in used_MC_families):
-        used_MC_families.append(family)
-
-  for family in used_MC_families:
-    h_MC_by_family[family] = {}
-    h_MC_by_family[family]["BinnedEvents"] = accumulate_MC_subprocesses(family, h_MC_by_process)
-  h_backgrounds = h_MC_by_family
-  #print(h_MC_by_family) # DEBUG
-  # used for ratio plot
-  h_summed_backgrounds = 0
-  for background in h_backgrounds:
-    h_summed_backgrounds += h_backgrounds[background]["BinnedEvents"]
-
-  return h_backgrounds, h_summed_backgrounds
-
-
-def get_binned_signals(signal_dictionary, variable, xbins_, lumi_, jet_mode):
-  #TODO : bundle with background above
-  '''
-  Signal is put in a separate dictionary from MC, but they are processed identically 
-  '''
-  h_signals = {}
-  for process in signal_dictionary:
-    signal_variable = signal_dictionary[process]["PlotEvents"][variable]
-    if len(signal_variable) == 0: continue
-    else:
-      signal_weights = get_MC_weights(signal_dictionary, process)
-    h_signals[process] = {}
-    binned_values, binned_errors = get_binned_info(process, signal_variable, xbins_, signal_weights, lumi_)
-    h_signals[process]["BinnedEvents"] = binned_values
-    h_signals[process]["BinnedErrors"] = binned_errors
-  return h_signals
 
 
 def get_MC_weights(MC_dictionary, process):

@@ -86,8 +86,9 @@ if __name__ == "__main__":
   # there's no place like home :)
   home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/Run3PreEEFSSplitSamples/" + final_state_mode
   era_modifier_2022 = "preEE" if (("C" in args.lumi) or ("D" in args.lumi)) else "postEE"
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
-  #home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/" + final_state_mode
+  #home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
+  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/" + final_state_mode
+  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/mutau"
   using_directory = home_dir
  
   good_events  = set_good_events(final_state_mode)
@@ -121,15 +122,16 @@ if __name__ == "__main__":
   AR_region_dimuon = common_selection + " & (abs(HTT_pdgId)==13*13) & (HLT_IsoMu24)"
 
   dataset_dictionary = {"ditau" : "DataTau", "mutau" : "DataMuon", "etau" : "DataElectron", "emu" : "DataEMu",
-                        "dimuon": "DataMuon"}
+                        "mutau_TnP" : "DataMuon", "dimuon": "DataMuon"}
   reject_dataset_dictionary = {"ditau" : ["DataMuon", "DataElectron", "DataEMu"],
                                "mutau" : ["DataTau",  "DataElectron", "DataEMu"],
                                "etau"  : ["DataMuon", "DataTau",      "DataEMu"],
                                "emu"   : ["DataMuon", "DataElectron", "DataTau"],
+                               "mutau_TnP" : ["DataTau",  "DataElectron", "DataEMu"],
                                "dimuon": ["DataTau",  "DataElectron", "DataEMu"], }
   AR_region_dictionary = {"ditau" : AR_region_ditau, "mutau" : AR_region_mutau, 
                           "etau" : AR_region_etau, "emu" : AR_region_emu,
-                          "dimuon" : AR_region_dimuon}
+                          "mutau_TnP" : AR_region_mutau, "dimuon" : AR_region_dimuon}
   dataset = dataset_dictionary[final_state_mode]
   reject_datasets = reject_dataset_dictionary[final_state_mode]
   AR_region = AR_region_dictionary[final_state_mode]
@@ -137,7 +139,8 @@ if __name__ == "__main__":
   update_data_filemap(args.lumi, file_map)
  
 
-  do_QCD = True
+  do_QCD = False
+  do_WJFakes = False
   semilep_mode = "QCD"
   if (jet_mode != "Inclusive") and (do_QCD==True):
     log_print(f"Processing ditau AR region!", log_file, time=True)
@@ -187,23 +190,6 @@ if __name__ == "__main__":
                                                               temp_FF_dictionary["GTE2j"]["myQCD"]["PlotEvents"][var]))
 
     FF_dictionary = temp_dict
-
-  do_WJFakes = True
-  #semilep_mode = "WJ"
-  #if (jet_mode != "Inclusive") and (do_QCD==True):
-  #  log_print(f"Processing ditau AR region!", log_file, time=True)
-  #  AR_process_dictionary = load_process_from_file(dataset, using_directory, file_map, log_file,
-  #                                          branches, AR_region, final_state_mode,
-  #                                          data=True, testing=testing)
-  #  AR_events = AR_process_dictionary[dataset]["info"]
-  #  cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version)
-  #  FF_dictionary = {}
-  #  FF_dictionary["myQCD"] = {}
-  #  FF_dictionary["myQCD"]["PlotEvents"] = {}
-  #  FF_dictionary["myQCD"]["FF_weight"]  = cut_events_AR["FF_weight"]
-  #  for var in vars_to_plot:
-  #    if ("flav" in var): continue
-  #    FF_dictionary["myQCD"]["PlotEvents"][var] = cut_events_AR[var]
 
 
 
@@ -279,6 +265,7 @@ if __name__ == "__main__":
     eta_phi_by_FS_dict = {"ditau"  : ["FS_t1_eta", "FS_t1_phi", "FS_t2_eta", "FS_t2_phi"],
                           "mutau"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
                           "etau"   : ["FS_el_eta", "FS_el_phi", "FS_tau_eta", "FS_tau_phi"],
+                          "mutau_TnP"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
                           "dimuon" : ["FS_m1_eta", "FS_m1_phi", "FS_m2_eta", "FS_m2_phi"]}
     eta_phi_by_FS = eta_phi_by_FS_dict[final_state_mode]
     for process in processes:
@@ -297,7 +284,7 @@ if __name__ == "__main__":
         print(f"skipping eta-phi plot for {process}")
 
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  vars_to_plot = ["HTT_m_vis"]
+  #vars_to_plot = ["HTT_m_vis"]
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")
@@ -309,13 +296,16 @@ if __name__ == "__main__":
     hist_ax, hist_ratio = setup_ratio_plot()
     #hist_ax = setup_single_plot()
 
+    # TODO: helper function to fill these guys out in a standard way
+    # data_dictionary, background_dictionary, signal_dictionary,
+    # final_state, testing, var, xbins, lumi
     temp_var = var # hack to plot the same variable twice with two different binnings
     if "HTT_m_vis" in var: var = "HTT_m_vis"
-    h_data = get_binned_data(data_dictionary, var, xbins, lumi)
+    h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
     if (final_state_mode != "dimuon") and (do_QCD == True):
       background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
-    h_backgrounds, h_summed_backgrounds = get_binned_backgrounds(background_dictionary, var, xbins, lumi, jet_mode)
-    h_signals = get_binned_signals(signal_dictionary, var, xbins, lumi, jet_mode) 
+    h_backgrounds, h_summed_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
+    h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi) 
     var = temp_var
 
     # plot everything :)

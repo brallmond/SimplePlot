@@ -97,6 +97,8 @@ label_dictionary = {
   "FastMTT_PUPPIMET_mass" : r'Fast MTT Mass [GeV]',
   "PV_npvs"     : r'Number of Primary Vertices',
 
+  "pass_tag"    : r'Pass Tag Requirements',
+  "pass_probe"    : r'Pass Probe Requirements',
 }
 
 #  channel {
@@ -138,7 +140,7 @@ binning_dictionary = {
     "FS_mu_eta"  : np.linspace(-3, 3, 30+1),
     "FS_mu_phi"  : np.linspace(-3.2, 3.2, 32+1),
     "FS_mu_iso"  : np.linspace(0, 1, 25+1),
-    "FS_mu_dxy"  : np.linspace(0, 0.05, 50+1),
+    "FS_mu_dxy"  : np.linspace(0, 0.025, 50+1),
     "FS_mu_dz"   : np.linspace(0, 0.25, 50+1),
     "FS_mu_chg"  : np.linspace(-2, 2, 5+1),
 
@@ -179,15 +181,27 @@ binning_dictionary = {
 
   "mutau_TnP" : {
     "FS_mu_pt"   : np.linspace(0, 120, 40+1),
-    "FS_mu_eta"  : np.linspace(-2.7, 2.7, 7+1),
-    "FS_mu_phi"  : np.linspace(-3.2, 3.2, 16+1),
- 
-    "FS_tau_pt"  : np.array([0, 20, 25, 30, 35, 40, 50, 70, 150]),
-    "FS_tau_eta" : np.linspace(-2.7, 2.7, 7+1),
-    "FS_tau_phi" : np.linspace(-3.2, 3.2, 16+1),
+    "FS_mu_eta"  : np.linspace(-3, 3, 30+1),
+    "FS_mu_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_mu_iso"  : np.linspace(0, 1, 25+1),
+    "FS_mu_dxy"  : np.linspace(0, 0.025, 50+1),
+    "FS_mu_dz"   : np.linspace(0, 0.25, 50+1),
+    "FS_mu_chg"  : np.linspace(-2, 2, 5+1),
+
+    "FS_tau_pt"  : np.linspace(0, 180, 36+1),
+    "FS_tau_eta" : np.linspace(-3, 3, 30+1),
+    "FS_tau_phi" : np.linspace(-3.2, 3.2, 32+1),
+    "FS_tau_dxy" : np.linspace(0, 0.20, 50+1),
+    "FS_tau_dz"  : np.linspace(0, 0.25, 50+1),
+    "FS_tau_chg" : np.linspace(-2, 2, 5+1),
+    "FS_tau_DM"  : np.linspace(0, 19, 20+1),
+
+    "FS_tau_rawPNetVSjet" : np.linspace(0, 1, 50+1),
+    "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
+    "FS_tau_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
 
     "pass_tag"   : np.linspace(0, 2, 2+1),
-    "pass_probe" : np.linspace(0, 2, 2+1),
+    "pass_probe"   : np.linspace(0, 2, 2+1),
   },
 
   "dimuon" : {
@@ -212,8 +226,8 @@ binning_dictionary = {
   "common" : {
     # calculated on the fly
     "FS_mt"         : np.linspace(0, 200, 40+1),
-    "FS_nbJet"      : np.linspace(0, 8, 8+1),
-    "FS_acoplan"    : np.linspace(-1, 1, 10+1),
+    "FS_nbJet"      : np.linspace(0, 4, 4+1),
+    "FS_acoplan"    : np.linspace(0, 1, 10+1),
     "nCleanJetGT30" : np.linspace(0, 8, 8+1), # GT(E) = Greater Than (Equal to)
     "CleanJetGT30_pt_1"  : np.linspace(0, 300, 60+1),
     "CleanJetGT30_pt_2"  : np.linspace(0, 300, 60+1),
