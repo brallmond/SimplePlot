@@ -8,21 +8,25 @@ import gc
 import copy
 
 # explicitly import used functions from user files, grouped roughly by call order and relatedness
-from file_map_dictionary   import testing_file_map, full_file_map, testing_dimuon_file_map, dimuon_file_map
-from file_map_dictionary   import pre2022_file_map, update_data_filemap
+# import statements for setup
+from setup import setup_handler, set_good_events
+from branch_functions import set_branches
+from plotting_functions import set_vars_to_plot
+from file_map_dictionary import set_dataset_info
+# import statements for data loading and processing
 from file_functions        import load_process_from_file, append_to_combined_processes, sort_combined_processes
+from FF_functions        import set_JetFakes_process
+from cut_and_study_functions import apply_HTT_FS_cuts_to_process
 
+
+# plotting
+from plotting_functions import get_midpoints, make_two_dimensional_plot
 from luminosity_dictionary import luminosities_with_normtag as luminosities
-
-from cut_and_study_functions import set_branches, set_vars_to_plot, set_good_events
-from cut_and_study_functions import apply_HTT_FS_cuts_to_process, apply_AR_cut
-
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import setup_single_plot, spruce_up_single_plot
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart
 
-from plotting_functions import get_midpoints, make_two_dimensional_plot
 
 from binning_dictionary import label_dictionary
 
@@ -53,155 +57,35 @@ if __name__ == "__main__":
   and del(large_object) in related functions lets python know we no longer need an object, and its resources can be
   reacquired at the next gc.collect() call
   '''
+  # do setup
+  setup = setup_handler()
+  testing, final_state_mode, jet_mode, era, lumi = setup.state_info
+  using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
+  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
 
-  import argparse 
-  parser = argparse.ArgumentParser(description='Make a standard Data-MC agreement plot.')
-  # store_true : when the argument is supplied, store it's value as true
-  # for 'testing' below, the default value is false if the argument is not specified
-  parser.add_argument('--testing',     dest='testing',     default=False,       action='store_true')
-  parser.add_argument('--hide_plots',  dest='hide_plots',  default=False,       action='store_true')
-  parser.add_argument('--hide_yields', dest='hide_yields', default=False,       action='store_true')
-  parser.add_argument('--final_state', dest='final_state', default="mutau",     action='store')
-  parser.add_argument('--plot_dir',    dest='plot_dir',    default="plots",     action='store')
-  parser.add_argument('--lumi',        dest='lumi',        default="2022 EFG",  action='store')
-  parser.add_argument('--jet_mode',    dest='jet_mode',    default="Inclusive", action='store')
-  parser.add_argument('--DeepTau',     dest='DeepTau_version', default="2p5",   action='store')
-  parser.add_argument('--use_NLO',  dest='use_NLO',  default=False,        action='store')
-
-  args = parser.parse_args() 
-  testing     = args.testing     # False by default, do full dataset unless otherwise specified
-  hide_plots  = args.hide_plots  # False by default, show plots unless otherwise specified
-  hide_yields = args.hide_yields # False by default, show yields unless otherwise specified
-  use_NLO  = args.use_NLO  # False by default, use LO DY if False
-  lumi = luminosities["2022 G"] if testing else luminosities[args.lumi]
-  if testing: args.lumi = "2022 G"
-  DeepTau_version = args.DeepTau_version # default is 2p5 [possible values 2p1 and 2p5]
-
-  # final_state_mode affects many things automatically, including good_events, datasets, plotting vars, etc.
-  final_state_mode = args.final_state # default mutau [possible values ditau, mutau, etau, dimuon]
-  jet_mode         = args.jet_mode # default Inclusive [possible values 0j, 1j, 2j, GTE2j]
-
-  #lxplus_redirector = "root://cms-xrd-global.cern.ch//"
-  eos_user_dir    = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/HTauTau_2022_fromstep1_skimmed/" + final_state_mode
-  # there's no place like home :)
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/Run3PreEEFSSplitSamples/" + final_state_mode
-  era_modifier_2022 = "preEE" if (("C" in args.lumi) or ("D" in args.lumi)) else "postEE"
-  #home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" + final_state_mode
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/" + final_state_mode
-  home_dir        = "/Users/ballmond/LocalDesktop/HiggsTauTau/V12_PFRel_postEE_Dennis_test_detector_holes/mutau"
-  using_directory = home_dir
  
-  good_events  = set_good_events(final_state_mode)
-  branches     = set_branches(final_state_mode, DeepTau_version)
-  vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
-  plot_dir_name = "FS_plots_testing/" if testing==True else "FS_plots/"
-  plot_dir = make_directory(plot_dir_name+args.plot_dir, final_state_mode+"_"+jet_mode, testing=testing)
-
-  log_file = open('outputfile.log', 'w')
-
-  # show info to user
-  print_setup_info(final_state_mode, lumi, jet_mode, testing, DeepTau_version,
-                   using_directory, plot_dir,
-                   good_events, branches, vars_to_plot, log_file)
-
-  file_map = testing_file_map if testing else full_file_map
-  if (use_NLO == True): 
-    file_map.pop("DYInc")
-    file_map.pop("WJetsInc")
-  else: 
-    file_map.pop("DYIncNLO")
-    file_map.pop("WJetsIncNLO")
+  print_setup_info(setup)
 
   # add FF weights :) # almost the same as SR, except SS and 1st tau fails iso (applied in AR_cuts)
 
-  common_selection = "(METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
-  AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
-  AR_region_mutau  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
-  AR_region_etau   = common_selection + " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
-  AR_region_emu    = common_selection + " & (abs(HTT_pdgId)==11*13) & (Trigger_emu)"
-  AR_region_dimuon = common_selection + " & (abs(HTT_pdgId)==13*13) & (HLT_IsoMu24)"
-
-  dataset_dictionary = {"ditau" : "DataTau", "mutau" : "DataMuon", "etau" : "DataElectron", "emu" : "DataEMu",
-                        "mutau_TnP" : "DataMuon", "dimuon": "DataMuon"}
-  reject_dataset_dictionary = {"ditau" : ["DataMuon", "DataElectron", "DataEMu"],
-                               "mutau" : ["DataTau",  "DataElectron", "DataEMu"],
-                               "etau"  : ["DataMuon", "DataTau",      "DataEMu"],
-                               "emu"   : ["DataMuon", "DataElectron", "DataTau"],
-                               "mutau_TnP" : ["DataTau",  "DataElectron", "DataEMu"],
-                               "dimuon": ["DataTau",  "DataElectron", "DataEMu"], }
-  AR_region_dictionary = {"ditau" : AR_region_ditau, "mutau" : AR_region_mutau, 
-                          "etau" : AR_region_etau, "emu" : AR_region_emu,
-                          "mutau_TnP" : AR_region_mutau, "dimuon" : AR_region_dimuon}
-  dataset = dataset_dictionary[final_state_mode]
-  reject_datasets = reject_dataset_dictionary[final_state_mode]
-  AR_region = AR_region_dictionary[final_state_mode]
-
-  update_data_filemap(args.lumi, file_map)
- 
-
-  do_QCD = False
-  do_WJFakes = False
-  semilep_mode = "QCD"
-  if (jet_mode != "Inclusive") and (do_QCD==True):
-    log_print(f"Processing ditau AR region!", log_file, time=True)
-    AR_process_dictionary = load_process_from_file(dataset, using_directory, file_map, log_file,
-                                            branches, AR_region, final_state_mode,
-                                            data=True, testing=testing)
-    AR_events = AR_process_dictionary[dataset]["info"]
-    cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version)
-    FF_dictionary = {}
-    FF_dictionary["myQCD"] = {}
-    FF_dictionary["myQCD"]["PlotEvents"] = {}
-    FF_dictionary["myQCD"]["FF_weight"]  = cut_events_AR["FF_weight"]
-    for var in vars_to_plot:
-      if ("flav" in var): continue
-      FF_dictionary["myQCD"]["PlotEvents"][var] = cut_events_AR[var]
-
-  if (jet_mode == "Inclusive") and (do_QCD == True):
-    temp_FF_dictionary = {}
-    for internal_jet_mode in ["0j", "1j", "GTE2j"]:
-      log_print(f"Processing {final_state_mode} AR region! {internal_jet_mode}", log_file, time=True)
-
-      # reload AR dictionary here because it is cut in the next steps
-      AR_process_dictionary = load_process_from_file(dataset, using_directory, file_map, log_file,
-                                            branches, AR_region, final_state_mode,
-                                            data=True, testing=testing)
-      AR_events = AR_process_dictionary[dataset]["info"]
-      cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, internal_jet_mode, semilep_mode, DeepTau_version)
-      temp_FF_dictionary[internal_jet_mode] = {}
-      temp_FF_dictionary[internal_jet_mode]["myQCD"] = {}
-      temp_FF_dictionary[internal_jet_mode]["myQCD"]["PlotEvents"] = {}
-      temp_FF_dictionary[internal_jet_mode]["myQCD"]["FF_weight"]  = cut_events_AR["FF_weight"]
-      for var in vars_to_plot:
-        if ("flav" in var): continue
-        temp_FF_dictionary[internal_jet_mode]["myQCD"]["PlotEvents"][var] = cut_events_AR[var]
-
-    temp_dict = {}
-    if (do_QCD==True):
-      temp_dict["myQCD"] = {}
-      temp_dict["myQCD"]["PlotEvents"] = {}
-      temp_dict["myQCD"]["FF_weight"]  = np.concatenate((temp_FF_dictionary["0j"]["myQCD"]["FF_weight"], 
-                                                       temp_FF_dictionary["1j"]["myQCD"]["FF_weight"],
-                                                       temp_FF_dictionary["GTE2j"]["myQCD"]["FF_weight"]))
-      for var in vars_to_plot:
-        if ("flav" in var): continue
-        temp_dict["myQCD"]["PlotEvents"][var] = np.concatenate((temp_FF_dictionary["0j"]["myQCD"]["PlotEvents"][var],
-                                                              temp_FF_dictionary["1j"]["myQCD"]["PlotEvents"][var],
-                                                              temp_FF_dictionary["GTE2j"]["myQCD"]["PlotEvents"][var]))
-
-    FF_dictionary = temp_dict
-
-
+  do_QCD = do_JetFakes
+  #do_QCD = True
+  #semilep_mode = "QCD"
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
   for process in file_map: 
 
     gc.collect()
+    # being reset each run, but they're literally strings so who cares
+    _, reject_datasets = set_dataset_info(final_state_mode)
+    good_events  = set_good_events(final_state_mode) 
+    vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
+    branches     = set_branches(final_state_mode, DeepTau_version, process)
+ 
     if (process in reject_datasets): continue
 
-    if ("WJ" in process) and (do_WJFakes == True): continue
-    if "DY" in process: branches = set_branches(final_state_mode, DeepTau_version, process="DY") # Zpt handling
+    if ("WJ" in process) and ("WJ" in semilep_mode): continue
     new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
                                               branches, good_events, final_state_mode,
                                               data=("Data" in process), testing=testing)
@@ -213,6 +97,7 @@ if __name__ == "__main__":
 
     # TODO : extendable to jet cuts (something I've meant to do for some time)
     if ("DY" in process) and (final_state_mode != "dimuon"):
+      # def split_DY_by_gen, return combined_process_dictionary
       event_flavor_arr = cut_events["event_flavor"]
       pass_gen_flav, pass_lep_flav, pass_jet_flav = [], [], []
       for i, event_flavor in enumerate(event_flavor_arr):
@@ -254,10 +139,14 @@ if __name__ == "__main__":
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
+  # TODO fix myQCD print statements
+  fakesLabel = "myQCD" # can change to JetFakes once you propagate to the plotting stuff
+  FF_dictionary = set_JetFakes_process(setup, fakesLabel)
+
   log_print("Processing finished!", log_file, time=True)
   ## end processing loop, begin plotting
 
-  eta_phi_plot = True
+  eta_phi_plot = False # put in a function
   if (eta_phi_plot == True):
     processes = [process for process in background_dictionary.keys()]
     processes.append(dataset)

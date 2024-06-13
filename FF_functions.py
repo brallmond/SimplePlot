@@ -1,10 +1,12 @@
 import numpy as np
-from cut_ditau_functions import make_ditau_region
-from cut_mutau_functions import make_mutau_region
-from cut_etau_functions  import make_etau_region
-from cut_dimuon_functions  import make_dimuon_region
+from setup import set_good_events
+from cut_ditau_functions import make_ditau_region, make_ditau_cut
+from cut_mutau_functions import make_mutau_region, make_mutau_cut
+from cut_etau_functions  import make_etau_region,  make_etau_cut
+from cut_dimuon_functions  import make_dimuon_region, make_dimuon_cut
 from FF_dictionary import FF_fit_values, FF_mvis_weights
 from calculate_functions import user_exp, user_line
+from plotting_functions import set_vars_to_plot
 
 def FF_control_flow(final_state_mode, semilep_mode, region, event_dictionary, DeepTau_version):
   if (final_state_mode == "ditau"):
@@ -230,6 +232,9 @@ def make_dimuon_SR_cut(event_dictionary, iso_region=True):
   event_dictionary     = make_dimuon_region(event_dictionary, name, FS_pair_sign=-1)
   return event_dictionary
 
+#########################################################################################
+# Calculation Functions
+#########################################################################################
 
 def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, full_FF, closure=False, testing=True, bypass=[]):
   # interface to read FF_dictionary
@@ -273,4 +278,40 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, f
   event_dictionary["FF_weight"] = np.array(FF_weights)
   return event_dictionary
 
+from producers import produce_FF_weight
+def set_JetFakes_process(setup, fakesLabel):
+  # could be improved by reducing name size and simplifying below operations
+  JetFakes_dictionary = {}
+  testing, final_state_mode, jet_mode, _, _ = setup.state_info
+  _, _, _, do_JetFakes, semilep_mode = setup.misc_info
+  vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
+  if (jet_mode != "Inclusive") and (do_JetFakes==True):
+    JetFakes_dictionary = produce_FF_weight(setup, jet_mode)
+  if (jet_mode == "Inclusive") and (do_JetFakes==True):
+    fakesLabel = fakesLabel
+    temp_JetFakes_dictionary = {}
+    JetFakes_dictionary[fakesLabel] = {}
+    JetFakes_dictionary[fakesLabel]["PlotEvents"] = {}
+    JetFakes_dictionary[fakesLabel]["FF_weight"]  = {} 
+    for internal_jet_mode in ["0j", "GTE1j"]:
+      if testing: internal_jet_mode += "_testing"
+      temp_JetFakes_dictionary[internal_jet_mode] = produce_FF_weight(setup, internal_jet_mode)
+      if ("0j" in internal_jet_mode):
+        JetFakes_dictionary[fakesLabel]["FF_weight"]  = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]
+      else:
+        JetFakes_dictionary[fakesLabel]["FF_weight"]  = np.concatenate((JetFakes_dictionary[fakesLabel]["FF_weight"],
+                                          temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]))
+      for var in vars_to_plot:
+        if ("flav" in var): continue
+        if ("0j" in internal_jet_mode): 
+          JetFakes_dictionary[fakesLabel]["PlotEvents"][var] = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["PlotEvents"][var]
+        else:
+          JetFakes_dictionary[fakesLabel]["PlotEvents"][var]  = np.concatenate((JetFakes_dictionary[fakesLabel]["PlotEvents"][var],
+                                                  temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["PlotEvents"][var]))
+  return JetFakes_dictionary
 
+if __name__ == "__main__":
+  from setup import setup_handler
+  setup = setup_handler()
+  FF_dictionary = produce_FF_weight(setup, setup.state_info.jet_mode)
+  print(FF_dictionary)

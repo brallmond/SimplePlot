@@ -96,12 +96,12 @@ def subtract_data_MC(semilep_mode, h_num_data, h_num_backgrounds, h_num_summed_b
     return h_num_data_m_MC, h_den_data_m_MC
 
 
-def quick_rebin(num_data, den_data, num_bkgd, den_bkgd,
+def quick_rebin(final_state_mode, testing, num_data, den_data, num_bkgd, den_bkgd,
                 var, xbins, lumi, semilep_mode, underflow=True):
-  h_num_data = get_binned_data(num_data, var, xbins, lumi)
-  h_den_data = get_binned_data(den_data, var, xbins, lumi)
-  h_num_bkgd, h_num_summed_bkgd = get_binned_backgrounds(num_bkgd, var, xbins, lumi, jet_mode)
-  h_den_bkgd, h_den_summed_bkgd = get_binned_backgrounds(den_bkgd, var, xbins, lumi, jet_mode)
+  h_num_data = get_binned_data(final_state_mode, testing, num_data, var, xbins, lumi)
+  h_den_data = get_binned_data(final_state_mode, testing, den_data, var, xbins, lumi)
+  h_num_bkgd, h_num_summed_bkgd = get_binned_backgrounds(final_state_mode, testing, num_bkgd, var, xbins, lumi)
+  h_den_bkgd, h_den_summed_bkgd = get_binned_backgrounds(final_state_mode, testing, den_bkgd, var, xbins, lumi)
   #return h_num_data, h_den_data, h_num_bkgd, h_num_summed_bkgd, h_den_bkgd, h_den_summed_bkgd
 
   h_num_data_m_MC, h_den_data_m_MC = subtract_data_MC(semilep_mode, 
@@ -209,7 +209,7 @@ if __name__ == "__main__":
   store_region_data_dictionary = {}
   store_region_bkgd_dictionary = {}
   store_region_sgnl_dictionary = {}
-  semilep_mode = "QCD" # "QCD" or "WJ"
+  semilep_mode = "WJ" # "QCD" or "WJ"
   numerator = "DRsr"
   denominator = "DRar"
   for region in [numerator, denominator]:
@@ -352,10 +352,12 @@ if __name__ == "__main__":
 
     temp_var = var
     if "HTT_m_vis" in var: var = "HTT_m_vis"
-    h_numerator_data = get_binned_data(numerator_data, var, xbins, lumi)
-    h_denominator_data = get_binned_data(denominator_data, var, xbins, lumi)
-    h_numerator_backgrounds, h_numerator_summed_backgrounds = get_binned_backgrounds(numerator_bkgd, var, xbins, lumi, jet_mode)
-    h_denominator_backgrounds, h_denominator_summed_backgrounds = get_binned_backgrounds(denominator_bkgd, var, xbins, lumi, jet_mode)
+    h_numerator_data = get_binned_data(final_state_mode, testing, numerator_data, var, xbins, lumi)
+    h_denominator_data = get_binned_data(final_state_mode, testing, denominator_data, var, xbins, lumi)
+    h_numerator_backgrounds, h_numerator_summed_backgrounds = get_binned_backgrounds(final_state_mode, testing, 
+                                                                 numerator_bkgd, var, xbins, lumi)
+    h_denominator_backgrounds, h_denominator_summed_backgrounds = get_binned_backgrounds(final_state_mode, testing, 
+                                                                     denominator_bkgd, var, xbins, lumi)
     var = temp_var
 
     h_num_data_m_MC, h_den_data_m_MC = subtract_data_MC(semilep_mode, 
@@ -411,7 +413,8 @@ if __name__ == "__main__":
 
 
       low_val  = 30 if var == "FS_tau_pt" else 40
-      high_val = 100 if var == "FS_tau_pt" else 150
+      #high_val = 100 if var == "FS_tau_pt" else 150
+      high_val = xbins[-1]
       use_vals = np.array([((midpoints[i] > low_val) and (midpoints[i] < high_val)) for i in range(len(midpoints))])
       #use_vals = np.array([((xbins[i] > low_val) and (xbins[i] < high_val)) for i in range(len(xbins))])
       use_FF_ratio     = FF_ratio[use_vals]
@@ -427,10 +430,12 @@ if __name__ == "__main__":
 
       # put all bins above cutoff value together, get coefficient from function directly, and slap it on the plot
       tail_bins = np.array([high_val, xbins[-1]]) # overflows are captured and used by default
-      h_num_data_tail = get_binned_data(numerator_data, var, tail_bins, lumi, underflow=False)
-      h_den_data_tail = get_binned_data(denominator_data, var, tail_bins, lumi, underflow=False)
-      h_num_bkgd_tail, h_num_summed_bkgd_tail = get_binned_backgrounds(numerator_bkgd, var, tail_bins, lumi, jet_mode, underflow=False)
-      h_den_bkgd_tail, h_den_summed_bkgd_tail = get_binned_backgrounds(denominator_bkgd, var, tail_bins, lumi, jet_mode, underflow=False)
+      h_num_data_tail = get_binned_data(final_state_mode, testing, numerator_data, var, tail_bins, lumi)
+      h_den_data_tail = get_binned_data(final_state_mode, testing, denominator_data, var, tail_bins, lumi)
+      h_num_bkgd_tail, h_num_summed_bkgd_tail = get_binned_backgrounds(final_state_mode, testing, 
+                                                   numerator_bkgd, var, tail_bins, lumi)
+      h_den_bkgd_tail, h_den_summed_bkgd_tail = get_binned_backgrounds(final_state_mode, testing, 
+                                                   denominator_bkgd, var, tail_bins, lumi)
       h_num_data_m_MC_tail, h_den_data_m_MC_tail = subtract_data_MC(semilep_mode, 
                                      h_num_data_tail, h_num_bkgd_tail, h_num_summed_bkgd_tail,
                                      h_den_data_tail, h_den_bkgd_tail, h_den_summed_bkgd_tail)

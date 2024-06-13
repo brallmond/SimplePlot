@@ -195,6 +195,50 @@ def user_line(x, a, b):
     return a*x + b
 
 
+def append_Zpt_weight(event_dictionary):
+  unpack_Zpt = [
+    "nGenPart", "GenPart_pdgId", "GenPart_status", "GenPart_statusFlags",
+    "GenPart_pt", "GenPart_eta", "GenPart_phi", "GenPart_mass",
+  ]
+  unpack_Zpt = (event_dictionary.get(key) for key in unpack_Zpt)
+  Gen_Zpt, Gen_Z_mass, Gen_Zpt_weight = [], [], []
+
+  # could make our own weights like this with a little effort
+  # load 2D ROOT hist from local file
+  from ROOT import TLorentzVector, TFile, TH2
+  zptroot = TFile("SFs/zpt_reweighting_LO_2022.root", "open")
+  zpthist = zptroot.Get("zptmass_histo")
+  for nGen, pdgId, status, statusFlags, pt, eta, phi, mass in zip(*unpack_Zpt):
+    good_lep_vecs = []
+    for iparticle in range(nGen):
+      pdgId_part  = abs(pdgId[iparticle])
+      status_part = status[iparticle]
+      flags_part  = statusFlags[iparticle]
+      if ( ((pdgId_part==11 or pdgId_part==13) and status_part==1 and hasbit(flags_part, 8))
+        or (pdgId_part==15 and status_part==2 and hasbit(flags_part, 8)) ): # 8 : fromHardProcess
+        lep_vec = TLorentzVector() # surprisingly, you can't combine this with the following line
+        lep_vec.SetPtEtaPhiM(pt[iparticle], eta[iparticle], phi[iparticle], mass[iparticle])
+        good_lep_vecs.append(lep_vec)
+    # end loop over particles in event
+    #print(f"Z boson lep cands in event: {len(good_lep_vecs)}") # always 2
+    zmass, zpt = 0.0, 0.0
+    if (len(good_lep_vecs) == 2):
+      zboson = good_lep_vecs[0] + good_lep_vecs[-1] # adding only cands in the list
+      zmass = zboson.M()
+      zpt   = zboson.Pt()
+
+    zptweight = 1.0
+    if not (zmass==0.0 and zpt==0.0):
+      xbin = getBin(zmass, zpthist.GetXaxis())
+      ybin = getBin(zpt, zpthist.GetYaxis())
+      zptweight = zpthist.GetBinContent(xbin, ybin)
+      if zptweight<=0.0: zptweight=1.0
+    Gen_Zpt_weight.append(zptweight)
+
+  event_dictionary["Weight_DY_Zpt_by_hand"] = np.array(Gen_Zpt_weight)
+  return event_dictionary
+
+
 
 
 

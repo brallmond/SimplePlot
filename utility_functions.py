@@ -30,13 +30,13 @@ text_options = {
   "pink"   : "\033[95m",
 }
 
-# hack for simultaneous logging + terminal output
 def log_print(text, log_file, time=False, *args, **kwargs):
-    if (time==True): time_print(text)
-    else: print(text, *args, **kwargs)
-    if log_file:
-        if (time==True): text = datetime.now(timezone.utc).strftime('%H:%M:%S') + ' ' + text
-        log_file.write(str(str(text)+'\n'))
+  # hack for simultaneous logging + terminal output
+  if (time==True): time_print(text)
+  else: print(text, *args, **kwargs)
+  if log_file:
+    if (time==True): text = datetime.now(timezone.utc).strftime('%H:%M:%S') + ' ' + text
+    log_file.write(str(str(text)+'\n'))
 
 def time_print(*args, **kwargs):
   '''
@@ -71,9 +71,9 @@ def attention(input_string, log_file):
   log_print(input_string.center(screen_width, spacer), log_file)
 
 
-def make_directory(directory_name, final_state, testing=False):
+def make_directory(directory_name, testing=False):
   date_and_time  = datetime.now(timezone.utc).strftime('from_%d-%m_at_%H%M')
-  directory_name = directory_name + "_" + final_state + "_" + date_and_time
+  directory_name = directory_name + "_" + date_and_time
   if testing: directory_name += "_testing"
   if not path.isdir(directory_name):
     makedirs(directory_name)
@@ -83,31 +83,40 @@ def make_directory(directory_name, final_state, testing=False):
   return directory_name
 
 
-def print_setup_info(final_state_mode, lumi, jet_mode, testing, useDeepTauVersion,
-                   using_directory, plot_dir,
-                   good_events, branches, vars_to_plot, log_file):
+SCREEN_WIDTH = 76
+SPACER = "-"
+def print_setup_info(setup):
+  # how do you specify class types with pylint? 
+  
+  testing, final_state_mode, jet_mode, era, lumi = setup.state_info
+  using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
+  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
 
-  screen_width, spacer = 76, "-"
+  screen_width, spacer = SCREEN_WIDTH, SPACER
   attention(final_state_mode, log_file)
-  log_print(" other useful info ".upper().center(screen_width, spacer), log_file)
-  log_print(f"LUMI={lumi} \t JET MODE={jet_mode} \t TESTING={testing} \t DeepTauVersion={useDeepTauVersion}", log_file)
+  log_print(f"ERA = {era} \t LUMI={lumi} \t JET MODE={jet_mode} \t TESTING={testing}", log_file)
   log_print(spacer*screen_width, log_file)
-
-  log_print(" good events pass initial filtering ".upper().center(screen_width, spacer), log_file)
-  log_print(good_events, log_file)
-  log_print('', log_file)
-
-  log_print(" Loading branches ".upper().center(screen_width, spacer), log_file)
-  log_print(branches, log_file)
-  log_print('', log_file)
-
-  log_print(" Going to plot these variables ".upper().center(screen_width, spacer), log_file)
-  log_print(vars_to_plot, log_file)
-  log_print(spacer*screen_width, log_file)
-
   log_print(f"INPUT  DATA DIRECTORY : {using_directory}", log_file)
   log_print(f"OUTPUT PLOT DIRECTORY : {plot_dir}", log_file)
   log_print(spacer*screen_width, log_file)
- 
+  log_print("Miscellaneous info ".upper().center(screen_width, spacer), log_file)
+  log_print(f"NLO samples (DY/WJ)={use_NLO} \t DeepTauVersion={DeepTau_version}", log_file)
+  log_print(f"Include JetFakes={do_JetFakes} \t \t FF semileptonic mode={semilep_mode}", log_file)
+  log_print(spacer*screen_width, log_file)
+
+
+def print_processing_info(good_events, branches, vars_to_plot, log_file):
+  screen_width, spacer = SCREEN_WIDTH, SPACER
+  log_print("Good events pass initial filtering ".upper().center(screen_width, spacer), log_file)
+  log_print(good_events, log_file)
+  log_print('', log_file)
+
+  log_print("Loading branches ".upper().center(screen_width, spacer), log_file)
+  log_print(branches, log_file)
+  log_print('', log_file)
+
+  log_print("Going to plot these variables ".upper().center(screen_width, spacer), log_file)
+  log_print(vars_to_plot, log_file)
+  log_print(spacer*screen_width, log_file)
 
 

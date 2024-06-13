@@ -2,6 +2,25 @@
 # This file contains mappings of process names (shared with XSec.py) to wildcards for related samples.
 # The :testing" file maps are subsets of full filelists for faster processing times.
 
+dataset_dictionary = {"ditau" : "DataTau", 
+                      "mutau" : "DataMuon", 
+                      "etau"  : "DataElectron", 
+                      "emu"   : "DataEMu",
+                      "mutau_TnP" : "DataMuon", 
+                      "dimuon"    : "DataMuon",}
+
+reject_dataset_dictionary = {"ditau" : ["DataMuon", "DataElectron", "DataEMu"],
+                             "mutau" : ["DataTau",  "DataElectron", "DataEMu"],
+                             "etau"  : ["DataMuon", "DataTau",      "DataEMu"],
+                             "emu"   : ["DataMuon", "DataElectron", "DataTau"],
+                             "mutau_TnP" : ["DataTau",  "DataElectron", "DataEMu"],
+                             "dimuon"    : ["DataTau",  "DataElectron", "DataEMu"], }
+
+def set_dataset_info(final_state_mode):
+  use_dataset     = dataset_dictionary[final_state_mode]
+  reject_datasets = reject_dataset_dictionary[final_state_mode]
+  return use_dataset, reject_datasets
+
 
 def update_data_filemap(luminosity_key, file_map): 
   if luminosity_key == "2022 C":
@@ -34,33 +53,11 @@ def update_data_filemap(luminosity_key, file_map):
     file_map["DataElectron"] = "Data/EGamma_Run2022*"
   return file_map 
 
-# This file is sort of a hellscape
-
-compare_new_old_dimuon_file_map = {
-  "DataOldDimuon" : "Muon_Run2022G_HTauTau_2022postEE_step2*",
-  "DataNewDimuon" : "Muon_Run2022G_HTauTau_2022postEE_Mini_step2*",
-}
-
-new_dimuon_file_map = {
-  "DataDimuon" : "MuonMiniIso/Muon_Run2022G_HTauTau_2022postEE_Mini_step2*",
-  "DYInc"      : "DYMiniIso/DYJetsToLL_M-50_LO_HTauTau_2022postEE_Mini_step2_part*",
-}
-
-pre2022_file_map = {
-  "DataMuon" : "Data/Muon_Run*",
-  "DYInc"    : "DY/DYJets*",
-}
-
-TnP_file_map = {
-  "DataMuon" : "Data/Muon_Run*",
-}
-
 testing_file_map = {
   "DataTau"  : "Data/Tau_Run*G*",
   "DataMuon" : "Data/Muon_Run*G*",
   "DataElectron" : "Data/EGamma*G*",
   "DataEMu"  : "Data/MuonEG_Run*G*",
-
 
   "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
   "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
@@ -81,30 +78,9 @@ testing_file_map = {
   "ggH"   : "Signal/ggH*private*",
 }
 
-compare_eras_file_map = {
-  "DataMuonEraC" : "Data*/Muon_Run*C*",
-  "DataMuonEraD" : "Data*/Muon_Run*D*",
-  "DataMuonEraE" : "Data/Muon_Run*E*",
-  "DataMuonEraF" : "Data/Muon_Run*F*",
-  "DataMuonEraG" : "Data/Muon_Run*G*",
-  "DataMuonEraGPrompt" : "Data/Muon_Run*G*",
-  "DataTauEraF" : "Data/Tau*F*",
-  "DataTauEraG" : "Data/Tau*G*",
-  "DataElectronEraF" : "Data/Electron*F*",
-  "DataElectronEraG" : "Data/Electron*G*",
-}
-
-dimuon_file_map = {
-  "DataMuon" : "Data/Muon_Run*",
-  "DYInc"    : "DY/DYJets*part*",
-}
-
-testing_dimuon_file_map = {
-  "DataMuon" : "Data/Muon_Run*G*",
-  "DYInc"    : "DY/DYJets*part1",
-}
 
 full_file_map = {
+
   "DataTau"  : "Data/Tau_Run*",
   "DataMuon" : "Data/Muon_Run*",
   "DataElectron" : "Data/EGamma_Run*",

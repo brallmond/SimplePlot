@@ -653,3 +653,83 @@ def get_MC_weights(MC_dictionary, process):
   full_weights = gen * PU * TauSF * MuSF * ElSF *\
                  BTagSF * DY_Zpt * TT_NNLO
   return full_weights
+
+
+final_state_vars = {
+    # can't put nanoaod branches here because this dictionary is used to protect branches created internally
+    "none"   : [],
+    "ditau"  : ["FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_dxy", "FS_t1_dz", "FS_t1_chg", "FS_t1_DM",
+                "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_dxy", "FS_t2_dz", "FS_t2_chg", "FS_t2_DM",
+                "FS_t1_flav", "FS_t2_flav", 
+                #"FS_t1_rawPNetVSjet", "FS_t1_rawPNetVSmu", "FS_t1_rawPNetVSe",
+                #"FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
+                "FS_t1_DeepTauVSjet", "FS_t1_DeepTauVSmu", "FS_t1_DeepTauVSe", 
+                "FS_t2_DeepTauVSjet", "FS_t2_DeepTauVSmu", "FS_t2_DeepTauVSe", 
+               ],
+
+    "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
+                "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_DM",
+                "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet", "FS_acoplan",
+                #"FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
+               ],
+
+    "mutau_TnP"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
+                    "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_DM",
+                    "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet", "FS_acoplan", "pass_tag", "pass_probe"
+                   ],
+
+    "etau"   : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg",
+                "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_DM",
+                "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet",
+               ],
+
+    "dimuon" : ["FS_m1_pt", "FS_m1_eta", "FS_m1_phi", "FS_m1_iso", "FS_m1_dxy", "FS_m1_dz",
+                "FS_m2_pt", "FS_m2_eta", "FS_m2_phi", "FS_m2_iso", "FS_m2_dxy", "FS_m2_dz",
+               ],
+}
+
+# TODO this is ugly and bad and i am only doing this out of desperation
+# need to make a jet cut function folder, where this would be more at home...
+clean_jet_vars = {
+    "Inclusive" : ["nCleanJetGT30",
+      #"CleanJetGT30_pt_1", "CleanJetGT30_eta_1",
+      #"CleanJetGT30_pt_2", "CleanJetGT30_eta_2",
+      #"CleanJetGT30_pt_3", "CleanJetGT30_eta_3",
+    ],
+
+    "0j" : ["nCleanJetGT30"],
+    "1j" : ["nCleanJetGT30", "CleanJetGT30_pt_1", "CleanJetGT30_eta_1", "CleanJetGT30_phi_1"],
+    "GTE1j" : ["nCleanJetGT30", 
+               "CleanJetGT30_pt_1", "CleanJetGT30_eta_1", "CleanJetGT30_phi_1",
+               "CleanJetGT30_pt_2", "CleanJetGT30_eta_2", "CleanJetGT30_phi_2",
+               "FS_mjj", "FS_detajj",
+              ],
+    "GTE2j" : ["nCleanJetGT30", 
+               "CleanJetGT30_pt_1", "CleanJetGT30_eta_1", "CleanJetGT30_phi_1",
+               "CleanJetGT30_pt_2", "CleanJetGT30_eta_2", "CleanJetGT30_phi_2",
+               "FS_mjj", "FS_detajj",
+              ],
+}
+
+def set_vars_to_plot(final_state_mode, jet_mode="none"):
+  '''
+  Helper function to keep plotting variables organized
+  Shouldn't this be in  plotting functions?
+  '''
+  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+                  "PuppiMET_pt", "PuppiMET_phi", "PV_npvs"]
+                  #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj"] 
+                  # common to all final states # add Tau_decayMode
+  FS_vars_to_add = final_state_vars[final_state_mode]
+  for var in FS_vars_to_add:
+    vars_to_plot.append(var)
+
+  jet_vars_to_add = clean_jet_vars[jet_mode]
+  #if (jet_mode=="Inclusive") or (jet_mode=="GTE2j"):
+  #  jet_vars_to_add += ["HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj"]
+  for jet_var in jet_vars_to_add:
+    vars_to_plot.append(jet_var)
+
+  return vars_to_plot
+
+

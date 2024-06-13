@@ -98,6 +98,8 @@ if __name__ == "__main__":
     file_map.pop("DYIncNLO")
     file_map.pop("WJetsIncNLO")
 
+  # why am i doing this here, isn't this handled somewhere else? 
+  # need to do code review and cleaning
   common_selection = "(METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
   ditau_selection  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
   mutau_selection  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
@@ -166,27 +168,9 @@ if __name__ == "__main__":
       event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
-      # add new FF_weight handler, add bypass to function
       if ("Data" in process):
         event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, full_FF=False,
                                             closure=True, testing=testing)
-                                            #closure=True, bypass=[-0.000570, 0.278])
-
-      #if ("Data" in process): event_dictionary = add_FF_weights(event_dictionary, final_state_mode, 
-      #                                             jet_mode, DeepTau_version, determining_FF=False,
-                                                # [FF int, slope, OS SS int, slope]
-                                                #bypass = [0.278, -0.000577, 1, 0])
-                                                # Medium
-      #                                          bypass = [2.27e-01, -3.19e-06, 1, 0]) #DRsr/ar iso eras EFG Inc
-      #                                          bypass = [2.78e-01, -5.70e-04, 1, 0]) #DRsr/ar iso eras EFG 0j RedX=4.14
-                                                #bypass = [2.30e-01, -4.93e-04, 1, 0]) #DRsr/ar iso eras EFG 1j RedX=4.15
-                                                #bypass = [2.36e-01, -9.53e-04, 1, 0]) #DRsr/ar iso eras EFG 2j RedX=3.70
-                                                # Tight
-                                                #bypass = [1.74e-01, -4.71e-04, 1, 0]) #DRsr/ar iso eras EFG Inc RedX=2.52
-                                                # Medium aiso
-                                                #bypass = [1.91e-01, -7.43e-06, 1, 0]) #DRsr/ar aiso era G
-                                                #bypass = [2.41e-01, -6.12e-04, 1, 0]) #DRsr/ar aiso eras EFG
-
 
       # TODO : extendable to jet cuts (something I've meant to do for some time)
       if "DY" in process:
@@ -281,13 +265,14 @@ if __name__ == "__main__":
 
     temp_var = var
     if "HTT_m_vis" in var: var = "HTT_m_vis"
-    h_pseudo_SR_data = get_binned_data(pseudo_SR_data, var, xbins, lumi)
-    h_pseudo_AR_data = get_binned_data(pseudo_AR_data, var, xbins, lumi)
-    h_pseudo_SR_backgrounds, h_pseudo_SR_summed_backgrounds = get_binned_backgrounds(pseudo_SR_bkgd, var, xbins, lumi, jet_mode)
-    h_pseudo_AR_backgrounds, h_pseudo_AR_summed_backgrounds = get_binned_backgrounds(pseudo_AR_bkgd, var, xbins, lumi, jet_mode)
-    #h_pseudo_SR_signals = get_binned_signals(pseudo_SR_sgnl, var, xbins, lumi, jet_mode) 
-    #h_pseudo_AR_signals = get_binned_signals(pseudo_AR_sgnl, var, xbins, lumi, jet_mode) 
-    h_QCD, h_QCD_for_ratio = get_binned_backgrounds(QCD_dictionary, var, xbins, 1, jet_mode)
+    h_pseudo_SR_data = get_binned_data(final_state_mode, testing, pseudo_SR_data, var, xbins, lumi)
+    h_pseudo_AR_data = get_binned_data(final_state_mode, testing, pseudo_AR_data, var, xbins, lumi)
+    h_pseudo_SR_backgrounds, h_pseudo_SR_summed_backgrounds = get_binned_backgrounds(final_state_mode, testing, 
+                                                                 pseudo_SR_bkgd, var, xbins, lumi)
+    h_pseudo_AR_backgrounds, h_pseudo_AR_summed_backgrounds = get_binned_backgrounds(final_state_mode, testing, 
+                                                                 pseudo_AR_bkgd, var, xbins, lumi)
+    h_QCD, h_QCD_for_ratio = get_binned_backgrounds(final_state_mode, testing,
+                                QCD_dictionary, var, xbins, 1)
     var = temp_var
 
     h_pseudo_SR_data_m_MC = h_pseudo_SR_data - h_pseudo_SR_summed_backgrounds
@@ -320,6 +305,11 @@ if __name__ == "__main__":
     spruce_up_legend(ax_hist, final_state_mode, h_pseudo_SR_data_m_MC)
 
     plt.savefig(plot_dir + "/" + str(var) + ".png")
+
+    # do extra stuff for second lepton leg
+    if var in ["FS_t2_pt", "FS_mu_pt", "FS_ele_pt"]:
+      #fit the ratio plot, and print the fit
+      #put it in an additional plot, a la FF_plot_set_1p5 (i guess you could merge those, huh?)
 
 
   if hide_plots: pass

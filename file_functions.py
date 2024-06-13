@@ -36,7 +36,8 @@ def load_process_from_file(process, file_directory, file_map, log_file,
   file_string = file_directory + "/" + file_map[process] + ".root:Events"
   if data: 
     # if a branch isn't available in Data, don't try to load it
-    branches_not_in_data = ["Generator_weight", "NWEvents", "Tau_genPartFlav", "Weight_DY_Zpt", "XSecMCweight",
+    branches_not_in_data = ["Generator_weight", "NWEvents", "Tau_genPartFlav", "XSecMCweight",
+                            "Weight_DY_Zpt", "Weight_DY_Zpt_LO", "Weight_DY_Zpt_NLO",
                             "TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull",
                             "PUweight", "Weight_TTbar_NNLO", "Pileup_nPU"]
     for missing_branch in branches_not_in_data:
@@ -72,7 +73,9 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "PlotEvents": {}, 
       "Cuts": {},
       "Generator_weight":  cut_events["Generator_weight"],
-      "Weight_DY_Zpt":     cut_events["Weight_DY_Zpt"],
+      #"Weight_DY_Zpt":     cut_events["Weight_DY_Zpt"],
+      "Weight_DY_Zpt":     cut_events["Weight_DY_Zpt_LO"],
+      #"Weight_DY_Zpt":     cut_events["Weight_DY_Zpt_NLO"],
       "Weight_TTbar_NNLO": cut_events["Weight_TTbar_NNLO"],
       "TauSFweight": cut_events["TauSFweight"],
       "MuSFweight":  cut_events["MuSFweight"],
@@ -132,5 +135,4 @@ def customize_DY(process, final_state_mode):
                  "mutau_TnP" : r"$Z{\rightarrow}{\mu}{\tau_h}$",
                  "dimuon": r"$Z{\rightarrow}{\mu}{\mu}$"}
   MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]
-
 
