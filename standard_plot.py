@@ -1,4 +1,5 @@
 # Authored by Braden Allmond, Sep 11, 2023
+DEBUG = False
 
 # libraries
 import numpy as np
@@ -17,10 +18,11 @@ from file_map_dictionary import set_dataset_info
 from file_functions        import load_process_from_file, append_to_combined_processes, sort_combined_processes
 from FF_functions        import set_JetFakes_process
 from cut_and_study_functions import apply_HTT_FS_cuts_to_process
+from cut_and_study_functions import apply_cut, set_protected_branches
 
 
 # plotting
-from plotting_functions import get_midpoints, make_two_dimensional_plot
+from plotting_functions import get_midpoints, make_eta_phi_plot
 from luminosity_dictionary import luminosities_with_normtag as luminosities
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
@@ -60,7 +62,8 @@ if __name__ == "__main__":
   # do setup
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
-  using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
+  #using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
+  using_directory, plot_dir, log_file, use_NLO, file_map, newest = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
 
  
@@ -81,11 +84,12 @@ if __name__ == "__main__":
     _, reject_datasets = set_dataset_info(final_state_mode)
     good_events  = set_good_events(final_state_mode) 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
-    branches     = set_branches(final_state_mode, DeepTau_version, process)
+    #branches     = set_branches(final_state_mode, DeepTau_version, process)
+    branches     = set_branches(final_state_mode, DeepTau_version, process, newest)
  
     if (process in reject_datasets): continue
 
-    if ("WJ" in process) and ("WJ" in semilep_mode): continue
+    if ("WJ" in process) and (("WJ" in semilep_mode) or ("Full" in semilep_mode)): continue
     new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
                                               branches, good_events, final_state_mode,
                                               data=("Data" in process), testing=testing)
@@ -108,7 +112,6 @@ if __name__ == "__main__":
         if event_flavor == "J":
           pass_jet_flav.append(i)
     
-      from cut_and_study_functions import apply_cut, set_protected_branches
       protected_branches = set_protected_branches(final_state_mode="none", jet_mode="Inclusive")
       background_gen_deepcopy = copy.deepcopy(cut_events)
       background_gen_deepcopy["pass_flavor_cut"] = np.array(pass_gen_flav)
@@ -126,51 +129,32 @@ if __name__ == "__main__":
       if background_jet_deepcopy == None: continue
 
       combined_process_dictionary = append_to_combined_processes("DYGen", background_gen_deepcopy, vars_to_plot, 
-                                                                 combined_process_dictionary)
+                                                                 combined_process_dictionary, newest)
       combined_process_dictionary = append_to_combined_processes("DYLep", background_lep_deepcopy, vars_to_plot, 
-                                                                 combined_process_dictionary)
+                                                                 combined_process_dictionary, newest)
       combined_process_dictionary = append_to_combined_processes("DYJet", background_jet_deepcopy, vars_to_plot, 
-                                                                 combined_process_dictionary)
+                                                                 combined_process_dictionary, newest)
       
     else:
       combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
-                                                                 combined_process_dictionary)
+                                                                 combined_process_dictionary, newest)
 
+  for key in combined_process_dictionary.keys():
+    nEvents = len(combined_process_dictionary[key]["Cuts"]["pass_cuts"])
+    print(f"{key}, {nEvents}")
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
   # TODO fix myQCD print statements
   fakesLabel = "myQCD" # can change to JetFakes once you propagate to the plotting stuff
-  FF_dictionary = set_JetFakes_process(setup, fakesLabel)
+  FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
 
   log_print("Processing finished!", log_file, time=True)
   ## end processing loop, begin plotting
 
-  eta_phi_plot = False # put in a function
-  if (eta_phi_plot == True):
-    processes = [process for process in background_dictionary.keys()]
-    processes.append(dataset)
-    do_processes = []
-    eta_phi_by_FS_dict = {"ditau"  : ["FS_t1_eta", "FS_t1_phi", "FS_t2_eta", "FS_t2_phi"],
-                          "mutau"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
-                          "etau"   : ["FS_el_eta", "FS_el_phi", "FS_tau_eta", "FS_tau_phi"],
-                          "mutau_TnP"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
-                          "dimuon" : ["FS_m1_eta", "FS_m1_phi", "FS_m2_eta", "FS_m2_phi"]}
-    eta_phi_by_FS = eta_phi_by_FS_dict[final_state_mode]
-    for process in processes:
-      if ("Data" in process):
-        make_two_dimensional_plot(data_dictionary[dataset]["PlotEvents"], final_state_mode,
-                                 eta_phi_by_FS[0], eta_phi_by_FS[1], add_to_title="Data")
-        make_two_dimensional_plot(data_dictionary[dataset]["PlotEvents"], final_state_mode,
-                                 eta_phi_by_FS[2], eta_phi_by_FS[3], add_to_title="Data")
-        if (jet_mode == "1j"):
-          make_two_dimensional_plot(data_dictionary[dataset]["PlotEvents"], final_state_mode,
-                                   "CleanJetGT30_eta_1", "CleanJetGT30_phi_1", add_to_title="Data")
-      elif (process in do_processes):
-        make_two_dimensional_plot(background_dictionary[process]["PlotEvents"], final_state_mode,
-                                 "FS_t1_eta", "FS_t1_phi", add_to_title=process)
-      else:
-        print(f"skipping eta-phi plot for {process}")
+  dataset, _ = set_dataset_info(final_state_mode)
+  eta_phi_plot = False
+  if (eta_phi_plot == True): make_eta_phi_plot(data_dictionary, dataset, final_state_mode, jet_mode, "Data")
 
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
   #vars_to_plot = ["HTT_m_vis"]
@@ -179,11 +163,10 @@ if __name__ == "__main__":
   vars_to_plot.append("HTT_m_vis-KSUbinning")
   vars_to_plot.append("HTT_m_vis-SFbinning")
   for var in vars_to_plot:
-    log_print(f"Plotting {var}", log_file, time=True)
+    if DEBUG: log_print(f"Plotting {var}", log_file, time=True)
 
     xbins = make_bins(var, final_state_mode)
     hist_ax, hist_ratio = setup_ratio_plot()
-    #hist_ax = setup_single_plot()
 
     # TODO: helper function to fill these guys out in a standard way
     # data_dictionary, background_dictionary, signal_dictionary,
@@ -210,20 +193,22 @@ if __name__ == "__main__":
     title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
     title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
     
-    #set_x_log = True if "PNet" in var else False
-    set_x_log = False
-    spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, set_x_log = set_x_log)
-    #spruce_up_single_plot(hist_ax, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
+    spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, set_x_log=False)
     spruce_up_legend(hist_ax, final_state_mode, h_data)
 
     plt.savefig(plot_dir + "/" + str(var) + ".png")
 
-    if (var == "HTT_m_vis-KSUbinning"): make_pie_chart(h_data, h_backgrounds)
+    #if (var == "HTT_m_vis-KSUbinning"): make_pie_chart(h_data, h_backgrounds)
 
     # calculate and print these quantities only once
-    if (var == "HTT_m_vis"): 
+    if (var == "HTT_dR"): 
       calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
-      labels, yields = yields_for_CSV(hist_ax, desired_order=["Data", "TT", "WJ", "DY", "VV", "ST", "ggH", "VBF"])
+      desired_order=["Data", "Z", "DY, j", "Z{\rightarrow}ll", "TT", "ST", "W+", "Diboson", "VBF", "ggH", "Fakes"]
+      labels, yields = yields_for_CSV(hist_ax, desired_order)
+      for val_label, val_yield in zip(desired_order, yields):
+        if ("VBF" in val_label): val_yield = val_yield/500.0 # VBF scaling
+        if ("ggH" in val_label): val_yield = val_yield/100.0 # ggH scaling
+        print(f"{val_label}, {val_yield}")
       log_print(f"Reordered     Labels: {labels}", log_file)
       log_print(f"Corresponding Yields: {yields}", log_file)
 

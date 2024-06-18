@@ -103,6 +103,22 @@ def make_two_dimensional_plot(input_dictionary, final_state, x_var, y_var,
   plt.colorbar(cmesh)
 
 
+def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mode, label_suffix):
+  eta_phi_by_FS_dict = {"ditau"  : ["FS_t1_eta", "FS_t1_phi", "FS_t2_eta", "FS_t2_phi"],
+                        "mutau"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
+                        "etau"   : ["FS_el_eta", "FS_el_phi", "FS_tau_eta", "FS_tau_phi"],
+                        "mutau_TnP"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
+                        "dimuon" : ["FS_m1_eta", "FS_m1_phi", "FS_m2_eta", "FS_m2_phi"]}
+  eta_phi_by_FS = eta_phi_by_FS_dict[final_state_mode]
+  make_two_dimensional_plot(process_dictionary[process_name]["PlotEvents"], final_state_mode,
+                            eta_phi_by_FS[0], eta_phi_by_FS[1], add_to_title=label_suffix)
+  make_two_dimensional_plot(process_dictionary[process_name]["PlotEvents"], final_state_mode,
+                            eta_phi_by_FS[2], eta_phi_by_FS[3], add_to_title=label_suffix)
+  if (jet_mode == "1j"):
+    make_two_dimensional_plot(process_dictionary[process_name]["PlotEvents"], final_state_mode,
+                             "CleanJetGT30_eta_1", "CleanJetGT30_phi_1", add_to_title=label_suffix)
+
+
 def plot_data(histogram_axis, xbins, data_info, luminosity, 
               color="black", label="Data", marker="o", fillstyle="full"):
   '''
@@ -633,7 +649,7 @@ def get_parent_process(MC_process, skip_process=False):
         "WZ"   in MC_process or 
         "ZZ"   in MC_process): parent_process = "VV"
   else:
-    if MC_process == "QCD":
+    if (MC_process == "myQCD") or ("Fakes" in MC_process):
       pass
     else:
       print(f"No matching parent process for {MC_process}, continuing as individual process...")
