@@ -31,6 +31,8 @@ def calculate_signal_background_ratio(data, backgrounds, signals):
     total_background += process_yield
   for signal in signals:
     signal_yield = np.sum(backgrounds[process]["BinnedEvents"])
+    if "VBF" in signal: signal_yield = signal_yield / 500.0 # VBF scaling # TODO: handle automatically
+    if "ggH" in signal: signal_yield = signal_yield / 100.0 # ggH scaling
     yields.append(signal_yield)
     total_signal += signal_yield
 
@@ -134,6 +136,7 @@ def phi_mpi_pi(delta_phi):
 
 
 def yields_for_CSV(histogram_axis, desired_order=[]):
+    # uses label name, not process name...
     handles, labels = histogram_axis.get_legend_handles_labels()
     desired_order    = labels if desired_order == [] else desired_order
     reordered_labels = []

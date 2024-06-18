@@ -474,56 +474,6 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
 
   return FS_cut_events
 
-def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_mode, DeepTau_version):
-  '''
-  Organizational function
-  added 'skip_DeepTau' to apply a partial selection (all but leading tau deeptau reqs)
-  The block below for gen matching normally is not executed since this function is only called with Data
-  in standard plot
-  '''
-  protected_branches = ["None"]
-  event_dictionary = append_lepton_indices(event_dictionary)
-  if ("Data" not in process) and (final_state_mode != "dimuon"):
-    load_and_store_NWEvents(process, event_dictionary)
-    if ("DY" in process): customize_DY(process, final_state_mode)
-    #event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
-    keep_fakes = False
-    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
-    #if ((("TT" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
-      # when FF method is finished/improved no longer need to keep TT and WJ fakes
-      keep_fakes = True
-    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="etau")):
-      # when FF method is finished/improved no longer need to keep TT and WJ fakes
-      keep_fakes = True
-    if (("DY" in process) and (final_state_mode=="ditau")):
-      keep_fakes = True
-    process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
-    process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
-    if (process_events==None or len(process_events["run"])==0): return None
-  if (final_state_mode != "dimuon"):
-    if (final_state_mode == "ditau"):
-      event_dictionary = make_ditau_AR_cut(event_dictionary, DeepTau_version)
-      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
-      event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
-    if (final_state_mode == "mutau"):
-      event_dictionary = make_mutau_AR_cut(event_dictionary, DeepTau_version)
-      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
-      event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
-    if (final_state_mode == "etau"):
-      event_dictionary = make_etau_AR_cut(event_dictionary, DeepTau_version)
-      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
-      event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
-    protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
-    event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
-    # weights associated with jet_mode key (testing suffix automatically removed)
-    event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, full_FF=True)
-  else:
-    print(f"{final_state_mode} : {jet_mode} not possible. Continuing without AR or FF method applied.")
-  return event_dictionary
-
 # TODO fix this function and make it more straightforward
 # way too easy to get confused with it currently
 def set_protected_branches(final_state_mode, jet_mode, DeepTau_version="none"):
@@ -582,5 +532,55 @@ def set_protected_branches(final_state_mode, jet_mode, DeepTau_version="none"):
 
   return protected_branches
 
+
+def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_mode, DeepTau_version):
+  '''
+  Organizational function
+  added 'skip_DeepTau' to apply a partial selection (all but leading tau deeptau reqs)
+  The block below for gen matching normally is not executed since this function is only called with Data
+  in standard plot
+  '''
+  protected_branches = ["None"]
+  event_dictionary = append_lepton_indices(event_dictionary)
+  if ("Data" not in process) and (final_state_mode != "dimuon"):
+    load_and_store_NWEvents(process, event_dictionary)
+    if ("DY" in process): customize_DY(process, final_state_mode)
+    #event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
+    keep_fakes = False
+    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
+    #if ((("TT" in process) or ("DY" in process)) and (final_state_mode=="mutau")):
+      # when FF method is finished/improved no longer need to keep TT and WJ fakes
+      keep_fakes = True
+    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="etau")):
+      # when FF method is finished/improved no longer need to keep TT and WJ fakes
+      keep_fakes = True
+    if (("DY" in process) and (final_state_mode=="ditau")):
+      keep_fakes = True
+    process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
+    process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
+    if (process_events==None or len(process_events["run"])==0): return None
+  if (final_state_mode != "dimuon"):
+    if (final_state_mode == "ditau"):
+      event_dictionary = make_ditau_AR_cut(event_dictionary, DeepTau_version)
+      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
+      event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
+      event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
+    if (final_state_mode == "mutau"):
+      event_dictionary = make_mutau_AR_cut(event_dictionary, DeepTau_version)
+      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
+      event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
+      event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
+    if (final_state_mode == "etau"):
+      event_dictionary = make_etau_AR_cut(event_dictionary, DeepTau_version)
+      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
+      event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
+      event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
+    protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
+    event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
+    # weights associated with jet_mode key (testing suffix automatically removed)
+    event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode)
+  else:
+    print(f"{final_state_mode} : {jet_mode} not possible. Continuing without AR or FF method applied.")
+  return event_dictionary
 
 
