@@ -34,7 +34,8 @@ class setup_handler:
     lumi = luminosities[era]
 
     # file info
-    infile_directory = self.set_infile_directory(era, final_state_mode)
+    #infile_directory = self.set_infile_directory(era, final_state_mode)
+    infile_directory, newest = self.set_infile_directory(era, final_state_mode)
     plot_dir_name = "FS_plots/" + args.plot_dir + "_" + final_state_mode + "_" + jet_mode
     plot_dir_name = make_directory(plot_dir_name, testing)
     logfile       = open('outputfile.log', 'w') # could be improved, not super important right now
@@ -52,8 +53,8 @@ class setup_handler:
     from collections import namedtuple
     state_info_template = namedtuple("State_info", "testing, final_state_mode, jet_mode, era, lumi")
     self.state_info     = state_info_template(testing, final_state_mode, jet_mode, era, lumi)
-    file_info_template  = namedtuple("File_info", "infile_directory, plot_dir_name, logfile, use_NLO, file_map")
-    self.file_info      = file_info_template(infile_directory, plot_dir_name, logfile, use_NLO, file_map)
+    file_info_template  = namedtuple("File_info", "infile_directory, plot_dir_name, logfile, use_NLO, file_map, newest")
+    self.file_info      = file_info_template(infile_directory, plot_dir_name, logfile, use_NLO, file_map, newest)
     misc_info_template  = namedtuple("Misc_info", " hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode")
     self.misc_info      = misc_info_template(hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode)
   # end class init
@@ -64,11 +65,12 @@ class setup_handler:
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
     home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
     active_dir = "/V12_PFRel_"+era_modifier_2022+"_Run3FSSplitSamples/" # oldest
-    active_dir = "/V12_PFRel_"+era_modifier_2022+"_Dennis_test_detector_holes/" # middle
-    active_dir = "/V12_PFRel_"+era_modifier_2022+"_Dennis_newest/" # newest
+    #active_dir = "/V12_PFRel_"+era_modifier_2022+"_Dennis_test_detector_holes/" # middle
+    #active_dir = "/V12_PFRel_"+era_modifier_2022+"_Dennis_newest/" # newest
+    newest     = True if "newest" in active_dir else False
     active_dir += final_state_mode
     full_dir = home_dir + active_dir # add lxplus redirector if on eos
-    return full_dir
+    return full_dir, newest
 
   
   def set_file_map(self, testing, use_NLO, era):
@@ -165,6 +167,7 @@ if __name__ == "__main__":
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
   infile_directory, plot_dir_name, logfile, use_NLO, file_map = setup.file_info
+  #infile_directory, plot_dir_name, logfile, use_NLO, file_map, newest = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
 
   # test setup
