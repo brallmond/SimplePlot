@@ -236,7 +236,7 @@ def make_dimuon_SR_cut(event_dictionary, iso_region=True):
 # Calculation Functions
 #########################################################################################
 
-def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, full_FF, closure=False, testing=True, bypass=[]):
+def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, closure=False, testing=True, bypass=[]):
   # interface to read FF_dictionary
   unpack_FF_vars = ["Lepton_pt", "HTT_m_vis", "l1_indices", "l2_indices"]
   unpack_FF_vars = (event_dictionary.get(key) for key in unpack_FF_vars)
@@ -260,8 +260,9 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, f
       f_WJ       = FF_mvis_weights[final_state_mode][jet_mode]["WJ"][m_vis_idx] if not closure else 1
       FF_WJ      = user_func(tau_pt, *WJ_fitvals)
     else: pass
-    if (full_FF == True):
-      FF_weight = f_QCD * FF_QCD
+    if (semilep_mode == "Full"):
+    #if (full_FF == True):
+      FF_weight = f_QCD * FF_QCD * 1.1 # OS/SS bias
       if (final_state_mode != "ditau"):
         FF_weight += f_WJ * FF_WJ
     else: 
@@ -279,11 +280,11 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, f
   return event_dictionary
 
 from producers import produce_FF_weight
-def set_JetFakes_process(setup, fakesLabel):
+def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   # could be improved by reducing name size and simplifying below operations
   JetFakes_dictionary = {}
   testing, final_state_mode, jet_mode, _, _ = setup.state_info
-  _, _, _, do_JetFakes, semilep_mode = setup.misc_info
+  _, _, _, do_JetFakes, _ = setup.misc_info
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
   if (jet_mode != "Inclusive") and (do_JetFakes==True):
     JetFakes_dictionary = produce_FF_weight(setup, jet_mode)
@@ -295,7 +296,7 @@ def set_JetFakes_process(setup, fakesLabel):
     JetFakes_dictionary[fakesLabel]["FF_weight"]  = {} 
     for internal_jet_mode in ["0j", "GTE1j"]:
       if testing: internal_jet_mode += "_testing"
-      temp_JetFakes_dictionary[internal_jet_mode] = produce_FF_weight(setup, internal_jet_mode)
+      temp_JetFakes_dictionary[internal_jet_mode] = produce_FF_weight(setup, internal_jet_mode, semilep_mode)
       if ("0j" in internal_jet_mode):
         JetFakes_dictionary[fakesLabel]["FF_weight"]  = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]
       else:

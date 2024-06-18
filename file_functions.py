@@ -67,16 +67,16 @@ def sort_combined_processes(combined_processes_dictionary):
   return data_dictionary, background_dictionary, signal_dictionary
 
 
-def append_to_combined_processes(process, cut_events, vars_to_plot, combined_processes):
+def append_to_combined_processes(process, cut_events, vars_to_plot, combined_processes, newest):
   if "Data" not in process:
     combined_processes[process] = {
       "PlotEvents": {}, 
       "Cuts": {},
       "Generator_weight":  cut_events["Generator_weight"],
-      #"Weight_DY_Zpt":     cut_events["Weight_DY_Zpt"],
-      "Weight_DY_Zpt":     cut_events["Weight_DY_Zpt_LO"],
-      #"Weight_DY_Zpt":     cut_events["Weight_DY_Zpt_NLO"],
       "Weight_TTbar_NNLO": cut_events["Weight_TTbar_NNLO"],
+      #"Weight_DY_Zpt":     cut_events["Weight_DY_Zpt"],
+      #"Weight_DY_Zpt":     cut_events["Weight_DY_Zpt_LO"],
+      #"Weight_DY_Zpt":     cut_events["Weight_DY_Zpt_NLO"],
       "TauSFweight": cut_events["TauSFweight"],
       "MuSFweight":  cut_events["MuSFweight"],
       "ElSFweight":  cut_events["ElSFweight"],
@@ -84,6 +84,10 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "PUweight"  :  cut_events["PUweight"],
       "SF_weight": np.ones(cut_events["Generator_weight"].shape)
     }
+    if newest:
+      combined_processes[process]["Weight_DY_Zpt"] = cut_events["Weight_DY_Zpt_LO"]
+    else:
+      combined_processes[process]["Weight_DY_Zpt"] = cut_events["Weight_DY_Zpt"]
     #if "DY" in process: combined_processes[process]["Weight_DY_Zpt_by_hand"] = cut_events["Weight_DY_Zpt_by_hand"]
   elif "Data" in process:
     combined_processes[process] = { 

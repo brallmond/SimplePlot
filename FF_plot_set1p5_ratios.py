@@ -8,16 +8,21 @@ import gc
 import copy
 from iminuit import Minuit
 from iminuit.cost import LeastSquares
-
+'''
 # explicitly import used functions from user files, grouped roughly by call order and relatedness
-from file_map_dictionary   import testing_file_map, full_file_map, testing_dimuon_file_map, dimuon_file_map
-from file_map_dictionary   import pre2022_file_map
+from file_map_dictionary   import testing_file_map, full_file_map
 from file_functions        import load_process_from_file, append_to_combined_processes, sort_combined_processes
 
 from luminosity_dictionary import luminosities_with_normtag as luminosities
 
-from cut_and_study_functions import set_branches, set_vars_to_plot, set_good_events
-from cut_and_study_functions import apply_HTT_FS_cuts_to_process, apply_AR_cut
+from setup import setup_handler, set_good_events
+from cut_and_study_functions import apply_HTT_FS_cuts_to_process, set_protected_branches
+from branch_functions import set_branches
+from plotting_functions import set_vars_to_plot
+from file_map_dictionary import set_dataset_info
+#from cut_and_study_functions import apply_HTT_FS_cuts_to_process, apply_AR_cut
+#from cut_and_study_functions import append_lepton_indices, apply_cut, apply_jet_cut, add_FF_weights
+#from cut_and_study_functions import load_and_store_NWEvents, customize_DY, append_flavor_indices, set_protected_branches
 
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, make_ratio_no_plot, spruce_up_plot, spruce_up_legend
@@ -28,14 +33,41 @@ from plotting_functions import get_midpoints, setup_single_plot, spruce_up_singl
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print
 
-from cut_and_study_functions import append_lepton_indices, apply_cut, apply_jet_cut, add_FF_weights
-from cut_and_study_functions import load_and_store_NWEvents, customize_DY, append_flavor_indices, set_protected_branches
 
 from cut_ditau_functions import make_ditau_cut
 from cut_mutau_functions import make_mutau_cut
-from FF_functions import *
+#from FF_functions import *
 
 from binning_dictionary import label_dictionary
+'''
+
+
+# explicitly import used functions from user files, grouped roughly by call order and relatedness
+# import statements for setup
+from setup import setup_handler, set_good_events
+from branch_functions import set_branches
+from plotting_functions import set_vars_to_plot
+from file_map_dictionary import set_dataset_info
+# import statements for data loading and processing
+from file_functions        import load_process_from_file, append_to_combined_processes, sort_combined_processes
+from FF_functions        import set_JetFakes_process
+from cut_and_study_functions import apply_HTT_FS_cuts_to_process
+from cut_and_study_functions import apply_cut, set_protected_branches
+
+
+# plotting
+from plotting_functions import get_midpoints, make_eta_phi_plot
+from luminosity_dictionary import luminosities_with_normtag as luminosities
+from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
+from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
+from plotting_functions    import setup_single_plot, spruce_up_single_plot
+from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart
+
+
+from binning_dictionary import label_dictionary
+
+from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
+from utility_functions     import time_print, make_directory, print_setup_info, log_print
 
 from calculate_functions import user_exp, user_line
 
@@ -137,6 +169,21 @@ def mask_zeros(input_list, mask_all=False):
   return adjacent_zeros
 
 if __name__ == "__main__":
+
+  # do setup
+  setup = setup_handler()
+  testing, final_state_mode, jet_mode, era, lumi = setup.state_info
+  #using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
+  using_directory, plot_dir, log_file, use_NLO, file_map, newest = setup.file_info
+  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
+
+ 
+  print_setup_info(setup)
+
+  # add FF weights :) # almost the same as SR, except SS and 1st tau fails iso (applied in AR_cuts)
+
+  do_QCD = do_JetFakes
+  '''
   import argparse 
   parser = argparse.ArgumentParser(description='Make a standard Data-MC agreement plot.')
   # store_true : when the argument is supplied, store it's value as true
@@ -205,11 +252,14 @@ if __name__ == "__main__":
 
   dataset = dataset_dictionary[final_state_mode]
   reject_datasets = reject_dataset_dictionary[final_state_mode]
-
+  '''
+  _, reject_datasets = set_dataset_info(final_state_mode)
+  good_events  = set_good_events(final_state_mode) 
+ 
   store_region_data_dictionary = {}
   store_region_bkgd_dictionary = {}
   store_region_sgnl_dictionary = {}
-  semilep_mode = "WJ" # "QCD" or "WJ"
+  semilep_mode = "QCD" # "QCD" or "WJ"
   numerator = "DRsr"
   denominator = "DRar"
   for region in [numerator, denominator]:
@@ -224,19 +274,23 @@ if __name__ == "__main__":
       gc.collect()
       if (process in reject_datasets): continue
 
+      branches     = set_branches(final_state_mode, DeepTau_version, process, newest)
       new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
-                                              branches, base_selection, final_state_mode,
+                                              branches, good_events, final_state_mode,
                                               data=("Data" in process), testing=testing)
       event_dictionary = new_process_dictionary[process]["info"]
       if (event_dictionary == None): continue
 
       protected_branches = ["None"]
+      from cut_and_study_functions import append_lepton_indices, append_flavor_indices
       event_dictionary = append_lepton_indices(event_dictionary)
       if ("Data" not in process):
+        from file_functions import load_and_store_NWEvents, customize_DY
         load_and_store_NWEvents(process, event_dictionary)
         if ("DY" in process): customize_DY(process, final_state_mode)
         event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
 
+      from FF_functions import FF_control_flow
       event_dictionary = FF_control_flow(final_state_mode, semilep_mode, region, event_dictionary, DeepTau_version)
       event_dictionary = apply_cut(event_dictionary, "pass_"+region+"_cuts", protected_branches)
 
