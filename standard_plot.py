@@ -14,21 +14,20 @@ from setup import setup_handler, set_good_events
 from branch_functions import set_branches
 from plotting_functions import set_vars_to_plot
 from file_map_dictionary import set_dataset_info
+
 # import statements for data loading and processing
 from file_functions        import load_process_from_file, append_to_combined_processes, sort_combined_processes
 from FF_functions        import set_JetFakes_process
 from cut_and_study_functions import apply_HTT_FS_cuts_to_process
 from cut_and_study_functions import apply_cut, set_protected_branches
 
-
 # plotting
 from plotting_functions import get_midpoints, make_eta_phi_plot
 from luminosity_dictionary import luminosities_with_normtag as luminosities
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
-from plotting_functions    import setup_single_plot, spruce_up_single_plot
+from plotting_functions    import setup_single_plot, spruce_up_single_plot, add_text
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart
-
 
 from binning_dictionary import label_dictionary
 
@@ -72,8 +71,6 @@ if __name__ == "__main__":
   # add FF weights :) # almost the same as SR, except SS and 1st tau fails iso (applied in AR_cuts)
 
   do_QCD = do_JetFakes
-  #do_QCD = True
-  #semilep_mode = "QCD"
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
@@ -162,6 +159,7 @@ if __name__ == "__main__":
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")
   vars_to_plot.append("HTT_m_vis-SFbinning")
+  text = ""
   for var in vars_to_plot:
     if DEBUG: log_print(f"Plotting {var}", log_file, time=True)
 
@@ -196,13 +194,16 @@ if __name__ == "__main__":
     spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, set_x_log=False)
     spruce_up_legend(hist_ax, final_state_mode, h_data)
 
+    text = r'S/$\sqrt{S+B}$ = '
+    text += calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
+    add_text(hist_ax, text)
+
     plt.savefig(plot_dir + "/" + str(var) + ".png")
 
     #if (var == "HTT_m_vis-KSUbinning"): make_pie_chart(h_data, h_backgrounds)
 
     # calculate and print these quantities only once
     if (var == "HTT_dR"): 
-      calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
       desired_order=["Data", "Z", "DY, j", "Z{\rightarrow}ll", "TT", "ST", "W+", "Diboson", "VBF", "ggH", "Fakes"]
       labels, yields = yields_for_CSV(hist_ax, desired_order)
       for val_label, val_yield in zip(desired_order, yields):
@@ -212,6 +213,7 @@ if __name__ == "__main__":
       log_print(f"Reordered     Labels: {labels}", log_file)
       log_print(f"Corresponding Yields: {yields}", log_file)
 
+  print(f"Plots are in {plot_dir}")
   if hide_plots: pass
   else: plt.show()
 
