@@ -435,7 +435,9 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
   '''
   log_print(f"Processing {process}", log_file)
   process_events = process_dictionary[process]["info"]
-  if len(process_events["run"])==0: return None
+  if len(process_events["run"])==0: 
+    print(f"Uh oh, no events in sample.")
+    return None
 
   process_events = append_lepton_indices(process_events)
   protected_branches = ["FS_t1_flav", "FS_t2_flav", "pass_gen_cuts", "event_flavor"]
@@ -447,16 +449,19 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
       customize_DY(process, final_state_mode)
       #append_Zpt_weight(process_events)
     keep_fakes = False
+    keep_fakes = True # TODO : fix this block
+    '''
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("mutau" in final_state_mode)):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("etau" in final_state_mode)):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
-    if ( (("DY" in process) or ("QCD" in process)) and (final_state_mode=="ditau")):
+    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("ditau" in final_state_mode)):
+    #if ( (("DY" in process) or ("QCD" in process)) and (final_state_mode=="ditau")):
       keep_fakes = True
+    '''
     process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
-    # FIX ME -- reapply gen cuts after etau study
     process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
 
