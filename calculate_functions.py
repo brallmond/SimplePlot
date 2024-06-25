@@ -35,12 +35,13 @@ def calculate_signal_background_ratio(data, backgrounds, signals):
     if "ggH" in signal: signal_yield = signal_yield / 100.0 # ggH scaling
     yields.append(signal_yield)
     total_signal += signal_yield
-
-  print("signal-to-background information")
-  print(f"S/B      : {total_signal/total_background:.3f}")
-  print(f"S/(S+B)  : {total_signal/(total_signal+total_background):.3f}")
-  print(f"S/√(B)   : {total_signal/np.sqrt(total_background):.3f}")
-  print(f"S/√(S+B) : {total_signal/np.sqrt(total_signal+total_background):.3f}")
+  S_o_sqrt_SpB = total_signal/np.sqrt(total_signal+total_background)
+  #print("signal-to-background information")
+  #print(f"S/B      : {total_signal/total_background:.3f}")
+  #print(f"S/(S+B)  : {total_signal/(total_signal+total_background):.3f}")
+  #print(f"S/√(B)   : {total_signal/np.sqrt(total_background):.3f}")
+  #print(f"S/√(S+B) : {total_signal/np.sqrt(total_signal+total_background):.3f}")
+  return f"{S_o_sqrt_SpB:.3f}"
 
 
 def calculate_mt(lep_pt, lep_phi, MET_pt, MET_phi):
