@@ -301,6 +301,10 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
             final_state_str[final_state_mode] + " : " + jet_mode_str[jet_mode], 
             transform=axis.transAxes, fontsize=10)
 
+def add_text(axis, text_to_add, loc=[0.05, 0.85]):
+  axis.text(loc[0], loc[1], text_to_add,
+            transform=axis.transAxes, fontsize=10)
+
 
 def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, jet_mode, yrange=None,
                            leg_on=True, leg_loc ="upper right",):
