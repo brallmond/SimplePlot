@@ -147,8 +147,8 @@ full_file_map = {
   #"QCD_HT-1500to2000" : "QCD/QCD_HT1500to2000_HTauTau*",
   #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
 
-  #"VBF"   : "Signal/VBF*private*",
-  #"ggH"   : "Signal/ggH*private*",
-  "VBF"   : "Signal/VBF*preEE*",
-  "ggH"   : "Signal/ggH*preEE*",
+  "VBF"   : "Signal/VBF*private*",
+  "ggH"   : "Signal/ggH*private*",
+  #"VBF"   : "Signal/VBF*preEE*",
+  #"ggH"   : "Signal/ggH*preEE*",
 }

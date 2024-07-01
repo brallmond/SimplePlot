@@ -15,6 +15,8 @@ def load_process_from_file(process, file_directory, file_map, log_file,
                            branches, good_events, final_state_mode, 
                            data=False, testing=False):
   '''
+  This will make more sense if you read the documentation on uproot.concatenate first:
+  https://uproot.readthedocs.io/en/latest/basic.html#reading-many-files-into-big-arrays
   Most important function! Contains the only call to uproot in this library! 
   Loads into memory files relevant to the given 'final_state_mode' by reading
   'file_map' which is a python dictionary maintained in a separate file. 
