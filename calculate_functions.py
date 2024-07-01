@@ -12,11 +12,20 @@ def calculate_underoverflow(events, xbins, weights):
   For MC, event weights must be passed correctly when the function is called.
   '''
   count_bin_values = [-999999., xbins[0], xbins[-1], 999999.]
-  values, bins = np.histogram(events, count_bin_values, weights=weights)
+  values, _ = np.histogram(events, count_bin_values, weights=weights)
   underflow_value, overflow_value = values[0], values[-1]
   if (underflow_value > 1000) or (overflow_value > 100000):
     print(f"large under/over flow values: {underflow_value}, {overflow_value}")
-  return underflow_value, overflow_value
+  values_error, _ = np.histogram(events, count_bin_values, weights=weights*weights)
+  underflow_error, overflow_error = values_error[0], values[-1]
+  return underflow_value, overflow_value, underflow_error, overflow_error
+
+
+def check_nEvents(combined_process_dict):
+  # for checking nEvents in samples and entering SR
+  for key in combined_process_dict.keys():
+    nEvents = len(combined_process_dict[key]["Cuts"]["pass_cuts"])
+    print(f"{key}, {nEvents}")
 
 
 def calculate_signal_background_ratio(data, backgrounds, signals):

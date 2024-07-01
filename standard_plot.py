@@ -136,9 +136,6 @@ if __name__ == "__main__":
       combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
                                                                  combined_process_dictionary, newest)
 
-  for key in combined_process_dictionary.keys():
-    nEvents = len(combined_process_dictionary[key]["Cuts"]["pass_cuts"])
-    print(f"{key}, {nEvents}")
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
@@ -203,7 +200,7 @@ if __name__ == "__main__":
     #if (var == "HTT_m_vis-KSUbinning"): make_pie_chart(h_data, h_backgrounds)
 
     # calculate and print these quantities only once
-    if (var == "HTT_dR"): 
+    if (var == "HTT_dR" and False): 
       desired_order=["Data", "Z", "DY, j", "Z{\rightarrow}ll", "TT", "ST", "W+", "Diboson", "VBF", "ggH", "Fakes"]
       labels, yields = yields_for_CSV(hist_ax, desired_order)
       for val_label, val_yield in zip(desired_order, yields):
