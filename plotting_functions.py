@@ -2,10 +2,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# for plotting errors in MC
-from matplotlib.collections import PatchCollection
-from matplotlib.patches import Rectangle
-
 ### README
 # this file contains functions to setup plotting interfaces and draw the plots themselves
 
@@ -119,15 +115,16 @@ def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mo
                              "CleanJetGT30_eta_1", "CleanJetGT30_phi_1", add_to_title=label_suffix)
 
 
-def plot_data(histogram_axis, xbins, data_info, luminosity, 
+def plot_data(histogram_axis, xbins, data_dictionary, luminosity, 
               color="black", label="Data", marker="o", fillstyle="full"):
   '''
   Add the data histogram to the existing histogram axis, computing errors in a simple way.
   For data, since points and error bars are used, they are shifted to the center of the bins.
   TODO: The error calculation should be followed up and separated to another function. 
   '''
+  data_info = data_dictionary["Data"]["BinnedEvents"]
+  stat_error = np.sqrt(data_dictionary["Data"]["BinnedErrors"])
   sum_of_data = np.sum(data_info)
-  stat_error = np.array([np.sqrt(entry) if entry > 0 else 0 for entry in data_info]) #error = √N
   midpoints   = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2 # only works for uniform bin widths
   label = f"Data [{sum_of_data:>.0f}]" if label == "Data" else label
@@ -140,77 +137,37 @@ def plot_data(histogram_axis, xbins, data_info, luminosity,
 
 def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
             custom=False, color="default", label="MC", fill=True):
-  # TODO handle variable binning with list of differences
   '''
-  TODO update this
   Add background MC histograms to the existing histogram axis. The input 'stack_dictionary'
   contains a list of backgrounds (which should be pre-grouped, normally), the name of which
   determines colors and labels of the stacked output. 
-
-  Since the 'bar' method of matplotlib doesn't necessarily expect histogram data, 
-  the final bin edge is omitted so that the size of the xaxis array and the plotted 
-  data array are equal. To stack the plots, the 'bottom'  keyword argument is 
-  adjusted each iteration of the loop such that it is the top of the previous histogram. 
   '''
-  weight_per_bin_squared = 0
   color_array, label_array, stack_array = [], [], []
+  total_error = 0
+  stack_top   = 0
   for MC_process in stack_dictionary:
     if custom == True:
       pass
     else:
       color, label, _ = set_MC_process_info(MC_process, luminosity)
     current_hist = stack_dictionary[MC_process]["BinnedEvents"]
+    current_hist = np.append(current_hist, 0) # adding empty element to get around step="post" in stackplot
+    stack_top   += current_hist
+    if "QCD" not in MC_process:
+      total_error += stack_dictionary[MC_process]["BinnedErrors"]
     label += f" [{np.sum(current_hist):>.0f}]"
-    current_hist = np.append(current_hist, 0)
     color_array.append(color)
     label_array.append(label)
     stack_array.append(current_hist)
-    #print(MC_process) # DEBUG
-    #print("weight per bin squared")
-    #print(weight_per_bin_squared)
-    #weight_per_bin_squared += np.array([entry*entry if entry > 0 else 0 for entry in current_hist])
 
-  xbins = np.append(xbins, xbins[-1]+(xbins[1]-xbins[0]))
-  histogram_axis.stackplot(xbins[0:-1], stack_array, step="post", edgecolor="black", colors=color_array, labels=label_array)
+  total_error = np.append(total_error, 0) # same as nearest above comment 
+  total_error = np.sqrt(total_error)
+  error_up    = stack_top + total_error
+  error_down  = stack_top - total_error
 
-  summed_squared_weights = weight_per_bin_squared
-  #print("summed_squared_weights")
-  #print(summed_squared_weights)
-  # error = √sum(weights_i**2)
-  #stat_error = np.array([np.sqrt(squared_weight) if squared_weight > 0 else 0 for squared_weight in summed_squared_weights])
-  #print("stat_error")
-  #print(stat_error)
-  #histogram_axis.errorbar(xbins[0:-1], previous_histogram_tops, yerr=stat_error, fmt="o")
-  # error boxes not quite working yet
-  #histogram_axis.errorbar(xbins[0:-1], previous_histogram_tops, yerr=5, fmt="o", markersize=3) # faked
-  #_ = make_error_boxes(histogram_axis, xbins[0:-1], previous_histogram_tops, # fake
-  #                     abs(xbins[1:]-xbins[0:-1])/2, 10*np.ones(previous_histogram_tops.shape),
-  #                     facecolor='grey', edgecolor='none', alpha=0.1)
+  histogram_axis.stackplot(xbins, stack_array, step="post", edgecolor="black", colors=color_array, labels=label_array)
+  histogram_axis.fill_between(xbins, error_down, error_up, step="post", color="gray", alpha=0.15)
 
-
-  #histogram_axis.errorbar(xbins[0:-1], previous_histogram_tops, yerr=5, fmt="o", markersize=3) # faked
-  # actually, check if stairs has an error method
-  # TODO : it would be easier to store errors when binning events? probably
-  # USE fill_between axis method for shaded errors
-  # https://stackoverflow.com/questions/60697625/error-bars-as-a-shaded-area-on-matplotlib-pyplot-step
-
-#from https://matplotlib.org/stable/gallery/statistics/errorbars_and_boxes.html#sphx-glr-gallery-statistics-errorbars-and-boxes-py
-def make_error_boxes(ax, xdata, ydata, xerror, yerror, facecolor='r',
-                     edgecolor='none', alpha=0.5):
-    # Loop over data points; create box from errors at each point
-    #errorboxes = [Rectangle((x - xe, y - ye), xe.sum(), ye.sum())
-    errorboxes = [Rectangle((x, y), xe, ye)
-                  for x, y, xe, ye in zip(xdata, ydata, xerror, yerror)]
-    # Create patch collection with specified colour/alpha
-    pc = PatchCollection(errorboxes, facecolor=facecolor, alpha=alpha,
-                         edgecolor=edgecolor)
-    # Add collection to axes
-    ax.add_collection(pc)
-    # Plot errorbars
-    artists = ax.errorbar(xdata, ydata, xerr=xerror, yerr=yerror,
-                          fmt='none', ecolor='k')
-    return artists
-  
 
 def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity):
   '''
@@ -236,15 +193,6 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
     plot_scaling = MC_dictionary[process]["plot_scaling"] # 1 for all non-signal processes by default
     scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
     if process=="myQCD": scaling = 1
-    # TODO pass "testing" boolean through here too
-    # etau speed hack
-    #if process=="TTTo2L2Nu": scaling *= 9 # scale up by n*ignored files
-    #if process=="TTToSemiLeptonic": scaling *= 19 # scale up by n*ignored files
-    # mutau hack
-    #if process=="TTTo2L2Nu": scaling *= 15 # scale up by n*ignored files
-    #if process=="TTToSemiLeptonic": scaling *= 27 # scale up by n*ignored files
-    # dimuon hack
-    #if process=="DYInc": scaling *=6.482345 # scale up factor for New Dimuon DY
   if signal:
     label += " x" + str(plot_scaling)
   return (color, label, scaling)
@@ -402,6 +350,7 @@ def spruce_up_legend(histogram_axis, final_state_mode, data_hists):
     print(f"Legend lables were previously {original_labels}")
     print("Removed samples with yield=0 from legend!")
 
+
 def make_ratio_no_plot(numerator_data, numerator_type, numerator_weight,
                        denominator_data, denominator_type, denominator_weight):
   # a smarter and braver person than me would make this part of the "make_ratio_plot" function below
@@ -424,6 +373,8 @@ def make_ratio_plot(ratio_axis, xbins,
   Uses provided numerator and denominator info to make a ratio to add to given plotting axis.
   Errors are also calculated using the same matplotlib function as used in plot_data.
   '''
+  numerator_data = numerator_data["Data"]["BinnedEvents"] # fixed this, but implies that summed backgrounds should be
+                                                          # changed
   ratio = numerator_data/denominator_data
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
   # TODO : technically errors from stack should be individually calculated, not one stack
@@ -445,13 +396,6 @@ def make_ratio_plot(ratio_axis, xbins,
   #xbins = xbins if no_midpoints else get_midpoints(xbins)
   midpoints = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2
-  #print(bin_width, len(bin_width)) # TODO COME BACK HERE soon
-  #print(statistical_error, len(statistical_error))
-  #bin_width = []
-  #bin_width.extend([xbins[i+1] - xbins[i] for i in range(len(xbins)-1)])
-  #print(bin_width)
-  #bin_width.append(xbins[-1] - xbins[-2]) 
-  #print(bin_width)
   ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
                     color=color, marker="o", linestyle='none', markersize=2, label=label)
 
@@ -507,6 +451,7 @@ def adjust_scaling(final_state, process, scaling):
     adjustment_factor = 1
   return scaling * adjustment_factor
 
+
 def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
@@ -517,13 +462,14 @@ def get_binned_info(final_state, testing, process_name, process_variable, xbins,
   scaling = 1 if "Data" in process_name else set_MC_process_info(process_name, luminosity, scaling=True)[2]
   if testing == True: scaling = adjust_scaling(final_state, process_name, scaling)
   weights = scaling * process_weights
-  underflow, overflow = calculate_underoverflow(process_variable, xbins, weights)
+  underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, xbins, weights)
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
-  if underflow:  binned_values[0]   += underflow
+  binned_values[0]   += underflow
   binned_values[-1]  += overflow
-  binned_weight_2, _  = np.histogram(weights, xbins, weights=weights*weights)
-  binned_errors       = np.array([np.sqrt(value) for value in binned_weight_2])
-  return binned_values, binned_errors
+  binned_weight_2, _  = np.histogram(process_variable, xbins, weights=weights*weights)
+  binned_weight_2[0]  += underflow_error
+  binned_weight_2[-1] += overflow_error
+  return binned_values, binned_weight_2
 
 
 def get_binned_process(final_state, testing, process_dictionary, variable, xbins_, lumi_):
@@ -547,17 +493,25 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     h_processes[process]["BinnedErrors"] = binned_errors
   return h_processes
 
+
 def get_binned_data(final_state, testing, data_dictionary, variable, xbins_, lumi_):
   h_data_by_dataset = get_binned_process(final_state, testing, data_dictionary, variable, xbins_, lumi_)
-  h_data = accumulate_datasets(h_data_by_dataset)
+  h_data = {}
+  h_data["Data"] = {}
+  h_data["Data"]["BinnedEvents"], h_data["Data"]["BinnedErrors"] = accumulate_datasets(h_data_by_dataset)
   return h_data
+
 
 def accumulate_datasets(dataset_dictionary):
   # Add datasets (Muon, Tau, EGamma, MuonEG) together
+  # No use case in 2022
+  # In 2023, VBFParking could be added to any relevant dataset
   accumulated_values = 0
+  accumulated_errors = 0
   for dataset in dataset_dictionary:
     accumulated_values += dataset_dictionary[dataset]["BinnedEvents"]
-  return accumulated_values
+    accumulated_errors += dataset_dictionary[dataset]["BinnedErrors"] #still squared errors
+  return accumulated_values, accumulated_errors
 
 
 def get_binned_backgrounds(final_state, testing, background_dictionary, variable, xbins_, lumi_):
@@ -575,7 +529,7 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
     h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
     all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
   else:
-    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
+    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"]
   used_MC_families = []
   for family in all_MC_families:
     for process in h_MC_by_process:
@@ -586,21 +540,21 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
 
   for family in used_MC_families:
     h_MC_by_family[family] = {}
-    h_MC_by_family[family]["BinnedEvents"] = accumulate_MC_subprocesses(family, h_MC_by_process)
+    # only split here for readability
+    h_MC_by_family[family]["BinnedEvents"], _ = accumulate_MC_subprocesses(family, h_MC_by_process)
+    _, h_MC_by_family[family]["BinnedErrors"] = accumulate_MC_subprocesses(family, h_MC_by_process)
   h_backgrounds = h_MC_by_family
-  #print(h_MC_by_family) # DEBUG
   # used for ratio plot
+  # TODO : make part of ratio plot or into it's own function
   h_summed_backgrounds = 0
   for background in h_backgrounds:
     h_summed_backgrounds += h_backgrounds[background]["BinnedEvents"]
-
   return h_backgrounds, h_summed_backgrounds
 
 
 def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_, lumi_):
   h_signals = get_binned_process(final_state, testing, signal_dictionary, variable, xbins_, lumi_)
   return h_signals
-
 
 
 def accumulate_MC_subprocesses(parent_process, process_dictionary):
@@ -616,6 +570,7 @@ def accumulate_MC_subprocesses(parent_process, process_dictionary):
   therefore, this function is called once for each parent process
   '''
   accumulated_values = 0
+  accumulated_errors = 0
   for MC_process in process_dictionary:
     skip_process = False
     if (MC_process == "DYGen") or (MC_process == "DYGenNLO"):
@@ -626,7 +581,8 @@ def accumulate_MC_subprocesses(parent_process, process_dictionary):
       skip_process = True
     if get_parent_process(MC_process, skip_process=skip_process) == parent_process:
       accumulated_values += process_dictionary[MC_process]["BinnedEvents"]
-  return accumulated_values
+      accumulated_errors += process_dictionary[MC_process]["BinnedErrors"]
+  return accumulated_values, accumulated_errors
 
 
 def get_parent_process(MC_process, skip_process=False):
@@ -658,7 +614,6 @@ def get_parent_process(MC_process, skip_process=False):
     else:
       print(f"No matching parent process for {MC_process}, continuing as individual process...")
   return parent_process
-
 
 
 def get_MC_weights(MC_dictionary, process):
