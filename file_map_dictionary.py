@@ -61,21 +61,12 @@ testing_file_map = {
 
   "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
   "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
-  # for ditau only
-  #"TTTo2L2Nu"         : "TT/TTTo2L2Nu_HTauTau*",
-  #"TTToFullyHadronic" : "TT/TTToFullyHadronic_HTauTau*",
-  #"TTToSemiLeptonic"  : "TT/TTToSemiLeptonic_HTauTau*",
-
-  # for faster mutau testing / comment out for ditau
-  "TTTo2L2Nu"         : "TT/TTTo2L2Nu_HTauTau_2022postEE_step2_part1",
-  "TTToFullyHadronic" : "TT/TTToFullyHadronic_HTauTau_2022postEE_step2_part1",
-  "TTToSemiLeptonic"  : "TT/TTToSemiLeptonic_HTauTau_2022postEE_step2_part1",
 
   "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
   "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
 
-  "VBF"   : "Signal/VBF*private*",
-  "ggH"   : "Signal/ggH*private*",
+  "VBF"   : "Signal/VBF*",
+  "ggH"   : "Signal/ggH*",
 }
 
 
@@ -97,8 +88,6 @@ full_file_map = {
   "TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
   "TTToSemiLeptonic"  : "TT/TTToSemiLeptonic*",
-  #"TTTo2L2Nu"         : "TT/TTTo2L2Nu_HTauTau_2022postEE_step2_part1",
-  #"TTToSemiLeptonic"  : "TT/TTToSemiLeptonic_HTauTau_2022postEE_step2_part1",
 
   "ST_s-channel_Tbar"  : "ST/ST_s-channel_antitop*",
   "ST_t-channel_Tbar"  : "ST/ST_t-channel_antitop*",
@@ -147,8 +136,6 @@ full_file_map = {
   #"QCD_HT-1500to2000" : "QCD/QCD_HT1500to2000_HTauTau*",
   #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
 
-  "VBF"   : "Signal/VBF*private*",
-  "ggH"   : "Signal/ggH*private*",
-  #"VBF"   : "Signal/VBF*preEE*",
-  #"ggH"   : "Signal/ggH*preEE*",
+  "VBF"   : "Signal/VBF*",
+  "ggH"   : "Signal/ggH*",
 }

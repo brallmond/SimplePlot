@@ -1,9 +1,7 @@
-def set_branches(final_state_mode, DeepTau_version, process="None", newest=False):
+def set_branches(final_state_mode, DeepTau_version, process="None"):
   common_branches = [
     "run", "luminosityBlock", "event", "Generator_weight", "NWEvents", "XSecMCweight",
-    "TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull", "PUweight", "Weight_TTbar_NNLO",
-    #"TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull", "Weight_DY_Zpt", "PUweight", "Weight_TTbar_NNLO",
-    #"TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull", "Weight_DY_Zpt_LO", "Weight_DY_Zpt_NLO", "PUweight", "Weight_TTbar_NNLO",
+    "TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull", "Weight_DY_Zpt_LO", "Weight_DY_Zpt_NLO", "PUweight", "Weight_TTbar_NNLO",
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass",
@@ -13,11 +11,6 @@ def set_branches(final_state_mode, DeepTau_version, process="None", newest=False
     "PV_npvs", "Pileup_nPU",
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
   ]
-  if newest:
-    for ZpT in ["Weight_DY_Zpt_LO", "Weight_DY_Zpt_NLO"]:
-      common_branches.append(ZpT)
-  else:
-    common_branches.append("Weight_DY_Zpt")
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
   if final_state_mode != "dimuon": branches = add_DeepTau_branches(branches, DeepTau_version)

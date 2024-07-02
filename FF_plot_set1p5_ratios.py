@@ -173,8 +173,7 @@ if __name__ == "__main__":
   # do setup
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
-  #using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
-  using_directory, plot_dir, log_file, use_NLO, file_map, newest = setup.file_info
+  using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
 
  
@@ -274,7 +273,7 @@ if __name__ == "__main__":
       gc.collect()
       if (process in reject_datasets): continue
 
-      branches     = set_branches(final_state_mode, DeepTau_version, process, newest)
+      branches     = set_branches(final_state_mode, DeepTau_version, process)
       new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
                                               branches, good_events, final_state_mode,
                                               data=("Data" in process), testing=testing)

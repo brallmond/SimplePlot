@@ -623,7 +623,7 @@ def get_MC_weights(MC_dictionary, process):
   MuSF    = MC_dictionary[process]["MuSFweight"]
   ElSF    = MC_dictionary[process]["ElSFweight"]
   BTagSF  = MC_dictionary[process]["BTagSFfull"]
-  DY_Zpt  = MC_dictionary[process]["Weight_DY_Zpt"] # bugged in V12 samples, always 1
+  DY_Zpt  = MC_dictionary[process]["Weight_DY_Zpt"]
   TT_NNLO = MC_dictionary[process]["Weight_TTbar_NNLO"]
   full_weights = gen * PU * TauSF * MuSF * ElSF *\
                  BTagSF * DY_Zpt * TT_NNLO
