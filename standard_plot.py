@@ -61,8 +61,7 @@ if __name__ == "__main__":
   # do setup
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
-  #using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
-  using_directory, plot_dir, log_file, use_NLO, file_map, newest = setup.file_info
+  using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
 
  
@@ -81,8 +80,7 @@ if __name__ == "__main__":
     _, reject_datasets = set_dataset_info(final_state_mode)
     good_events  = set_good_events(final_state_mode) 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
-    #branches     = set_branches(final_state_mode, DeepTau_version, process)
-    branches     = set_branches(final_state_mode, DeepTau_version, process, newest)
+    branches     = set_branches(final_state_mode, DeepTau_version, process)
  
     if (process in reject_datasets): continue
 
@@ -126,15 +124,15 @@ if __name__ == "__main__":
       if background_jet_deepcopy == None: continue
 
       combined_process_dictionary = append_to_combined_processes("DYGen", background_gen_deepcopy, vars_to_plot, 
-                                                                 combined_process_dictionary, newest)
+                                                                 combined_process_dictionary)
       combined_process_dictionary = append_to_combined_processes("DYLep", background_lep_deepcopy, vars_to_plot, 
-                                                                 combined_process_dictionary, newest)
+                                                                 combined_process_dictionary)
       combined_process_dictionary = append_to_combined_processes("DYJet", background_jet_deepcopy, vars_to_plot, 
-                                                                 combined_process_dictionary, newest)
+                                                                 combined_process_dictionary)
       
     else:
       combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
-                                                                 combined_process_dictionary, newest)
+                                                                 combined_process_dictionary)
 
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
@@ -189,7 +187,7 @@ if __name__ == "__main__":
     title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
     
     spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, set_x_log=False)
-    spruce_up_legend(hist_ax, final_state_mode, h_data)
+    spruce_up_legend(hist_ax, final_state_mode)
 
     text = r'S/$\sqrt{S+B}$ = '
     text += calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
