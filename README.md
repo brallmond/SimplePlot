@@ -93,3 +93,7 @@ I find doing this leads to more organized code, with clear lines from function c
 Finally, since this is meant to be a simple library, I am avoiding using classes. Although they may
 have more functionality and modular organization, I find they are overwrought for simply plotting in python.
 Maybe this will change as the library evolves.
+
+Quote from Wikipedia about Code Smell:
+https://en.wikipedia.org/wiki/Code_smell
+Factors such as the understandability of code, how easy it is to be modified, the ease in which it can be enhanced to support functional changes, the code's ability to be reused in different settings, how testable the code is, and code reliability are factors that can be used to identify code smells.
