@@ -25,7 +25,7 @@ from file_map_dictionary import set_dataset_info
 #from cut_and_study_functions import load_and_store_NWEvents, customize_DY, append_flavor_indices, set_protected_branches
 
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
-from plotting_functions    import setup_ratio_plot, make_ratio_plot, make_ratio_no_plot, spruce_up_plot, spruce_up_legend
+from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins
 
 from plotting_functions import get_midpoints, setup_single_plot, spruce_up_single_plot
@@ -493,8 +493,9 @@ if __name__ == "__main__":
                                      h_num_data_tail, h_num_bkgd_tail, h_num_summed_bkgd_tail,
                                      h_den_data_tail, h_den_bkgd_tail, h_den_summed_bkgd_tail)
      
-      tail_ratio, tail_ratio_err = make_ratio_no_plot(h_num_data_m_MC_tail, "Data", np.ones(np.shape(h_num_data_m_MC_tail)),
-                                                      h_den_data_m_MC_tail, "Data", np.ones(np.shape(h_den_data_m_MC_tail)))
+      tail_ratio, tail_ratio_err = make_ratio_plot(h_num_data_m_MC_tail, "Data", np.ones(np.shape(h_num_data_m_MC_tail)),
+                                                      h_den_data_m_MC_tail, "Data", np.ones(np.shape(h_den_data_m_MC_tail)),
+                                                      use_midpoints=False, no_plot=True)
       #ax_ratio.plot([high_val, xbins[-1]], [tail_ratio[0],tail_ratio[0]], color="purple", label=f"high pt const")
 
     least_squares_pol = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_line) # line is a function defined above

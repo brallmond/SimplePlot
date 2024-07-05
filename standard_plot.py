@@ -24,7 +24,7 @@ from cut_and_study_functions import apply_cut, set_protected_branches
 # plotting
 from plotting_functions import get_midpoints, make_eta_phi_plot
 from luminosity_dictionary import luminosities_with_normtag as luminosities
-from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
+from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals, get_summed_backgrounds
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import setup_single_plot, spruce_up_single_plot, add_text
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart
@@ -64,12 +64,7 @@ if __name__ == "__main__":
   using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
 
- 
   print_setup_info(setup)
-
-  # add FF weights :) # almost the same as SR, except SS and 1st tau fails iso (applied in AR_cuts)
-
-  do_QCD = do_JetFakes
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
@@ -137,8 +132,7 @@ if __name__ == "__main__":
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
-  # TODO fix myQCD print statements
-  fakesLabel = "myQCD" # can change to JetFakes once you propagate to the plotting stuff
+  fakesLabel = "myQCD" # can change to JetFakes if you propagate to the plotting stuff
   FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
 
   log_print("Processing finished!", log_file, time=True)
@@ -161,15 +155,14 @@ if __name__ == "__main__":
     xbins = make_bins(var, final_state_mode)
     hist_ax, hist_ratio = setup_ratio_plot()
 
-    # TODO: helper function to fill these guys out in a standard way
-    # data_dictionary, background_dictionary, signal_dictionary,
-    # final_state, testing, var, xbins, lumi
     temp_var = var # hack to plot the same variable twice with two different binnings
     if "HTT_m_vis" in var: var = "HTT_m_vis"
     h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
-    if (final_state_mode != "dimuon") and (do_QCD == True):
+    if (final_state_mode != "dimuon") and (do_JetFakes == True):
       background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
-    h_backgrounds, h_summed_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
+      #background_dictionary[fakesLabel] = FF_dictionary[fakesLabel] # manually include QCD as background
+    h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
+    h_summed_backgrounds = get_summed_backgrounds(h_backgrounds)
     h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi) 
     var = temp_var
 
@@ -179,8 +172,8 @@ if __name__ == "__main__":
     plot_signal( hist_ax, xbins, h_signals,     lumi)
 
     make_ratio_plot(hist_ratio, xbins, 
-                    h_data, "Data", np.ones(np.shape(h_data)),
-                    h_summed_backgrounds, "Data", np.ones(np.shape(h_summed_backgrounds)))
+                    h_data["Data"]["BinnedEvents"], "Data", np.ones(np.shape(h_data)),
+                    h_summed_backgrounds["Bkgd"]["BinnedEvents"], "Data", np.ones(np.shape(h_summed_backgrounds)))
 
     # reversed dictionary search for era name based on lumi 
     title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]

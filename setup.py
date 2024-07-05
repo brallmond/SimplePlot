@@ -65,6 +65,7 @@ class setup_handler:
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
     home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
     active_dir = "/V12_PFRel_"+era_modifier_2022+"_nominal/"
+    #active_dir = "/V12_PFRel_"+era_modifier_2022+"_notriggermatching/"
     active_dir += final_state_mode
     full_dir = home_dir + active_dir # add lxplus redirector if on eos
     return full_dir
