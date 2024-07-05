@@ -13,7 +13,7 @@ from XSec import XSecRun3 as XSec
 
 def load_process_from_file(process, file_directory, file_map, log_file,
                            branches, good_events, final_state_mode, 
-                           data=False, testing=False):
+                           data=False, testing=False, direct_input=None):
   '''
   This will make more sense if you read the documentation on uproot.concatenate first:
   https://uproot.readthedocs.io/en/latest/basic.html#reading-many-files-into-big-arrays
@@ -34,8 +34,13 @@ def load_process_from_file(process, file_directory, file_map, log_file,
   Note: that a numpy array is generated for each loaded process, which corresponds
   to a set of files. 
   '''
-  log_print(f"Loading {file_map[process]}", log_file, time=True)
-  file_string = file_directory + "/" + file_map[process] + ".root:Events"
+  if direct_input != None:
+    # way to bypass filemapping and load files from different data directories
+    log_print(f"Loading {direct_input}", log_file, time=True)
+    file_string = direct_input + ".root:Events"
+  else:
+    log_print(f"Loading {file_map[process]}", log_file, time=True)
+    file_string = file_directory + "/" + file_map[process] + ".root:Events"
   if data: 
     # if a branch isn't available in Data, don't try to load it
     branches_not_in_data = ["Generator_weight", "NWEvents", "Tau_genPartFlav", "XSecMCweight",
@@ -48,7 +53,7 @@ def load_process_from_file(process, file_directory, file_map, log_file,
     processed_events = uproot.concatenate([file_string], branches, cut=good_events, library="np")
   except FileNotFoundError:
     log_print(text_options["yellow"] + "FILE NOT FOUND! " + text_options["reset"], log_file, end="")
-    log_print(f"continuing without loading {file_map[process]}...", log_file)
+    log_print(f"continuing without loading {file_string}...", log_file)
     return None
   process_list = {}
   process_list[process] = {}
@@ -70,6 +75,9 @@ def sort_combined_processes(combined_processes_dictionary):
 
 
 def append_to_combined_processes(process, cut_events, vars_to_plot, combined_processes):
+  if process in combined_processes.keys():
+    print(f" !@#$%^&*&^%$#@! ADDING DUPLICATE PROCESS DATA FOR {process} NAMED {process}_alt !@#$%^&*&^%$#@!")
+    process = process+"_alt"
   if "Data" not in process:
     combined_processes[process] = {
       "PlotEvents": {}, 

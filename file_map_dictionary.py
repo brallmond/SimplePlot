@@ -65,7 +65,7 @@ testing_file_map = {
   "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
   "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
 
-  "VBF"   : "Signal/VBF*",
+  "VBF"   : "Signal/VBF*private*",
   "ggH"   : "Signal/ggH*",
 }
 
@@ -136,6 +136,6 @@ full_file_map = {
   #"QCD_HT-1500to2000" : "QCD/QCD_HT1500to2000_HTauTau*",
   #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
 
-  "VBF"   : "Signal/VBF*",
+  "VBF"   : "Signal/VBF*private*",
   "ggH"   : "Signal/ggH*",
 }

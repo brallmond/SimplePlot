@@ -169,13 +169,18 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
   histogram_axis.fill_between(xbins, error_down, error_up, step="post", color="gray", alpha=0.15)
 
 
-def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity):
+def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity,
+            custom=False, color="default", label="MC", fill=False):
   '''
   Similar to plot_MC, except signals are not stacked, and the 'stair' method
   of matplotlib DOES expect histogram data, so no adjustment to xbins is necessary.
   '''
   for signal in signal_dictionary:
-    color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
+    if custom == True:
+      pass
+    else:
+      color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
+    #color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
     current_hist = signal_dictionary[signal]["BinnedEvents"]
     label += f" [{np.sum(current_hist):>.0f}]"
     stairs = histogram_axis.stairs(current_hist, xbins, color=color, label=label, fill=False)
@@ -186,6 +191,7 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   Obtain process-specific styling and scaling information.
   MC_dictionary is maintained in a separate file.
   '''
+  if "alt" in process: process = process.replace("_alt","")
   color = MC_dictionary[process]["color"]
   label = MC_dictionary[process]["label"]
   if scaling:
@@ -319,7 +325,7 @@ def spruce_up_TnP_plot(axis, variable_name, title):
   axis.grid(True)
 
 
-def spruce_up_legend(histogram_axis, final_state_mode, data_hists):
+def spruce_up_legend(histogram_axis, final_state_mode):
   # this post has good advice about moving the legend off the plot
   # https://stackoverflow.com/questions/4700614/how-to-put-the-legend-outside-the-plot
   # defaults are here, but using these to mimic ROOT defaults 
@@ -351,30 +357,14 @@ def spruce_up_legend(histogram_axis, final_state_mode, data_hists):
     print("Removed samples with yield=0 from legend!")
 
 
-def make_ratio_no_plot(numerator_data, numerator_type, numerator_weight,
-                       denominator_data, denominator_type, denominator_weight):
-  # a smarter and braver person than me would make this part of the "make_ratio_plot" function below
-  ratio = numerator_data/denominator_data
-  ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
-  if (numerator_type=="Data") and (denominator_type=="Data"):
-    # ratio error = (A/B) * √ [ (1/A) + (1/B) ] \
-    statistical_error = np.array([ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
-                        if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
-                        for i,_ in enumerate(denominator_data)]) 
-  statistical_error[np.isnan(statistical_error)] = 0
-  return ratio, statistical_error
- 
- 
 def make_ratio_plot(ratio_axis, xbins, 
                     numerator_data, numerator_type, numerator_weight,
-                    denominator_data, denominator_type, denominator_weight, no_midpoints = False,
+                    denominator_data, denominator_type, denominator_weight, no_midpoints = False, no_plot = False,
                     label=None, color="black"):
   '''
   Uses provided numerator and denominator info to make a ratio to add to given plotting axis.
   Errors are also calculated using the same matplotlib function as used in plot_data.
   '''
-  numerator_data = numerator_data["Data"]["BinnedEvents"] # fixed this, but implies that summed backgrounds should be
-                                                          # changed
   ratio = numerator_data/denominator_data
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
   # TODO : technically errors from stack should be individually calculated, not one stack
@@ -393,11 +383,13 @@ def make_ratio_plot(ratio_axis, xbins,
                         if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
                         for i,_ in enumerate(denominator_data)]) 
   statistical_error[np.isnan(statistical_error)] = 0
-  #xbins = xbins if no_midpoints else get_midpoints(xbins)
-  midpoints = get_midpoints(xbins)
-  bin_width  = abs(xbins[0:-1]-xbins[1:])/2
-  ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
-                    color=color, marker="o", linestyle='none', markersize=2, label=label)
+  if no_plot == True:
+    pass
+  else:
+    midpoints = get_midpoints(xbins)
+    bin_width  = abs(xbins[0:-1]-xbins[1:])/2
+    ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
+                      color=color, marker="o", linestyle='none', markersize=2, label=label)
 
   return ratio, statistical_error
 
@@ -523,10 +515,10 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
 
   # add together subprocesses of each MC family
   h_MC_by_family = {}
-  # see what processes exist in the dictionary
   if "myQCD" in background_dictionary.keys(): # QCD is on bottom of stack since it is first called
     h_MC_by_family["myQCD"] = {}
     h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
+    h_MC_by_family["myQCD"]["BinnedErrors"] = h_MC_by_process["myQCD"]["BinnedErrors"]
     all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
   else:
     all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"]
@@ -543,13 +535,24 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
     # only split here for readability
     h_MC_by_family[family]["BinnedEvents"], _ = accumulate_MC_subprocesses(family, h_MC_by_process)
     _, h_MC_by_family[family]["BinnedErrors"] = accumulate_MC_subprocesses(family, h_MC_by_process)
-  h_backgrounds = h_MC_by_family
-  # used for ratio plot
-  # TODO : make part of ratio plot or into it's own function
-  h_summed_backgrounds = 0
+  return h_MC_by_family
+
+
+def get_summed_backgrounds(h_backgrounds):
+  '''
+  Return a dictionary of summed backgrounds
+  Expecting h_backgrounds to be split and binned already
+  '''
+  accumulated_values = 0
+  accumulated_errors = 0
   for background in h_backgrounds:
-    h_summed_backgrounds += h_backgrounds[background]["BinnedEvents"]
-  return h_backgrounds, h_summed_backgrounds
+    accumulated_values += h_backgrounds[background]["BinnedEvents"]
+    accumulated_errors += h_backgrounds[background]["BinnedErrors"]
+  h_summed_backgrounds = {}
+  h_summed_backgrounds["Bkgd"] = {}
+  h_summed_backgrounds["Bkgd"]["BinnedEvents"] = accumulated_values
+  h_summed_backgrounds["Bkgd"]["BinnedErrors"] = accumulated_errors #still squared errors
+  return h_summed_backgrounds
 
 
 def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_, lumi_):
@@ -627,6 +630,9 @@ def get_MC_weights(MC_dictionary, process):
   TT_NNLO = MC_dictionary[process]["Weight_TTbar_NNLO"]
   full_weights = gen * PU * TauSF * MuSF * ElSF *\
                  BTagSF * DY_Zpt * TT_NNLO
+
+  # use this to achieve no SF weights
+  #return MC_dictionary[process]["Generator_weight"]
   return full_weights
 
 

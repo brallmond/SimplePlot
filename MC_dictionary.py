@@ -65,6 +65,23 @@ MC_dictionary = {
   "VBF" : {"XSec": XSec["VBF_TauTau"], "NWEvents": 2402853.147599998, 
            "label": "VBF", "color": color_dictionary["VBF"],
            "plot_scaling" : 500},
+  # hack to get around NWEvents handling
+  # TODO : refactor and address this at some point to remove need to duplicate code..
+  "ggH_old" : {"XSec": XSec["ggH_TauTau"], "NWEvents": 1, 
+           "label": "ggH", "color": color_dictionary["ggH"],
+           "plot_scaling" : 100},
+
+  "VBF_old" : {"XSec": XSec["VBF_TauTau"], "NWEvents": 1, 
+           "label": "VBF", "color": color_dictionary["VBF"],
+           "plot_scaling" : 500},
+
+  "ggH_new" : {"XSec": XSec["ggH_TauTau"], "NWEvents": 1, 
+           "label": "ggH", "color": "#00aa00",
+           "plot_scaling" : 100},
+
+  "VBF_new" : {"XSec": XSec["VBF_TauTau"], "NWEvents": 1, 
+           "label": "VBF", "color": "#00aa00",
+           "plot_scaling" : 500},
 
   #TODO: This is for 2022 pre EE dimuon! Somehow store this info and make it switchable!
   #"DYInc" : {"XSec": XSec["DYJetsToLL_M-50"], "NWEvents": 1925298812420.0,
