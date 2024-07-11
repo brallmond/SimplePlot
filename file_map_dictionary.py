@@ -59,6 +59,8 @@ testing_file_map = {
   "DataElectron" : "Data/EGamma*G*",
   "DataEMu"  : "Data/MuonEG_Run*G*",
 
+  "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
+
   "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
   "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
 
@@ -136,6 +138,7 @@ full_file_map = {
   #"QCD_HT-1500to2000" : "QCD/QCD_HT1500to2000_HTauTau*",
   #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
 
-  "VBF"   : "Signal/VBF*private*",
+  #"VBF"   : "Signal/VBF*private*",
+  "VBF"   : "Signal/VBF*",
   "ggH"   : "Signal/ggH*",
 }

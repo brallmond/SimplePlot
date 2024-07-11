@@ -65,7 +65,7 @@ class setup_handler:
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
     home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
     active_dir = "/V12_PFRel_"+era_modifier_2022+"_nominal/"
-    #active_dir = "/V12_PFRel_"+era_modifier_2022+"_notriggermatching/"
+    active_dir = "/V12_PFRel_"+era_modifier_2022+"_notriggermatching/"
     active_dir += final_state_mode
     full_dir = home_dir + active_dir # add lxplus redirector if on eos
     return full_dir
@@ -180,7 +180,7 @@ if __name__ == "__main__":
   from plotting_functions  import set_vars_to_plot
   from file_map_dictionary import set_dataset_info
 
-  good_events  = set_good_events(final_state_mode)              
+  good_events  = set_good_events(final_state_mode)
   branches     = set_branches(final_state_mode, DeepTau_version)
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
   dataset, reject_datasets = set_dataset_info(final_state_mode)
