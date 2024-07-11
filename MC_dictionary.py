@@ -58,11 +58,13 @@ MC_dictionary = {
   # below are real dictionaries for subprocesses          #
   #########################################################
 
-  "ggH" : {"XSec": XSec["ggH_TauTau"], "NWEvents": 19289464.362, 
+  #"ggH" : {"XSec": XSec["ggH_TauTau"], "NWEvents": 19289464.362, 
+  "ggH" : {"XSec": XSec["ggH_TauTau"], "NWEvents": 1, 
            "label": "ggH", "color": color_dictionary["ggH"],
            "plot_scaling" : 100},
 
-  "VBF" : {"XSec": XSec["VBF_TauTau"], "NWEvents": 2402853.147599998, 
+  #"VBF" : {"XSec": XSec["VBF_TauTau"], "NWEvents": 2402853.147599998, 
+  "VBF" : {"XSec": XSec["VBF_TauTau"], "NWEvents": 1, 
            "label": "VBF", "color": color_dictionary["VBF"],
            "plot_scaling" : 500},
   # hack to get around NWEvents handling

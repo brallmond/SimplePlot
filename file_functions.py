@@ -122,7 +122,16 @@ def load_and_store_NWEvents(process, event_dictionary):
   '''
   MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0]
   MC_dictionary[process]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
-  #print(process, MC_dictionary[process]["NWEvents"]) # DEBUG
+  if "VBF" in process: # TODO: address this hardcoding at some point
+    print("HARDCODING VBF NWEVENTS AND XSECMCWEIGHT")
+    MC_dictionary[process]["NWEvents"] = 2402853.2
+    MC_dictionary[process]["XSecMCweight"] = 0.002829568
+  if "ggH" in process: # TODO: address this hardcoding at some point
+    print("HARDCODING ggH NWEVENTS AND XSECMCWEIGHT")
+    MC_dictionary[process]["NWEvents"] = 9362141.0
+    MC_dictionary[process]["XSecMCweight"] = 0.002781924
+  print("NWEvents", process, MC_dictionary[process]["NWEvents"]) # DEBUG
+  print("XSecMCweight", process, MC_dictionary[process]["XSecMCweight"]) # DEBUG
   event_dictionary.pop("NWEvents")
   event_dictionary.pop("XSecMCweight")
 

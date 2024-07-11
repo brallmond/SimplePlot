@@ -53,14 +53,19 @@ if __name__ == "__main__":
   home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau"
   process_list = ["ggH_old", "ggH_new"]
   direct_input_list = [
-      home_dir + "/V12_PFRel_postEE_Dennis_test_detector_holes/ditau/Signal/ggH_TauTau_private_HTauTau_2022postEE_step2",
-      home_dir + "/V12_PFRel_postEE_nominal/ditau/Signal/ggH_TauTau_HTauTau_2022postEE_step2",
+     # home_dir + "/V12_PFRel_postEE_Dennis_test_detector_holes/ditau/Signal/ggH_TauTau_private_HTauTau_2022postEE_step2",
+      home_dir + "/V12_PFRel_preEE_notriggermatching/ditau/Signal/ggH_TauTau_HTauTau_2022preEE_step2",
+      home_dir + "/V12_PFRel_preEE_nominal/ditau/Signal/ggH_TauTau_HTauTau_2022preEE_step2",
+      #home_dir + "/V12_PFRel_postEE_nominal/ditau/Signal/ggH_TauTau_HTauTau_2022postEE_step2",
+      #home_dir + "/V12_PFRel_postEE_notriggermatching/ditau/Signal/ggH_TauTau_HTauTau_2022postEE_step2",
   ]
-  process_list = ["VBF_old", "VBF_new"]
-  direct_input_list = [
-      home_dir + "/V12_PFRel_postEE_nominal/ditau/Signal/VBF_TauTau_HTauTau_2022postEE_step2",
-      home_dir + "/V12_PFRel_postEE_nominal/ditau/Signal/VBF_TauTau_private_HTauTau_2022postEE_step2",
-  ]
+  #process_list = ["VBF_old", "VBF_new"]
+  #direct_input_list = [
+  #    home_dir + "/V12_PFRel_postEE_nominal/ditau/Signal/VBF_TauTau_private_HTauTau_2022postEE_step2",
+  #    #home_dir + "/V12_PFRel_postEE_notriggermatching/ditau/Signal/VBFHToTauTau_private_HTauTau_2022postEE_step2",
+  #    #home_dir + "/V12_PFRel_postEE_notriggermatching/ditau/Signal/VBF_UD_TauTau_HTauTau_2022postEE_step2",
+  #    home_dir + "/V12_PFRel_postEE_nominal/ditau/Signal/VBF_TauTau_HTauTau_2022postEE_step2",
+  #]
 
   for process, direct_input in zip(process_list, direct_input_list):
     branches     = set_branches(final_state_mode, DeepTau_version, process)
@@ -89,7 +94,7 @@ if __name__ == "__main__":
   log_print("Processing finished!", log_file, time=True)
 
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  #vars_to_plot = ["HTT_m_vis"]
+  vars_to_plot = ["HTT_m_vis"]
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")
