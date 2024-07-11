@@ -250,7 +250,8 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
   for i, lep_pt, m_vis, l1_idx, l2_idx in zip(*to_check):
     m_vis = m_vis if m_vis < 300.0 else 299.0 # exactly 300 breaks index hack below
     tau_pt = lep_pt[l2_idx] # "mu tau" means l1_idx is muon and l2_idx is tau
-    low_val = 40.0 if final_state_mode == "ditau" else 30.0
+    low_val = 20.0 if final_state_mode == "ditau" else 30.0
+    #low_val = 40.0 if final_state_mode == "ditau" else 30.0
     tau_pt = tau_pt if tau_pt > low_val else low_val
     m_vis_idx = int(m_vis // 10) # hard-coding mvis bins of 10 GeV, starting at 0 and ending at 300 ( // is modulo division )
     f_QCD     = FF_mvis_weights[final_state_mode][jet_mode]["QCD"][m_vis_idx] if not closure else 1
