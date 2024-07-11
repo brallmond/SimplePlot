@@ -190,7 +190,27 @@ def highest_mjj_pair(TLorentzVector_Jets):
         j1_idx = j_jet
         j2_idx = k_jet
   if (j1_idx*j2_idx < 0): print("jet index unassigned!")
-  return TLorentzVector_Jets[j1_idx], TLorentzVector_Jets[j2_idx]
+  #return TLorentzVector_Jets[j1_idx], TLorentzVector_Jets[j2_idx]
+  return j1_idx, j2_idx
+
+def return_TLorentz_Jets(passingJetsPt, passingJetsEta, passingJetsPhi, passingJetsMass):
+  ''' only use with ≥2 jets '''
+  TLorentzVector_Jets = []
+  from ROOT import TLorentzVector 
+  for i in range(len(passingJetsPt)):
+    temp_jet_vec = TLorentzVector()
+    temp_jet_vec.SetPtEtaPhiM(passingJetsPt[i], passingJetsEta[i], passingJetsPhi[i], passingJetsMass[i])
+    TLorentzVector_Jets.append(temp_jet_vec)
+  j1_idx, j2_idx = highest_mjj_pair(TLorentzVector_Jets)
+  mjj = (TLorentzVector_Jets[j1_idx] + TLorentzVector_Jets[j2_idx]).M()
+  # add special tag for Run2 VBF trigger
+  special_tag = False
+  if len(TLorentzVector_Jets) >= 3:
+    if mjj > 700: # HARDCODED VALUE FOR RUN2 VBF TRIGGER
+      for jet in TLorentzVector_Jets:
+        if jet.Pt() > 120: # HARDCODED VALUE FOR RUN2 VBF TRIGGER
+          special_tag = True
+  return TLorentzVector_Jets, j1_idx, j2_idx, mjj, special_tag
 
 def user_exp(x, a, b, c, d):
     return a*np.exp(-b*(x-c)) + d
