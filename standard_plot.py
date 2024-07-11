@@ -142,8 +142,8 @@ if __name__ == "__main__":
   eta_phi_plot = False
   if (eta_phi_plot == True): make_eta_phi_plot(data_dictionary, dataset, final_state_mode, jet_mode, "Data")
 
-  vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  #vars_to_plot = ["HTT_m_vis"]
+  #vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
+  vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx"]
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")

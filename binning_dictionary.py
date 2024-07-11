@@ -27,6 +27,8 @@ label_dictionary = {
   "FS_t2_chg"  : r'Sub-leading Tau Charge',
   "FS_t2_DM"   : r'Sub-leading Tau Decay Mode',
 
+  "FS_trig_idx" : r'Trigger Indices',
+
   "FS_m1_pt"   : r'Leading Muon $p_T$ [GeV]',
   "FS_m1_eta"  : r'Leading Muon $\eta$',
   "FS_m1_phi"  : r'Leading Muon $\phi$',
@@ -133,6 +135,8 @@ binning_dictionary = {
     "FS_t2_rawPNetVSjet" : np.linspace(0, 1, 50+1),
     "FS_t2_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
     "FS_t2_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
+
+    "FS_trig_idx" : np.linspace(-1, 4, 5+1),
   },
 
   "mutau" : {
@@ -255,7 +259,7 @@ binning_dictionary = {
     "HTT_dR"                : np.linspace(0, 6, 60+1),
     "HTT_m_vis-KSUbinning"  : np.linspace(0, 300, 30+1),
     "HTT_m_vis-SFbinning"   : np.linspace(0, 200, 40+1),
-    "HTT_pT_l1l2" : np.linspace(0, 150, 30+1),
+    "HTT_pT_l1l2" : np.linspace(0, 250, 50+1),
     "FastMTT_PUPPIMET_mT"   : np.linspace(0, 400, 40+1),
     "FastMTT_PUPPIMET_mass" : np.linspace(0, 400, 20+1),
     "FS_t1_flav" : np.linspace(0, 11, 11+1),

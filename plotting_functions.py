@@ -255,9 +255,10 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
             final_state_str[final_state_mode] + " : " + jet_mode_str[jet_mode], 
             transform=axis.transAxes, fontsize=10)
 
-def add_text(axis, text_to_add, loc=[0.05, 0.85]):
+def add_text(axis, text_to_add, loc=[0.05, 0.85], rotation=0, ha="left", va="baseline"):
   axis.text(loc[0], loc[1], text_to_add,
-            transform=axis.transAxes, fontsize=10)
+            transform=axis.transAxes, fontsize=10, 
+            rotation=rotation, ha=ha, va=va)
 
 
 def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, jet_mode, yrange=None,
@@ -296,6 +297,14 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
 
   ratio_plot_axis.set_ylim([0.45, 1.55]) # 0.0, 2.0 also make sense
   ratio_plot_axis.set_xlabel(variable_name) # shared axis label
+  if variable_name == "Trigger Indices":
+    ratio_plot_axis.set_xlabel("") # shared axis label
+    trig_labels = ["DiTau", "DiTau+Jet", "VBFRun3", "VBFRun2"]
+    xpos  = 0.26
+    xstep = 0.18
+    ypos  = -0.35
+    for i,nlabel in enumerate(trig_labels):
+      add_text(ratio_plot_axis, nlabel, loc=[xpos+xstep*i, ypos], rotation=35, ha="center", va="center")
   ratio_plot_axis.set_ylabel("Obs. / Exp.")
   ratio_plot_axis.axhline(y=1, color='grey', linestyle='--')
   ratio_plot_axis.minorticks_on()
@@ -632,7 +641,10 @@ def get_MC_weights(MC_dictionary, process):
                  BTagSF * DY_Zpt * TT_NNLO
 
   # use this to achieve no SF weights
-  #return MC_dictionary[process]["Generator_weight"]
+  skip_SFs = False
+  if skip_SFs == True:
+    print("  NO SFs APPLIED!  "*100)
+    return MC_dictionary[process]["Generator_weight"]
   return full_weights
 
 
@@ -646,6 +658,7 @@ final_state_vars = {
                 #"FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
                 "FS_t1_DeepTauVSjet", "FS_t1_DeepTauVSmu", "FS_t1_DeepTauVSe", 
                 "FS_t2_DeepTauVSjet", "FS_t2_DeepTauVSmu", "FS_t2_DeepTauVSe", 
+                "FS_trig_idx",
                ],
 
     "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
