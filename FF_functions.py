@@ -271,7 +271,7 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
       elif (semilep_mode == "WJ"):   FF_weight = f_WJ  * FF_WJ
       else: print("add_FF_weights function error")
     if (FF_weight <= 0):
-      print("negative FF weights!")
+      print("non-positive FF weights!")
       print("FF_weight: ", FF_weight)
       print("tau_pt: ", tau_pt)
       print("value from fit: ", user_func(lep_pt[l1_idx], *QCD_fitvals))
