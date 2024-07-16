@@ -14,7 +14,7 @@ class setup_handler:
     self.parser.add_argument('--final_state',  dest='final_state', default="mutau",     action='store')
     self.parser.add_argument('--jet_mode',     dest='jet_mode',    default="Inclusive", action='store')
     self.parser.add_argument('--era',          dest='era',         default="2022 EFG",  action='store')
-    self.parser.add_argument('--use_NLO',      dest='use_NLO',     default=False,       action='store')
+    self.parser.add_argument('--use_NLO',      dest='use_NLO',     default=False,       action='store_true')
     self.parser.add_argument('--plot_dir',     dest='plot_dir',    default="plots",     action='store')
     self.parser.add_argument('--DeepTau',      dest='DeepTau_version', default="2p5",   action='store')
     self.parser.add_argument('--hide_plots',   dest='hide_plots',  default=False,       action='store_true')
@@ -65,7 +65,8 @@ class setup_handler:
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
     home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
     active_dir = "/V12_PFRel_"+era_modifier_2022+"_nominal/"
-    active_dir = "/V12_PFRel_"+era_modifier_2022+"_notriggermatching/"
+    #active_dir = "/V12_PFRel_"+era_modifier_2022+"_notriggermatching/"
+    #active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
     active_dir += final_state_mode
     full_dir = home_dir + active_dir # add lxplus redirector if on eos
     return full_dir
@@ -73,7 +74,7 @@ class setup_handler:
   
   def set_file_map(self, testing, use_NLO, era):
     file_map = testing_file_map if testing else full_file_map
-    if (use_NLO == True): 
+    if (use_NLO == True):
       file_map.pop("DYInc")
       file_map.pop("WJetsInc")
     else: 
