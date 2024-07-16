@@ -120,32 +120,22 @@ def load_and_store_NWEvents(process, event_dictionary):
   Read the NWEvents value for a sample and store it in the MC_dictionary,
   overriding the hardcoded values from V11 samples. Delete the NWEvents branch after.
   '''
-  MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0]
+  #MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0]
   MC_dictionary[process]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
-  if "VBF" in process: # TODO: address this hardcoding at some point
-    print("HARDCODING VBF NWEVENTS AND XSECMCWEIGHT")
-    MC_dictionary[process]["NWEvents"] = 2402853.2
-    MC_dictionary[process]["XSecMCweight"] = 0.002829568
-  if "ggH" in process: # TODO: address this hardcoding at some point
+  #if "VBF" in process: # TODO: address this hardcoding at some point
+  #  print("HARDCODING VBF NWEVENTS AND XSECMCWEIGHT")
+  #  MC_dictionary[process]["XSecMCweight"] = 0.002829568
+  if "ggH" in process: # TODO: address this hardcoding at some point, only necessary in preEE?
     print("HARDCODING ggH NWEVENTS AND XSECMCWEIGHT")
-    MC_dictionary[process]["NWEvents"] = 9362141.0
     MC_dictionary[process]["XSecMCweight"] = 0.002781924
-  print("NWEvents", process, MC_dictionary[process]["NWEvents"]) # DEBUG
-  print("XSecMCweight", process, MC_dictionary[process]["XSecMCweight"]) # DEBUG
-  event_dictionary.pop("NWEvents")
+  #print("XSecMCweight", process, MC_dictionary[process]["XSecMCweight"]) # DEBUG
+  #event_dictionary.pop("NWEvents")
   event_dictionary.pop("XSecMCweight")
 
 
 def customize_DY(process, final_state_mode):
   for DYtype in ["DYGen", "DYLep", "DYJet"]:
     MC_dictionary[DYtype]["XSecMCweight"] = MC_dictionary[process]["XSecMCweight"]
-    MC_dictionary[DYtype]["NWEvents"] = MC_dictionary[process]["NWEvents"]
-  if (process == "DYIncNLO"): # double-check 
-    # overwrite DYGen, DYLep, DYJet values with NLO values
-    for subprocess in ["DYGen", "DYLep", "DYJet"]:
-      MC_dictionary[subprocess]["XSec"]         = XSec["DYJetsToLL_M-50"]
-      MC_dictionary[subprocess]["NWEvents"]     = MC_dictionary["DYIncNLO"]["NWEvents"]
-      MC_dictionary[subprocess]["plot_scaling"] = 1  # override kfactor
   label_text = { "ditau" : r"$Z{\rightarrow}{\tau_h}{\tau_h}$",
                  "mutau" : r"$Z{\rightarrow}{tau_{\mu}}{\tau_h}$",
                  "etau"  : r"$Z{\rightarrow}{tau_e}{\tau_h}$",

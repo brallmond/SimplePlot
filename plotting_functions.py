@@ -195,12 +195,10 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   color = MC_dictionary[process]["color"]
   label = MC_dictionary[process]["label"]
   if scaling:
-  # factor of 1000 comes from lumi and XSec units of fb^-1 = 10E15 b^-1 and pb = 10E-12 b respectively
-    plot_scaling = MC_dictionary[process]["plot_scaling"] # 1 for all non-signal processes by default
-    scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
+    scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
     if process=="myQCD": scaling = 1
   if signal:
-    label += " x" + str(plot_scaling)
+    label += " x" + str(MC_dictionary[process]["plot_scaling"])
   return (color, label, scaling)
 
 
@@ -710,7 +708,8 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   Helper function to keep plotting variables organized
   Shouldn't this be in  plotting functions?
   '''
-  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+  #vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2",
                   "PuppiMET_pt", "PuppiMET_phi", "PV_npvs"]
                   #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj"] 
                   # common to all final states # add Tau_decayMode
