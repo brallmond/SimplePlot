@@ -85,7 +85,7 @@ full_file_map = {
   #"DYJetsToLL_M-50_3J" : "DY/DYJetsToLL_M-50_3J*",
   #"DYJetsToLL_M-50_4J" : "DY/DYJetsToLL_M-50_4J*",
 
-  "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
+  "DYIncNLO" : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
 
   "TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
@@ -139,6 +139,6 @@ full_file_map = {
   #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
 
   #"VBF"   : "Signal/VBF*private*",
-  "VBF"   : "Signal/VBF*",
+  #"VBF"   : "Signal/VBF*",
   "ggH"   : "Signal/ggH*",
 }
