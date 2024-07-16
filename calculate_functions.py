@@ -39,7 +39,7 @@ def calculate_signal_background_ratio(data, backgrounds, signals):
     yields.append(process_yield)
     total_background += process_yield
   for signal in signals:
-    signal_yield = np.sum(backgrounds[process]["BinnedEvents"])
+    signal_yield = np.sum(signals[signal]["BinnedEvents"])
     if "VBF" in signal: signal_yield = signal_yield / 500.0 # VBF scaling # TODO: handle automatically
     if "ggH" in signal: signal_yield = signal_yield / 100.0 # ggH scaling
     yields.append(signal_yield)
