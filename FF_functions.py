@@ -236,23 +236,26 @@ def make_dimuon_SR_cut(event_dictionary, iso_region=True):
 # Calculation Functions
 #########################################################################################
 
-def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, closure=False, testing=True, bypass=[]):
+def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, closure=False, bypass=[]):
   # interface to read FF_dictionary
   unpack_FF_vars = ["Lepton_pt", "HTT_m_vis", "l1_indices", "l2_indices"]
   unpack_FF_vars = (event_dictionary.get(key) for key in unpack_FF_vars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_FF_vars]
   FF_weights = []
-  jet_mode = jet_mode + "_testing" if (testing == True) else jet_mode
   QCD_fitvals   = FF_fit_values[final_state_mode][jet_mode]["QCD"]
   if (final_state_mode != "ditau"):
     WJ_fitvals   = FF_fit_values[final_state_mode][jet_mode]["WJ"]
   if bypass != []:  QCD_fitvals, WJ_fitvals = bypass, bypass
   for i, lep_pt, m_vis, l1_idx, l2_idx in zip(*to_check):
     m_vis = m_vis if m_vis < 300.0 else 299.0 # exactly 300 breaks index hack below
-    tau_pt = lep_pt[l2_idx] # "mu tau" means l1_idx is muon and l2_idx is tau
+    fakeleg_idx = l1_idx if final_state_mode == "ditau" else l2_idx # mutau/etau is always l2, ditau is always l1
+    lepleg_idx  = l2_idx if final_state_mode == "ditau" else l1_idx
+    tau_pt = lep_pt[fakeleg_idx]
     low_val = 20.0 if final_state_mode == "ditau" else 30.0
     #low_val = 40.0 if final_state_mode == "ditau" else 30.0
+    hi_val  = 140.0 if final_state_mode == "ditau" else 200
     tau_pt = tau_pt if tau_pt > low_val else low_val
+    tau_pt = tau_pt if tau_pt < hi_val else hi_val
     m_vis_idx = int(m_vis // 10) # hard-coding mvis bins of 10 GeV, starting at 0 and ending at 300 ( // is modulo division )
     f_QCD     = FF_mvis_weights[final_state_mode][jet_mode]["QCD"][m_vis_idx] if not closure else 1
     user_func = user_line if final_state_mode == "ditau" else user_exp
@@ -262,7 +265,6 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
       FF_WJ      = user_func(tau_pt, *WJ_fitvals)
     else: pass
     if (semilep_mode == "Full"):
-    #if (full_FF == True):
       FF_weight = f_QCD * FF_QCD * 1.1 # OS/SS bias
       if (final_state_mode != "ditau"):
         FF_weight += f_WJ * FF_WJ
@@ -282,9 +284,9 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
 
 from producers import produce_FF_weight
 def set_JetFakes_process(setup, fakesLabel, semilep_mode):
-  # could be improved by reducing name size and simplifying below operations
+  # TODO could be improved by reducing variable name size and simplifying below operations
   JetFakes_dictionary = {}
-  testing, final_state_mode, jet_mode, _, _ = setup.state_info
+  _, final_state_mode, jet_mode, _, _ = setup.state_info
   _, _, _, do_JetFakes, _ = setup.misc_info
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
   if (jet_mode != "Inclusive") and (do_JetFakes==True):
@@ -295,8 +297,8 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
     JetFakes_dictionary[fakesLabel] = {}
     JetFakes_dictionary[fakesLabel]["PlotEvents"] = {}
     JetFakes_dictionary[fakesLabel]["FF_weight"]  = {} 
-    for internal_jet_mode in ["0j", "GTE1j"]:
-      if testing: internal_jet_mode += "_testing"
+    jetCategories = ["0j", "1j", "GTE2j"] if final_state_mode == "ditau" else ["0j", "GTE1j"]
+    for internal_jet_mode in jetCategories:
       temp_JetFakes_dictionary[internal_jet_mode] = produce_FF_weight(setup, internal_jet_mode, semilep_mode)
       if ("0j" in internal_jet_mode):
         JetFakes_dictionary[fakesLabel]["FF_weight"]  = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]
