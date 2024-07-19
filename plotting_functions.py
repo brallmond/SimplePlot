@@ -479,6 +479,13 @@ def get_binned_info(final_state, testing, process_name, process_variable, xbins,
   binned_weight_2[-1] += overflow_error
   return binned_values, binned_weight_2
 
+def get_weight_stats(process_name, process_weights):
+  ''' to be used in get_binned_info as a quick way to quantify process_weights'''
+  from scipy import stats
+  print(f"Average process weight for {process_name}")
+  print(np.average(process_weights))
+  print(stats.describe(process_weights))
+  
 
 def get_binned_process(final_state, testing, process_dictionary, variable, xbins_, lumi_):
   '''
