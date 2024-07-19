@@ -9,6 +9,7 @@ from MC_dictionary        import MC_dictionary
 from binning_dictionary   import binning_dictionary, label_dictionary
 from triggers_dictionary  import triggers_dictionary
 
+from luminosity_dictionary import luminosities_with_normtag as luminosities
 from calculate_functions  import yields_for_CSV, calculate_underoverflow
 
 
@@ -180,7 +181,6 @@ def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity,
       pass
     else:
       color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
-    #color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
     current_hist = signal_dictionary[signal]["BinnedEvents"]
     label += f" [{np.sum(current_hist):>.0f}]"
     stairs = histogram_axis.stairs(current_hist, xbins, color=color, label=label, fill=False)
@@ -194,8 +194,17 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   if "alt" in process: process = process.replace("_alt","")
   color = MC_dictionary[process]["color"]
   label = MC_dictionary[process]["label"]
+  lumi_key = [key for key in luminosities.items() if key[1] == luminosity][0][0]
   if scaling:
     scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
+    # hacky unscaling and rescaling so that "testing" still works
+    if ("C" in lumi_key) or ("D" in lumi_key):
+      scaling *= 1 / luminosities["2022 CD"]
+    elif ("E" in lumi_key) or ("F" in lumi_key) or ("G" in lumi_key):
+      scaling *= 1 / luminosities["2022 EFG"]
+    else:
+      print(f"unrecognized lumi_key: {lumi_key}")
+    scaling *= luminosity
     if process=="myQCD": scaling = 1
   if signal:
     label += " x" + str(MC_dictionary[process]["plot_scaling"])
