@@ -294,13 +294,15 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
   '''
   add_CMS_preliminary(histogram_axis)
   add_final_state_and_jet_mode(histogram_axis, final_state_mode, jet_mode)
-  #histogram_axis.set_ylim([0, histogram_axis.get_ylim()[1]*1.2]) # scale top of graph up by 20%
   histogram_axis.set_title(title, loc='right', y=0.98)
   histogram_axis.set_ylabel("Events / bin")
   histogram_axis.minorticks_on()
   histogram_axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
   #yticks = histogram_axis.yaxis.get_major_ticks()
   #yticks[0].label1.set_visible(false) # hides a zero that overlaps with the upper plot
+
+  ylimmin, ylimmax = histogram_axis.get_ylim()
+  histogram_axis.set_ylim(ylimmin, ylimmax*1.5) # scale up graph so legend fits without crazy overlap
 
   ratio_plot_axis.set_ylim([0.45, 1.55]) # 0.0, 2.0 also make sense
   ratio_plot_axis.set_xlabel(variable_name) # shared axis label
@@ -346,22 +348,9 @@ def spruce_up_legend(histogram_axis, final_state_mode):
   # https://stackoverflow.com/questions/4700614/how-to-put-the-legend-outside-the-plot
   # defaults are here, but using these to mimic ROOT defaults 
   # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html
-  leg = histogram_axis.legend(loc="upper right", frameon=True, bbox_to_anchor=[0.6, 0.4, 0.4, 0.6],
+  leg = histogram_axis.legend(loc="upper right", frameon=False,
                         labelspacing=0.35, handlelength=0.8, handleheight=0.8, handletextpad=0.4)
 
-  # some matplotlib documentation about transforming plotting coordinate systems
-  # https://matplotlib.org/stable/users/explain/artists/transforms_tutorial.html
-  # DEBUG
-  #print(leg.get_bbox_to_anchor())
-  #print(leg.get_bbox_to_anchor().transformed(histogram_axis.transAxes.inverted()))
-  #print(leg.get_bbox_to_anchor().transformed(histogram_axis.transData))
-  #plt.draw()
-  #print(leg.get_bbox_to_anchor())
-  #print("transAxes, inverted, transData, inverted")
-  #print(leg.get_bbox_to_anchor().transformed(histogram_axis.transAxes))
-  #print(leg.get_bbox_to_anchor().transformed(histogram_axis.transAxes.inverted()))
-  #print(leg.get_bbox_to_anchor().transformed(histogram_axis.transData))
-  #print(leg.get_bbox_to_anchor().transformed(histogram_axis.transData.inverted())) # this
   if final_state_mode == "dimuon":
     handles, original_labels = histogram_axis.get_legend_handles_labels()
     labels, yields = yields_for_CSV(histogram_axis)
