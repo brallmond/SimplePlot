@@ -121,10 +121,10 @@ def set_good_events(final_state_mode, AR_region=False, disable_triggers=False, u
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_TauEE) & (JetMapVeto_TauHotCold)"
   #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_TauEE) & (JetMapVeto_TauHotCold)"
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
-  HTT_preselect_events = "& (HTT_SRevent)"
   good_events += jet_vetomaps
   if AR_region: return good_events # give output with MET filters, lepton veto, and veto maps
 
+  HTT_preselect_events = "& (HTT_SRevent)"
   good_events += HTT_preselect_events
   # UNDER STUDY!
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) "\
