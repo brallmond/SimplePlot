@@ -115,6 +115,17 @@ def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mo
     make_two_dimensional_plot(process_dictionary[process_name]["PlotEvents"], final_state_mode,
                              "CleanJetGT30_eta_1", "CleanJetGT30_phi_1", add_to_title=label_suffix)
 
+def plot_raw(histogram_axis, xbins, input_vals, luminosity,
+             color="black", label="Data", marker="o", fillstyle="full"):
+  '''
+  Plotting function for raw values, usually made by pre-processing data/background
+  '''
+  stat_error = np.sqrt(input_vals) # TODO: this isn't necessarily correct
+  midpoints   = get_midpoints(xbins)
+  bin_width  = abs(xbins[0:-1]-xbins[1:])/2 # only works for uniform bin widths
+  histogram_axis.errorbar(midpoints, input_vals, xerr=bin_width, yerr=stat_error,
+                          color=color, marker=marker, fillstyle=fillstyle, label=label,
+                          linestyle='none', markersize=3)
 
 def plot_data(histogram_axis, xbins, data_dictionary, luminosity, 
               color="black", label="Data", marker="o", fillstyle="full"):
@@ -365,7 +376,8 @@ def spruce_up_legend(histogram_axis, final_state_mode):
 
 def make_ratio_plot(ratio_axis, xbins, 
                     numerator_data, numerator_type, numerator_weight,
-                    denominator_data, denominator_type, denominator_weight, no_midpoints = False, no_plot = False,
+                    denominator_data, denominator_type, denominator_weight, 
+                    no_plot = False,
                     label=None, color="black"):
   '''
   Uses provided numerator and denominator info to make a ratio to add to given plotting axis.
