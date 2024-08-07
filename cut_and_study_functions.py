@@ -102,7 +102,9 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
 
 def make_jet_cut(event_dictionary, jet_mode):
   nEvents_precut = len(event_dictionary["Lepton_pt"])
-  unpack_jetVars = ["nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass"]
+  unpack_jetVars = ["nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass", 
+                    #"HTT_DiJet_j1index", "HTT_DiJet_j2index",]
+                   ]
   unpack_jetVars = (event_dictionary.get(key) for key in unpack_jetVars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_jetVars] # "*" unpacks a tuple
   nCleanJetGT30, pass_0j_cuts, pass_1j_cuts, pass_2j_cuts, pass_3j_cuts = [], [], [], [], []
@@ -111,8 +113,10 @@ def make_jet_cut(event_dictionary, jet_mode):
   CleanJetGT30_eta_1, CleanJetGT30_eta_2, CleanJetGT30_eta_3 = [], [], []
   CleanJetGT30_phi_1, CleanJetGT30_phi_2, CleanJetGT30_phi_3 = [], [], []
   mjj_array, detajj_array = [], []
+  j1_idxs_array, j2_idxs_array, dijet_idxs_array_calc, dijet_idxs_array_HTT = [], [], [], []
   from ROOT import TLorentzVector 
   # TODO : this is the only place ROOT is used, removing it would speed things up
+  #for i, nJet, jet_pt, jet_eta, jet_phi, jet_mass, HTT_j1idx, HTT_j2idx in zip(*to_check):
   for i, nJet, jet_pt, jet_eta, jet_phi, jet_mass in zip(*to_check):
     passingJets = 0
     passingJetsPt, passingJetsEta, passingJetsPhi, passingJetsMass = [], [], [], []
@@ -145,8 +149,6 @@ def make_jet_cut(event_dictionary, jet_mode):
       CleanJetGT30_phi_1.append(passingJetsPhi[j1_idx])
       CleanJetGT30_phi_2.append(passingJetsPhi[j2_idx])
       mjj_array.append(mjj)
-      #mjj_array.append((j1_TVec + j2_TVec).M())
-      # TODO can try to make the comparison here
       detajj_array.append(abs(j1_TVec.Eta() - j2_TVec.Eta()))
 
     if (passingJets >= 2) and (jet_mode == "GTE2j"): 
@@ -160,8 +162,11 @@ def make_jet_cut(event_dictionary, jet_mode):
       CleanJetGT30_phi_1.append(passingJetsPhi[j1_idx])
       CleanJetGT30_phi_2.append(passingJetsPhi[j2_idx])
       mjj_array.append(mjj)
-      #mjj_array.append((j1_TVec+j2_TVec).M())
       detajj_array.append(abs(j1_TVec.Eta()-j2_TVec.Eta()))
+      j1_idxs_array.append(j1_idx)
+      j2_idxs_array.append(j2_idx)
+      dijet_idxs_array_calc.append(j1_idx*10+j2_idx) 
+      #dijet_idxs_array_HTT.append(HTT_j1idx*10+HTT_j2idx)
 
     if (passingJets >= 1) and (jet_mode == "GTE1j"): 
       pass_GTE1j_cuts.append(i)
@@ -175,7 +180,6 @@ def make_jet_cut(event_dictionary, jet_mode):
         CleanJetGT30_phi_1.append(passingJetsPhi[j1_idx])
         CleanJetGT30_phi_2.append(passingJetsPhi[j2_idx])
         mjj_array.append(mjj)
-        #mjj_array.append((j1_TVec+j2_TVec).M())
         detajj_array.append(abs(j1_TVec.Eta()-j2_TVec.Eta()))
       else:
         CleanJetGT30_pt_1.append(passingJetsPt[0])
@@ -234,6 +238,10 @@ def make_jet_cut(event_dictionary, jet_mode):
     #event_dictionary["CleanJetGT30_phi_3"] = np.array(CleanJetGT30_phi_3)
     event_dictionary["FS_mjj"] = np.array(mjj_array)
     event_dictionary["FS_detajj"] = np.array(detajj_array)
+    event_dictionary["FS_j1index"] = np.array(j1_idxs_array)
+    event_dictionary["FS_j2index"] = np.array(j2_idxs_array)
+    #event_dictionary["FS_dijet_pair_calc"] = np.array(dijet_idxs_array_calc)
+    #event_dictionary["FS_dijet_pair_HTT"]  = np.array(dijet_idxs_array_HTT)
 
   elif jet_mode == "GTE1j":
     event_dictionary["pass_GTE1j_cuts"]    = np.array(pass_GTE1j_cuts)
@@ -277,12 +285,22 @@ def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
     if delete_sample:
       pass
 
-    # special handling, will need to be adjusted by hand for excatly 2j or 3j studies # DEBUG
-    # this only works for GTE2j, not Inclusive because the "apply_cut" method for jets is never called there # DEBUG
-    if (("pass_GTE2j_cuts" in event_dictionary) and
-        (branch == "HTT_DiJet_dEta_fromHighestMjj" or branch == "HTT_DiJet_MassInv_fromHighestMjj")):
-      #print("very special GTE2j handling underway") # DEBUG
-      event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary["pass_GTE2j_cuts"])
+    # TODO: fix this
+    # special handling, will need to be adjusted by hand for exactly 2j or 3j studies
+    # this only works for GTE2j, not Inclusive because the "apply_cut" method for jets is never called there
+    #if (("pass_GTE2j_cuts" in event_dictionary) and ("dijet" in branch.lower())):
+    if (("pass_GTE2j_cuts" in event_dictionary) and ("dijet" in branch.lower()) and (branch != "FS_dijet_pair_calc")):
+    #if (("pass_GTE2j_cuts" in event_dictionary) and ("dijet" in branch.lower()) and (branch not in protected_branches)):
+      print("very special GTE2j handling underway") # DEBUG
+      print(branch)
+      cut_len    = len(event_dictionary["pass_GTE2j_cuts"])
+      branch_len = len(event_dictionary[branch])
+      print(f" pass_GTE2j_cuts len : {cut_len}")
+      print(f" branch len          : {branch_len}")
+      if ( cut_len == branch_len):
+        pass
+      else:
+        event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary["pass_GTE2j_cuts"])
       #if (branch == "CleanJetGT30_pt_3" or branch == "CleanJetGT30_eta_3"):
       #  event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary["pass_3j_cuts"])
 
