@@ -167,7 +167,8 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
   error_down  = stack_top - total_error
 
   histogram_axis.stackplot(xbins, stack_array, step="post", edgecolor="black", colors=color_array, labels=label_array)
-  histogram_axis.fill_between(xbins, error_down, error_up, step="post", color="gray", alpha=0.15)
+  histogram_axis.fill_between(xbins, error_down, error_up, step="post", 
+                              color="grey", alpha=0.45, edgecolor="none", hatch="/////") # no hatchcolor option :(
 
 
 def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity,
@@ -273,7 +274,7 @@ def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, 
   add_CMS_preliminary(axis)
   add_final_state_and_jet_mode(axis, final_state_mode, jet_mode)
   axis.set_title(title, loc='right', y=0.98)
-  axis.set_ylabel("Events / bin")
+  axis.set_ylabel("Events")
   axis.minorticks_on()
   axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
   axis.set_xlabel(variable_name)
@@ -295,7 +296,7 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
   add_CMS_preliminary(histogram_axis)
   add_final_state_and_jet_mode(histogram_axis, final_state_mode, jet_mode)
   histogram_axis.set_title(title, loc='right', y=0.98)
-  histogram_axis.set_ylabel("Events / bin")
+  histogram_axis.set_ylabel("Events")
   histogram_axis.minorticks_on()
   histogram_axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
   #yticks = histogram_axis.yaxis.get_major_ticks()
@@ -532,8 +533,10 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
     h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
     h_MC_by_family["myQCD"]["BinnedErrors"] = h_MC_by_process["myQCD"]["BinnedErrors"]
     all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
+    #all_MC_families  = ["TT", "ST", "WJ", "VV", "DYInc"] 
   else:
     all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"]
+    #all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYInc"]
   used_MC_families = []
   for family in all_MC_families:
     for process in h_MC_by_process:
@@ -588,12 +591,7 @@ def accumulate_MC_subprocesses(parent_process, process_dictionary):
   accumulated_errors = 0
   for MC_process in process_dictionary:
     skip_process = False
-    if (MC_process == "DYGen") or (MC_process == "DYGenNLO"):
-      skip_process = True
-    if (MC_process == "DYLep") or (MC_process == "DYLepNLO"):
-      skip_process = True
-    if (MC_process == "DYJet") or (MC_process == "DYJetNLO"):
-      skip_process = True
+    if ("DY" in MC_process): skip_process = True # DYInc, DYGen, DYLep, DYJet are essentially preprocessed
     if get_parent_process(MC_process, skip_process=skip_process) == parent_process:
       accumulated_values += process_dictionary[MC_process]["BinnedEvents"]
       accumulated_errors += process_dictionary[MC_process]["BinnedErrors"]
@@ -615,7 +613,6 @@ def get_parent_process(MC_process, skip_process=False):
   #elif "LepFakes" in MC_process:  parent_process = "DYLepFakes" # DEBUG
   #elif "Genuine"  in MC_process:  parent_process = "DY" # DEBUG
   if skip_process: parent_process = MC_process
-  #if "DY" in MC_process: parent_process = "DY"
   elif ("QCD" in MC_process) and (MC_process != "myQCD"): parent_process = "QCD"
   elif "WJets" in MC_process:  parent_process = "WJ"
   elif "TT"    in MC_process:  parent_process = "TT"
@@ -704,27 +701,35 @@ clean_jet_vars = {
     "GTE2j" : ["nCleanJetGT30", 
                "CleanJetGT30_pt_1", "CleanJetGT30_eta_1", "CleanJetGT30_phi_1",
                "CleanJetGT30_pt_2", "CleanJetGT30_eta_2", "CleanJetGT30_phi_2",
-               "FS_mjj", "FS_detajj",
+               "FS_mjj", "FS_detajj", 
+               "FS_j1index", "FS_j2index", 
+               #"FS_dijet_pair_calc", "FS_dijet_pair_HTT",
               ],
 }
 
 def set_vars_to_plot(final_state_mode, jet_mode="none"):
   '''
   Helper function to keep plotting variables organized
-  Shouldn't this be in  plotting functions?
   '''
-  #vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
-  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2",
-                  "PuppiMET_pt", "PuppiMET_phi", "PV_npvs"]
-                  #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj"] 
-                  # common to all final states # add Tau_decayMode
+  #vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mT", "FastMTT_mass",
+  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+                  "PuppiMET_pt", "PuppiMET_phi", "PV_npvs",
+                  #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj",
+                  #"HTT_DiJet_MassInv_fromLeadingJets", "HTT_DiJet_dEta_fromLeadingJets",
+                  #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
+                 ] 
+                  # common to all final states
   FS_vars_to_add = final_state_vars[final_state_mode]
   for var in FS_vars_to_add:
     vars_to_plot.append(var)
 
   jet_vars_to_add = clean_jet_vars[jet_mode]
-  #if (jet_mode=="Inclusive") or (jet_mode=="GTE2j"):
-  #  jet_vars_to_add += ["HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj"]
+  if (jet_mode=="Inclusive") or (jet_mode=="GTE2j"):
+    pass
+    #jet_vars_to_add += ["HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
+    #                    "HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
+    #                    "HTT_DiJet_j1index", "HTT_DiJet_j2index",
+    #                   ]
   for jet_var in jet_vars_to_add:
     vars_to_plot.append(jet_var)
 

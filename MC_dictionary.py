@@ -65,13 +65,15 @@ MC_dictionary = {
   "VBF_new"  : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 1},
 
   "DYInc"    : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.12}, # k-factor to NNLO
+  "DY10to50" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.12}, # k-factor to NNLO
 
   # copies of DYInc with different colors and labels
   "DYGen"    : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1.12},
   "DYLep"    : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1.12},
   "DYJet"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1.12},
 
-  "DYIncNLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DYIncNLO"    : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DY10to50NLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
   # copies of DYIncNLO with different colors and labels
   "DYGenNLO" : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1},
   "DYLepNLO" : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1},

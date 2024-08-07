@@ -5,11 +5,14 @@ def set_branches(final_state_mode, DeepTau_version, process="None"):
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass",
+    #"HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mT", "FastMTT_mass",
     "HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
     "HTT_pdgId",
     #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
     "PV_npvs", "Pileup_nPU",
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
+    #"HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
+    #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
   ]
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
