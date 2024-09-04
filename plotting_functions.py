@@ -663,8 +663,8 @@ def get_MC_weights(MC_dictionary, process):
 final_state_vars = {
     # can't put nanoaod branches here because this dictionary is used to protect branches created internally
     "none"   : [],
-    "ditau"  : ["FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_dxy", "FS_t1_dz", "FS_t1_chg", "FS_t1_DM",
-                "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_dxy", "FS_t2_dz", "FS_t2_chg", "FS_t2_DM",
+    "ditau"  : ["FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_dxy", "FS_t1_dz", "FS_t1_chg", "FS_t1_DM", "FS_t1_mass",
+                "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_dxy", "FS_t2_dz", "FS_t2_chg", "FS_t2_DM", "FS_t2_mass",
                 "FS_t1_flav", "FS_t2_flav", 
                 #"FS_t1_rawPNetVSjet", "FS_t1_rawPNetVSmu", "FS_t1_rawPNetVSe",
                 #"FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
@@ -674,13 +674,14 @@ final_state_vars = {
                ],
 
     "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
-                "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_DM",
+                "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_mass", "FS_tau_DM",
                 "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet", "FS_acoplan",
+                "FS_LeadTkPtOverTau",
                 #"FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
                ],
 
     "mutau_TnP"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
-                    "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_DM",
+                    "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_mass", "FS_tau_DM",
                     "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet", "FS_acoplan", "pass_tag", "pass_probe"
                    ],
 
@@ -726,6 +727,7 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   #vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mT", "FastMTT_mass",
   vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
                   "PuppiMET_pt", "PuppiMET_phi", "PV_npvs",
+                  "HTT_H_pt_using_PUPPI_MET",
                   #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj",
                   #"HTT_DiJet_MassInv_fromLeadingJets", "HTT_DiJet_dEta_fromLeadingJets",
                   #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
