@@ -75,6 +75,7 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
         lep_fake = True
         event_flavor.append("L")
 
+    # TODO: Braden I don't think this is gen-matching
     else:
       print(f"No gen matching for that final state ({final_state_mode}), no branches appended")
       return event_dictionary
