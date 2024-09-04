@@ -93,6 +93,9 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "PUweight"  :  cut_events["PUweight"],
       "SF_weight": np.ones(cut_events["Generator_weight"].shape)
     }
+    if ("DY" in process) and ("LO" in process):  print("using LO DY ZpT")
+    elif ("DY" in process) and ("LO" not in process):  print("using NLO DY ZpT")
+    else:  pass
     #if "DY" in process: combined_processes[process]["Weight_DY_Zpt_by_hand"] = cut_events["Weight_DY_Zpt_by_hand"]
   elif "Data" in process:
     combined_processes[process] = { 
@@ -122,24 +125,25 @@ def load_and_store_NWEvents(process, event_dictionary):
   '''
   #MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0]
   MC_dictionary[process]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
-  #if "VBF" in process: # TODO: address this hardcoding at some point
-  #  print("HARDCODING VBF NWEVENTS AND XSECMCWEIGHT")
-  #  MC_dictionary[process]["XSecMCweight"] = 0.002829568
-  if "ggH" in process: # TODO: address this hardcoding at some point, only necessary in preEE?
+  if "VBF" in process:
+    print("HARDCODING VBF NWEVENTS AND XSECMCWEIGHT")
+    ##MC_dictionary[process]["XSecMCweight"] = 0.002829568
+    #MC_dictionary[process]["XSecMCweight"] = 0.0016263 # from "nominal" preEE sample
+  if "ggH" in process:
     print("HARDCODING ggH NWEVENTS AND XSECMCWEIGHT")
-    MC_dictionary[process]["XSecMCweight"] = 0.002781924
+    #MC_dictionary[process]["XSecMCweight"] = 0.0027819 # from "nominal" preEE sample
   #print("XSecMCweight", process, MC_dictionary[process]["XSecMCweight"]) # DEBUG
   #event_dictionary.pop("NWEvents")
   event_dictionary.pop("XSecMCweight")
 
 
 def customize_DY(process, final_state_mode):
-  for DYtype in ["DYGen", "DYLep", "DYJet"]:
+  for DYtype in ["DYGen", "DYLep", "DYJet", "DYGen10to50", "DYLep10to50", "DYJet10to50"]:
     MC_dictionary[DYtype]["XSecMCweight"] = MC_dictionary[process]["XSecMCweight"]
   label_text = { "ditau" : r"$Z{\rightarrow}{\tau_h}{\tau_h}$",
-                 "mutau" : r"$Z{\rightarrow}{tau_{\mu}}{\tau_h}$",
-                 "etau"  : r"$Z{\rightarrow}{tau_e}{\tau_h}$",
-                 "emu"   : r"$Z{\rightarrow}{tau_e}{tau_{\mu}}$",
+                 "mutau" : r"$Z{\rightarrow}{\tau_{\mu}}{\tau_h}$",
+                 "etau"  : r"$Z{\rightarrow}{\tau_e}{\tau_h}$",
+                 "emu"   : r"$Z{\rightarrow}{\tau_e}{tau_{\mu}}$",
                  "mutau_TnP" : r"$Z{\rightarrow}{\mu}{\tau_h}$",
                  "dimuon": r"$Z{\rightarrow}{\mu}{\mu}$"}
   MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]

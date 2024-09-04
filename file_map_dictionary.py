@@ -62,7 +62,7 @@ testing_file_map = {
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
 
   "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
-  "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
+  "DYIncNLO" : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
 
   "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
   "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
@@ -79,13 +79,15 @@ full_file_map = {
   "DataElectron" : "Data/EGamma_Run*",
   "DataEMu"  : "Data/MuonEG_Run*",
 
-  "DYInc" : "DY/DYJetsToLL_M-50_LO_HTauTau*",
+  "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
+  #"DY10to50" : "DY/DYJetsToLL_M-10to50_LO_HTauTau*",
   #"DYJetsToLL_M-50_1J" : "DY/DYJetsToLL_M-50_1J*",
   #"DYJetsToLL_M-50_2J" : "DY/DYJetsToLL_M-50_2J*",
   #"DYJetsToLL_M-50_3J" : "DY/DYJetsToLL_M-50_3J*",
   #"DYJetsToLL_M-50_4J" : "DY/DYJetsToLL_M-50_4J*",
 
-  "DYIncNLO" : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
+  "DYIncNLO"    : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
+  #"DY10to50NLO" : "DY/DYJetsToLL_M-10to50_NLO_HTauTau*",
 
   "TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
@@ -139,6 +141,6 @@ full_file_map = {
   #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
 
   #"VBF"   : "Signal/VBF*private*",
-  #"VBF"   : "Signal/VBF*",
+  "VBF"   : "Signal/VBF*",
   "ggH"   : "Signal/ggH*",
 }
