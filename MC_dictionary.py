@@ -71,6 +71,10 @@ MC_dictionary = {
   "DYGen"    : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1.12},
   "DYLep"    : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1.12},
   "DYJet"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1.12},
+  "DYGen10to50"    : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1.12},
+  "DYLep10to50"    : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1.12},
+  "DYJet10to50"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1.12},
+
 
   "DYIncNLO"    : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
   "DY10to50NLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
@@ -116,6 +120,13 @@ MC_dictionary = {
   "ZZTo2L2Q"           : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
   "ZZTo2Nu2Q"          : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
   "ZZTo4L"             : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
+
+  #"ggH_WW"             : {"XSec": XSec["ggH_WW"], "NWEvents": 1, 
+  #                        "label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
+  #"VBF_WW"             : {"XSec": XSec["VBF_WW"], "NWEvents": 1, 
+  #                        "label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
+  #"ttH_WW"             : {"XSec": XSec["ttH_WW"], "NWEvents": 1, 
+  #                        "label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
 
   # XSecMCweight is defined here for JetFakes process because it isn't set autmatically elsewhere
   "myQCD"              : {"label": "Jet Fakes", "color": color_dictionary["QCD"], "plot_scaling" : 1, "XSecMCweight" : 1},
