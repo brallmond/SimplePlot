@@ -10,6 +10,7 @@ def set_branches(final_state_mode, DeepTau_version, process="None"):
     "HTT_pdgId",
     #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
     "PV_npvs", "Pileup_nPU",
+    "HTT_H_pt_using_PUPPI_MET",
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
     #"HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
     #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
@@ -28,20 +29,20 @@ def add_final_state_branches(branches_, final_state_mode):
   Helper function to add only relevant branches to loaded branches based on final state.
   '''
   final_state_branches = {
-    "ditau"  : ["Lepton_tauIdx", "Tau_dxy", "Tau_dz", "Tau_charge", "PuppiMET_pt", "PuppiMET_phi"],
+    "ditau"  : ["Lepton_tauIdx", "Tau_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "PuppiMET_pt", "PuppiMET_phi"],
 
     "mutau"  : ["Muon_dxy", "Muon_dz", "Muon_charge",
-                "Tau_dxy", "Tau_dz", "Tau_charge",
+                "Tau_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_leadTkPtOverTauPt",
                 "Lepton_tauIdx", "Lepton_muIdx",
                 "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
 
     "mutau_TnP"  : ["Muon_dxy", "Muon_dz", "Muon_charge",
-                "Tau_dxy", "Tau_dz", "Tau_charge",
+                "Tau_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_leadTkPtOverTauPt",
                 "Lepton_tauIdx", "Lepton_muIdx",
                 "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
 
     "etau"   : ["Electron_dxy", "Electron_dz", "Electron_charge", 
-                "Tau_dxy", "Tau_dz", "Tau_charge", 
+                "Tau_mass", "Tau_dxy", "Tau_dz", "Tau_charge", 
                 "Lepton_tauIdx", "Lepton_elIdx",
                 "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
 
