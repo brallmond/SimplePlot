@@ -88,7 +88,7 @@ if __name__ == "__main__":
     cut_events = apply_HTT_FS_cuts_to_process(process, new_process_dictionary, log_file, final_state_mode, jet_mode,
                                               DeepTau_version=DeepTau_version)
     if cut_events == None: continue
-
+    
     # TODO : extendable to jet cuts (something I've meant to do for some time)
     if ("DY" in process) and (final_state_mode != "dimuon"):
       # def split_DY_by_gen, return combined_process_dictionary
@@ -118,16 +118,21 @@ if __name__ == "__main__":
       background_jet_deepcopy = apply_cut(background_jet_deepcopy, "pass_flavor_cut", protected_branches)
       if background_jet_deepcopy == None: continue
 
-      combined_process_dictionary = append_to_combined_processes("DYGen", background_gen_deepcopy, vars_to_plot, 
+      if ("Inc" in process): process = "DY"
+      if ("10to50" in process): process = "DY10to50"
+      combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYGen"), background_gen_deepcopy, vars_to_plot, 
                                                                  combined_process_dictionary)
-      combined_process_dictionary = append_to_combined_processes("DYLep", background_lep_deepcopy, vars_to_plot, 
+      combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYLep"), background_lep_deepcopy, vars_to_plot, 
                                                                  combined_process_dictionary)
-      combined_process_dictionary = append_to_combined_processes("DYJet", background_jet_deepcopy, vars_to_plot, 
+      combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYJet"), background_jet_deepcopy, vars_to_plot, 
                                                                  combined_process_dictionary)
       
     else:
       combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
                                                                  combined_process_dictionary)
+    #combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
+    #                                                           combined_process_dictionary)
+ 
 
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
@@ -142,8 +147,23 @@ if __name__ == "__main__":
   eta_phi_plot = False
   if (eta_phi_plot == True): make_eta_phi_plot(data_dictionary, dataset, final_state_mode, jet_mode, "Data")
 
-  #vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx"]
+  vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
+  CUSTOM_VARS = False
+  if CUSTOM_VARS == True:
+    vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx",
+                    "HTT_DiJet_MassInv_fromHighestMjj",
+                    "HTT_DiJet_MassInv_fromLeadingJets",
+                    "HTT_DiJet_dEta_fromHighestMjj",
+                    "HTT_DiJet_dEta_fromLeadingJets",
+                    "HTT_DiJet_j1index",
+                    "HTT_DiJet_j2index",
+                    "FS_mjj",
+                    "FS_detajj",
+                    "FS_j1index",
+                    "FS_j2index",
+                    "FS_dijet_pair_calc",
+                    "FS_dijet_pair_HTT",
+                   ]
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")
@@ -154,6 +174,7 @@ if __name__ == "__main__":
 
     xbins = make_bins(var, final_state_mode)
     hist_ax, hist_ratio = setup_ratio_plot()
+    #hist_ax = setup_single_plot() # part of removing data
 
     temp_var = var # hack to plot the same variable twice with two different binnings
     if "HTT_m_vis" in var: var = "HTT_m_vis"
@@ -179,6 +200,7 @@ if __name__ == "__main__":
     title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
     title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
     
+    #spruce_up_single_plot(hist_ax, label_dictionary[var], "Events", title, final_state_mode, jet_mode)
     spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, set_x_log=False)
     spruce_up_legend(hist_ax, final_state_mode)
 
@@ -187,7 +209,7 @@ if __name__ == "__main__":
     add_text(hist_ax, text)
 
     plt.savefig(plot_dir + "/" + str(var) + ".png")
-
+ 
     #if (var == "HTT_m_vis-KSUbinning"): make_pie_chart(h_data, h_backgrounds)
 
     # calculate and print these quantities only once
