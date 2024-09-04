@@ -15,6 +15,7 @@ label_dictionary = {
   "FS_t1_dz"   : r'Leading Tau $D_Z$',
   "FS_t1_chg"  : r'Leading Tau Charge',
   "FS_t1_DM"   : r'Leading Tau Decay Mode',
+  "FS_t1_mass" : r'Leading Tau Mass',
 
   "FS_t2_pt"  : r'Sub-leading Tau $p_T$ [GeV]',
   "FS_t2_eta" : r'Sub-leading Tau $\eta$',
@@ -26,6 +27,7 @@ label_dictionary = {
   "FS_t2_dz"   : r'Sub-leading Tau $D_Z$',
   "FS_t2_chg"  : r'Sub-leading Tau Charge',
   "FS_t2_DM"   : r'Sub-leading Tau Decay Mode',
+  "FS_t2_mass" : r'Sub-leading Tau Mass',
 
   "FS_trig_idx" : r'Trigger Indices',
 
@@ -69,6 +71,7 @@ label_dictionary = {
   "FS_tau_dxy" : r'Tau $D_{xy}$',
   "FS_tau_dz"  : r'Tau $D_{z}$',
   "FS_tau_chg" : r'Tau Charge',
+  "FS_tau_mass": r'Tau Mass',
   "FS_tau_DM"  : r'Tau Decay Mode',
 
   "FS_mt"      : r'Transverse Mass',
@@ -109,6 +112,8 @@ label_dictionary = {
 
   "pass_tag"    : r'Pass Tag Requirements',
   "pass_probe"    : r'Pass Probe Requirements',
+
+  "FS_LeadTkPtOverTau" : r'Lead Tau Track $p_T$ / Tau $p_T$'
 }
 
 #  channel {
@@ -126,6 +131,8 @@ binning_dictionary = {
     "FS_t1_dz"   : np.linspace(0, 0.25, 50+1),
     "FS_t1_chg"  : np.linspace(-2, 2, 5+1),
     "FS_t1_DM"   : np.linspace(0, 19, 20+1),
+    "FS_t1_mass" : np.linspace(0, 3, 30+1),
+
     "FS_t1_rawPNetVSjet" : np.linspace(0, 1, 50+1),
     "FS_t1_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
     "FS_t1_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
@@ -140,6 +147,8 @@ binning_dictionary = {
     "FS_t2_dz"   : np.linspace(0, 0.25, 50+1),
     "FS_t2_chg"  : np.linspace(-2, 2, 5+1),
     "FS_t2_DM"   : np.linspace(0, 19, 20+1),
+    "FS_t2_mass" : np.linspace(0, 3, 30+1),
+
     "FS_t2_rawPNetVSjet" : np.linspace(0, 1, 50+1),
     "FS_t2_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
     "FS_t2_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
@@ -163,10 +172,13 @@ binning_dictionary = {
     "FS_tau_dz"  : np.linspace(0, 0.25, 50+1),
     "FS_tau_chg" : np.linspace(-2, 2, 5+1),
     "FS_tau_DM"  : np.linspace(0, 19, 20+1),
+    "FS_tau_mass" : np.linspace(0, 3, 30+1),
 
     "FS_tau_rawPNetVSjet" : np.linspace(0, 1, 50+1),
     "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
     "FS_tau_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
+
+    "FS_LeadTkPtOverTau" : np.linspace(0, 1, 51),
   },
 
   "etau" : {
@@ -185,6 +197,7 @@ binning_dictionary = {
     "FS_tau_dz"  : np.linspace(0, 0.25, 50+1),
     "FS_tau_chg" : np.linspace(-2, 2, 5+1),
     "FS_tau_DM"  : np.linspace(0, 19, 20+1),
+    "FS_tau_mass" : np.linspace(0, 3, 30+1),
 
     "FS_tau_rawPNetVSjet" : np.linspace(0, 1, 50+1),
     "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
