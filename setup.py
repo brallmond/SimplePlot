@@ -20,7 +20,7 @@ class setup_handler:
     self.parser.add_argument('--hide_plots',   dest='hide_plots',  default=False,       action='store_true')
     self.parser.add_argument('--hide_yields',  dest='hide_yields', default=False,       action='store_true')
     self.parser.add_argument('--do_JetFakes',  dest='do_JetFakes', default=True,        action='store')
-    self.parser.add_argument('--semilep_mode', dest='semilep_mode', default="QCD",      action='store')
+    self.parser.add_argument('--semilep_mode', dest='semilep_mode', default="Full",      action='store')
     self.parser.add_argument('--use_new',      dest='use_new',      default="True",    action='store')
 
     args = self.parser.parse_args()
