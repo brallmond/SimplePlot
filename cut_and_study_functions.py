@@ -442,7 +442,6 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
       #append_Zpt_weight(process_events)
     keep_fakes = False
     #keep_fakes = True # TODO : fix this block
-    #'''
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("mutau" in final_state_mode)):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
@@ -452,7 +451,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
     #if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("ditau" in final_state_mode)):
     if ( (("DY" in process) or ("QCD" in process)) and (final_state_mode=="ditau")):
       keep_fakes = True
-    #'''
+    #print("KEEPING ALL FAKES!") #DEBUG
     process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
     process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
