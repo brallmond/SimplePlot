@@ -109,6 +109,7 @@ label_dictionary = {
   "FastMTT_PUPPIMET_mT"   : r'Fast MTT Transverse Mass [GeV]',
   "FastMTT_PUPPIMET_mass" : r'Fast MTT Mass [GeV]',
   "PV_npvs"     : r'Number of Primary Vertices',
+  "Generator_weight" : r'Generator weight',
 
   "pass_tag"    : r'Pass Tag Requirements',
   "pass_probe"    : r'Pass Probe Requirements',
@@ -296,5 +297,6 @@ binning_dictionary = {
     "FS_t2_flav" : np.linspace(0, 11, 11+1),
     "PV_npvs"    : np.linspace(0, 90, 30+1),
     #"run"        : np.linspace(355000, 365000, 10000),
+    "Generator_weight" : np.linspace(-100, 100, 100+1),
   }
 }
