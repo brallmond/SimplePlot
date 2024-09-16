@@ -92,7 +92,7 @@ class setup_handler:
     return file_map
 
 
-def set_good_events(final_state_mode, AR_region=False, disable_triggers=False, useMiniIso=False):
+def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_triggers=False, useMiniIso=False):
   '''
   Return a string defining a 'good_events' flag used by uproot to preskim input events
   to only those passing these simple requirements. 'good_events' changes based on
@@ -140,7 +140,7 @@ def set_good_events(final_state_mode, AR_region=False, disable_triggers=False, u
   #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_TauEE) & (JetMapVeto_TauHotCold)"
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
   good_events += jet_vetomaps
-  if AR_region: return good_events # give output with MET filters, lepton veto, and veto maps
+  if (AR_region or DR_region): return good_events # give output with MET filters, lepton veto, and veto maps
 
   HTT_preselect_events = " & (HTT_SRevent)"
   good_events += HTT_preselect_events

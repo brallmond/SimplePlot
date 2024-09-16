@@ -166,8 +166,9 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
     current_hist = stack_dictionary[MC_process]["BinnedEvents"]
     current_hist = np.append(current_hist, 0) # adding empty element to get around step="post" in stackplot
     stack_top   += current_hist
-    if "QCD" not in MC_process:
-      total_error += stack_dictionary[MC_process]["BinnedErrors"]
+    #if "QCD" not in MC_process:
+    #  total_error += stack_dictionary[MC_process]["BinnedErrors"]
+    total_error += stack_dictionary[MC_process]["BinnedErrors"]
     label += f" [{np.sum(current_hist):>.0f}]"
     color_array.append(color)
     label_array.append(label)
@@ -180,7 +181,7 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
 
   histogram_axis.stackplot(xbins, stack_array, step="post", edgecolor="black", colors=color_array, labels=label_array)
   histogram_axis.fill_between(xbins, error_down, error_up, step="post", 
-                              color="grey", alpha=0.45, edgecolor="none", hatch="/////") # no hatchcolor option :(
+                              color="grey", alpha=0.50, edgecolor="none", hatch="/////") # no hatchcolor option :(
 
 
 def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity,
@@ -207,7 +208,7 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   if "alt" in process: process = process.replace("_alt","")
   color = MC_dictionary[process]["color"]
   label = MC_dictionary[process]["label"]
-  lumi_key = [key for key in luminosities.items() if key[1] == luminosity][0][0]
+  lumi_key = "" if "QCD" in process else [key for key in luminosities.items() if key[1] == luminosity][0][0]
   if scaling:
     scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
     # hacky unscaling and rescaling so that "testing" still works
@@ -215,6 +216,8 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
       scaling *= 1 / luminosities["2022 CD"]
     elif ("E" in lumi_key) or ("F" in lumi_key) or ("G" in lumi_key):
       scaling *= 1 / luminosities["2022 EFG"]
+    elif (lumi_key == ""):
+      print(f"custom luminosity set to {luminosity} for {process} process")
     else:
       print(f"unrecognized lumi_key: {lumi_key}")
     scaling *= luminosity
