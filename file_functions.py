@@ -93,8 +93,8 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "PUweight"  :  cut_events["PUweight"],
       "SF_weight": np.ones(cut_events["Generator_weight"].shape)
     }
-    if ("DY" in process) and ("LO" in process):  print("using LO DY ZpT")
-    elif ("DY" in process) and ("LO" not in process):  print("using NLO DY ZpT")
+    if   ("DY" in process) and ("NLO" not in process): print("using LO DY ZpT")
+    elif ("DY" in process) and ("NLO" in process):     print("using NLO DY ZpT")
     else:  pass
     #if "DY" in process: combined_processes[process]["Weight_DY_Zpt_by_hand"] = cut_events["Weight_DY_Zpt_by_hand"]
   elif "Data" in process:
@@ -105,7 +105,7 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
     if ("FF_weight" in cut_events.keys()):
       combined_processes[process]["FF_weight"] = cut_events["FF_weight"]
   for var in vars_to_plot:
-    if ("Data" in process) and ("flav" in var): continue
+    if ("Data" in process) and (("flav" in var) or ("Generator" in var)): continue
     combined_processes[process]["PlotEvents"][var] = cut_events[var]
 
   for cut in ["pass_cuts", "event_flavor",
@@ -123,22 +123,27 @@ def load_and_store_NWEvents(process, event_dictionary):
   Read the NWEvents value for a sample and store it in the MC_dictionary,
   overriding the hardcoded values from V11 samples. Delete the NWEvents branch after.
   '''
-  #MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0]
+  #MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0] # old style
   MC_dictionary[process]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
+  #MC_dictionary[process]["XSecMCweight"]  = 1 # DEBUG
   if "VBF" in process:
     print("HARDCODING VBF NWEVENTS AND XSECMCWEIGHT")
     ##MC_dictionary[process]["XSecMCweight"] = 0.002829568
-    #MC_dictionary[process]["XSecMCweight"] = 0.0016263 # from "nominal" preEE sample
+    MC_dictionary[process]["XSecMCweight"] = 0.0016263 # from "nominal" preEE sample # hack for pre Hlep
   if "ggH" in process:
     print("HARDCODING ggH NWEVENTS AND XSECMCWEIGHT")
-    #MC_dictionary[process]["XSecMCweight"] = 0.0027819 # from "nominal" preEE sample
+    #MC_dictionary[process]["XSecMCweight"] = 0.0027819 # from "nominal" preEE sample # hack for pre Hlep
   #print("XSecMCweight", process, MC_dictionary[process]["XSecMCweight"]) # DEBUG
   #event_dictionary.pop("NWEvents")
   event_dictionary.pop("XSecMCweight")
 
 
 def customize_DY(process, final_state_mode):
-  for DYtype in ["DYGen", "DYLep", "DYJet", "DYGen10to50", "DYLep10to50", "DYJet10to50"]:
+  DYtypes_LO  = ["DYGen", "DYLep", "DYJet", "DYGen10to50", "DYLep10to50", "DYJet10to50"]
+  DYtypes_NLO = ["DYGenNLO", "DYLepNLO", "DYJetNLO", "DYGen10to50NLO", "DYLep10to50NLO", "DYJet10to50NLO"]
+  combined_DYtypes = DYtypes_LO + DYtypes_NLO
+  #for DYtype in ["DYGen", "DYLep", "DYJet", "DYGen10to50", "DYLep10to50", "DYJet10to50"]:
+  for DYtype in combined_DYtypes:
     MC_dictionary[DYtype]["XSecMCweight"] = MC_dictionary[process]["XSecMCweight"]
   label_text = { "ditau" : r"$Z{\rightarrow}{\tau_h}{\tau_h}$",
                  "mutau" : r"$Z{\rightarrow}{\tau_{\mu}}{\tau_h}$",
@@ -147,4 +152,5 @@ def customize_DY(process, final_state_mode):
                  "mutau_TnP" : r"$Z{\rightarrow}{\mu}{\tau_h}$",
                  "dimuon": r"$Z{\rightarrow}{\mu}{\mu}$"}
   MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]
+  MC_dictionary["DYGenNLO"]["label"] = label_text[final_state_mode]
 

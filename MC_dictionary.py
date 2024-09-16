@@ -82,6 +82,11 @@ MC_dictionary = {
   "DYGenNLO" : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1},
   "DYLepNLO" : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1},
   "DYJetNLO" : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1},
+  "DYGen10to50NLO"    : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1},
+  "DYLep10to50NLO"    : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1},
+  "DYJet10to50NLO"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1},
+
+
 
 
 

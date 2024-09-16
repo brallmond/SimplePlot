@@ -62,7 +62,7 @@ if __name__ == "__main__":
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
   using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
-  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
+  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _ = setup.misc_info
 
   print_setup_info(setup)
 
@@ -118,15 +118,17 @@ if __name__ == "__main__":
       background_jet_deepcopy = apply_cut(background_jet_deepcopy, "pass_flavor_cut", protected_branches)
       if background_jet_deepcopy == None: continue
 
-      if ("Inc" in process): process = "DY"
-      if ("10to50" in process): process = "DY10to50"
+      new_process = ""
+      if ("Inc" in process): new_process = "DY"
+      if ("10to50" in process): new_process = "DY10to50"
+      if ("NLO" in process): new_process += "NLO"
+      process = new_process
       combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYGen"), background_gen_deepcopy, vars_to_plot, 
                                                                  combined_process_dictionary)
       combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYLep"), background_lep_deepcopy, vars_to_plot, 
                                                                  combined_process_dictionary)
       combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYJet"), background_jet_deepcopy, vars_to_plot, 
                                                                  combined_process_dictionary)
-      
     else:
       combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
                                                                  combined_process_dictionary)
@@ -217,7 +219,7 @@ if __name__ == "__main__":
       desired_order=["Data", "Z", "DY, j", "Z{\rightarrow}ll", "TT", "ST", "W+", "Diboson", "VBF", "ggH", "Fakes"]
       labels, yields = yields_for_CSV(hist_ax, desired_order)
       for val_label, val_yield in zip(desired_order, yields):
-        if ("VBF" in val_label): val_yield = val_yield/500.0 # VBF scaling
+        if ("VBF" in val_label): val_yield = val_yield/100.0 # VBF scaling
         if ("ggH" in val_label): val_yield = val_yield/100.0 # ggH scaling
         print(f"{val_label}, {val_yield}")
       log_print(f"Reordered     Labels: {labels}", log_file)
