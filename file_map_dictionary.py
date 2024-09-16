@@ -51,6 +51,14 @@ def update_data_filemap(luminosity_key, file_map):
     file_map["DataTau"]      = "Data/Tau_Run2022*"
     file_map["DataMuon"]     = "Data/Muon_Run2022*"
     file_map["DataElectron"] = "Data/EGamma_Run2022*"
+  if luminosity_key == "2023 C":
+    file_map["DataTau"]      = "Data/Tau_Run2023*"
+    file_map["DataMuon"]     = "Data/Muon_Run2023*"
+    file_map["DataElectron"] = "Data/EGamma_Run2023*"
+  if luminosity_key == "2023 D":
+    file_map["DataTau"]      = "Data/Tau_Run2023*"
+    file_map["DataMuon"]     = "Data/Muon_Run2023*"
+    file_map["DataElectron"] = "Data/EGamma_Run2023*"
   return file_map 
 
 testing_file_map = {
@@ -143,4 +151,6 @@ full_file_map = {
   #"VBF"   : "Signal/VBF*private*",
   "VBF"   : "Signal/VBF*",
   "ggH"   : "Signal/ggH*",
+  #"VBF"   : "Signal/VBF*UnFiltered*",
+  #"ggH"   : "Signal/ggH*UnFiltered*",
 }
