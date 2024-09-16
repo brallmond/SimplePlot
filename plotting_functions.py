@@ -158,6 +158,7 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
   total_error = 0
   stack_top   = 0
   for MC_process in stack_dictionary:
+    #print(MC_process) # DEBUG
     if custom == True:
       pass
     else:
@@ -652,11 +653,16 @@ def get_MC_weights(MC_dictionary, process):
   full_weights = gen * PU * TauSF * MuSF * ElSF *\
                  BTagSF * DY_Zpt * TT_NNLO
 
-  # use this to achieve no SF weights
+  # use this to achieve no SF weights, or no Gen Weights
   skip_SFs = False
+  inclued_gen_weights = True
   if skip_SFs == True:
-    print("  NO SFs APPLIED!  "*100)
-    return MC_dictionary[process]["Generator_weight"]
+    print("  NO SFs APPLIED!  ")
+    if include_gen_weights == False:
+      print("  NO GEN WEIGHTS APPLIED EITHER!  ")
+      return np.ones(np.shape(MC_dictionary[process]["Generator_weight"]))
+    else:
+      return MC_dictionary[process]["Generator_weight"]
   return full_weights
 
 
@@ -725,9 +731,11 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   Helper function to keep plotting variables organized
   '''
   #vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mT", "FastMTT_mass",
-  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", 
                   "PuppiMET_pt", "PuppiMET_phi", "PV_npvs",
-                  "HTT_H_pt_using_PUPPI_MET",
+                  #"Generator_weight",
+                  #"FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+                  #"HTT_H_pt_using_PUPPI_MET",
                   #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj",
                   #"HTT_DiJet_MassInv_fromLeadingJets", "HTT_DiJet_dEta_fromLeadingJets",
                   #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
