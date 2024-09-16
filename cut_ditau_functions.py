@@ -52,7 +52,7 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     t1_phi = lep_phi[l1_idx]
     t2_phi = lep_phi[l2_idx]
     j1_pt, j2_pt, mjj = -999, -999, -999 # dummy values to check kinem function
-    ST = False
+    ST = False # special tag
     if nJet == 0: pass
     elif nJet == 1: j1_pt = jet_pt[0]
     else:
@@ -64,6 +64,7 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
                 ditau_VBFRun2_trig, ditau_VBFRun3_trig]
     trig_results = pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta, j1_pt, j2_pt, mjj, ST, nJet)
     passKinems = (True in trig_results) # kinematics are passed if any of the above triggers+kinems pass
+    #if (passKinems and trig_results[0] != True): print(trig_results)
     #globalMjj  = 600
     #passKinems = (passKinems and (mjj <= globalMjj))
 
@@ -86,8 +87,14 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
 
     t1_mass = tau_mass[tau_idx[l1_idx]]
     t2_mass = tau_mass[tau_idx[l2_idx]]
-  
+
+    #subtau_req = (25 <= t2_pt < 50) # 25-50, 40-50, 50-70, >70
+    #subtau_req = (40 <= t2_pt < 50)
+    #subtau_req = (50 <= t2_pt < 70)
+    #subtau_req = (70 <= t2_pt)
+   
     if (passKinems and t1passDT and t2passDT and good_tau_decayMode):
+    #if (passKinems and t1passDT and t2passDT and good_tau_decayMode and subtau_req):
       pass_cuts.append(i)
       FS_t1_pt.append(t1_pt)
       FS_t1_eta.append(t1_eta)
@@ -154,12 +161,8 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
   print(f"nEvents before and after ditau cuts = {nEvents_precut}, {nEvents_postcut}")
   return event_dictionary
 
-
 def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta, 
                            j1_pt, j2_pt, mjj, special_tag, nJet):
-  '''
-  Helper function to apply different object kinematic criteria depending on trigger used
-  '''
   passTrig = False
   passTauKinems = False
   passJetKinems = False
@@ -168,55 +171,101 @@ def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta,
   # DiTau > DiTau + Jet > DiTau + Jet Backup > DiTau VBFRun3 > DiTau VBFRun2
   # 2 taus > 2 taus + 1 jet > 2 tau + 1 jet w higher kinems > 2 taus + 2 jets > 2 taus + 2 jets w higher kinems
   passTrig, passTauKinems, passJetKinems = False, False, False
-
-  #if (nJet == 0): 
-  #  print("nJet = 0")
-  #  passJetKinems = True # no jet requirements in nJet=0 category
-  #elif (nJet == 1):
-  #  passJetKinems = (j1_pt > 30.)
-  #else: # nJet >= 2
-  #  print("nJet > 1")
-  #  passJetKinems = ((j1_pt > 30.) and (j2_pt > 30.))
-
   pass_ditau = False
   if ditau_trig:
     passTrig = True
     passTauKinems = (t1_pt > 40 and t2_pt > 40 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
+    passJetKinems = True
     if (passTrig and passTauKinems and passJetKinems): pass_ditau = True
   passTrig, passTauKinems, passJetKinems = False, False, False
   pass_ditau_jet = False
   if (ditau_jet_low_trig or ditau_jet_high_trig) and not (ditau_trig):
-    print("in ditau_jet block")
     passTrig = True
     passTauKinems = (t1_pt > 35 and t2_pt > 35 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
-    passJetKinems = ((passJetKinems) and (j1_pt > 65))
+    #passJetKinems = (j1_pt > 65)
+    passJetKinems = (j1_pt > 65 and j2_pt > 30)
     if (passTrig and passTauKinems and passJetKinems): pass_ditau_jet = True
-    print(f"pass_ditau_jet: {pass_ditau_jet}")
   passTrig, passTauKinems, passJetKinems = False, False, False
   pass_ditau_VBFRun3 = False
   if (ditau_VBFRun3_trig) and not (ditau_trig or ditau_jet_low_trig or ditau_jet_high_trig):
     passTrig = True
     passTauKinems = (t1_pt > 50 and t2_pt > 25 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
-    passJetKinems = ((passJetKinems) and (j1_pt > 45 and j2_pt > 45 and mjj > 600))
+    passJetKinems = (j1_pt > 45 and j2_pt > 45 and mjj > 600)
     if (passTrig and passTauKinems and passJetKinems): pass_ditau_VBFRun3 = True
   passTrig, passTauKinems, passJetKinems = False, False, False
   pass_ditau_VBFRun2 = False
   if (ditau_VBFRun2_trig) and not (ditau_trig or ditau_jet_low_trig or ditau_jet_high_trig or ditau_VBFRun3_trig):
     passTrig = True
     passTauKinems = (t1_pt > 25 and t2_pt > 25 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
-    passJetKinems = ((passJetKinems) and ((j1_pt > 115 and j2_pt > 40 and mjj > 670) or (special_tag == True)))
-    # This trigger checks that there is a dijet pair w mass above 670, two jets with pT > 40, and one jet w pT > 115
+    passJetKinems = (j1_pt > 115 and j2_pt > 40 and mjj > 670) or (special_tag == True)
+    # This trigger checks that there is a dijet pair w mass above 700, two jets with pT > 40, and one jet w pT > 120
     # This results in a 2jet case and a 3jet case, hence the special tag :)
     if (passTrig and passTauKinems and passJetKinems): pass_ditau_VBFRun2 = True
 
+  return [pass_ditau, False, False, False] # test removing all cross-triggers
+  #return [pass_ditau, pass_ditau_jet, False, False] # test removing VBF trigger decisions
+  #return [pass_ditau, pass_ditau_jet, pass_ditau_VBFRun3, False] # test removing VBF Run2 trigger decision
+  #return [pass_ditau, False, pass_ditau_VBFRun3, False] # test removing ditau+jet and VBF Run2
+  #return [pass_ditau, False, pass_ditau_VBFRun3, pass_ditau_VBFRun2] # test removing ditau+jet
+  #return [pass_ditau, False, False, pass_ditau_VBFRun2] # test using only VBFRun2
+  #return [pass_ditau, pass_ditau_jet, pass_ditau_VBFRun3, pass_ditau_VBFRun2]
+
+'''
+def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta, 
+                           j1_pt, j2_pt, mjj, special_tag, nJet):
+  #Helper function to apply different object kinematic criteria depending on trigger used
+  ditau_trig, ditau_jet_low_trig, ditau_jet_high_trig, ditau_VBFRun2_trig, ditau_VBFRun3_trig = triggers
+  # if block intended to be mutually exclusive, allowing least strict reading of cross-triggers
+  # DiTau > DiTau + Jet > DiTau + Jet Backup > DiTau VBFRun3 > DiTau VBFRun2
+  # 2 taus > 2 taus + 1 jet > 2 tau + 1 jet w higher kinems > 2 taus + 2 jets > 2 taus + 2 jets w higher kinems
+  passTrig, passTauKinems, passEventJetKinems = False, False, False
+
+  if (nJet == 0): 
+  #  print("nJet = 0")
+    passEventJetKinems = True # no jet requirements in nJet=0 category
+  elif (nJet == 1):
+    passEventJetKinems = (j1_pt > 30.)
+  else: # nJet >= 2
+  #  print("nJet > 1")
+    passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.))
+
+  pass_ditau = False
+  if ditau_trig:
+    passTrig = True
+    passTauKinems = (t1_pt > 40 and t2_pt > 40 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
+    if (passTrig and passTauKinems and passEventJetKinems): pass_ditau = True
+  passTrig, passTauKinems = False, False
+  pass_ditau_jet = False
+  if (ditau_jet_low_trig or ditau_jet_high_trig) and not (ditau_trig):
+    passTrig = True
+    passTauKinems = (t1_pt > 35 and t2_pt > 35 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
+    passTrigJetKinems = ((passEventJetKinems) and (j1_pt > 65))
+    if (passTrig and passTauKinems and passTrigJetKinems): pass_ditau_jet = True
+  passTrig, passTauKinems, passTrigJetKinems = False, False, False
+  pass_ditau_VBFRun3 = False
+  if (ditau_VBFRun3_trig) and not (ditau_trig or ditau_jet_low_trig or ditau_jet_high_trig):
+    passTrig = True
+    passTauKinems = (t1_pt > 50 and t2_pt > 25 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
+    passTrigJetKinems = ((passEventJetKinems) and (j1_pt > 45 and j2_pt > 45 and mjj > 600))
+    if (passTrig and passTauKinems and passTrigJetKinems): pass_ditau_VBFRun3 = True
+  passTrig, passTauKinems, passTrigJetKinems = False, False, False
+  pass_ditau_VBFRun2 = False
+  if (ditau_VBFRun2_trig) and not (ditau_trig or ditau_jet_low_trig or ditau_jet_high_trig or ditau_VBFRun3_trig):
+    passTrig = True
+    passTauKinems = (t1_pt > 25 and t2_pt > 25 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
+    passTrigJetKinems = ((passEventJetKinems) and ((j1_pt > 115 and j2_pt > 40 and mjj > 670) or (special_tag == True)))
+    # This trigger checks that there is a dijet pair w mass above 670, two jets with pT > 40, and one jet w pT > 115
+    # This results in a 2jet case and a 3jet case, hence the special tag :)
+    if (passTrig and passTauKinems and passTrigJetKinems): pass_ditau_VBFRun2 = True
+
   #return [pass_ditau, False, False, False] # old nominal
   return [pass_ditau, pass_ditau_jet, pass_ditau_VBFRun3, False] # new nominal
-
   #return [pass_ditau, pass_ditau_jet, False, False] # test removing VBF trigger decisions
   #return [pass_ditau, False, pass_ditau_VBFRun3, False] # test removing ditau+jet and VBF Run2
   #return [pass_ditau, False, pass_ditau_VBFRun3, pass_ditau_VBFRun2] # test removing ditau+jet
   #return [pass_ditau, False, False, pass_ditau_VBFRun2] # test using only VBFRun2
   #return [pass_ditau, pass_ditau_jet, pass_ditau_VBFRun3, pass_ditau_VBFRun2]
+'''
 
 def make_ditau_region(event_dictionary, new_branch_name, FS_pair_sign,
                       pass_DeepTau_t1_req, DeepTau_t1_value,
