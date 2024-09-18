@@ -3,16 +3,17 @@ import numpy as np
 ### README
 # this file contains functions to perform cuts and self-contained studies
 
-from calculate_functions  import highest_mjj_pair, return_TLorentz_Jets
+from calculate_functions  import highest_mjj_pair
 from utility_functions    import text_options, log_print
 
 from cut_ditau_functions  import make_ditau_cut 
 from cut_mutau_functions  import make_mutau_cut, make_mutau_TnP_cut
 from cut_etau_functions   import make_etau_cut
 from cut_dimuon_functions import make_dimuon_cut, manual_dimuon_lepton_veto
+from cut_emu_functions   import make_emu_cut
  
-from FF_functions         import make_ditau_SR_cut, make_mutau_SR_cut, make_etau_SR_cut
-from FF_functions         import make_ditau_AR_cut, make_mutau_AR_cut, make_etau_AR_cut
+from FF_functions         import make_ditau_SR_cut, make_mutau_SR_cut, make_etau_SR_cut, make_emu_SR_cut
+from FF_functions         import make_ditau_AR_cut, make_mutau_AR_cut, make_etau_AR_cut, make_emu_AR_cut
 from FF_functions         import add_FF_weights
 
 from file_functions       import load_and_store_NWEvents, customize_DY
@@ -112,7 +113,6 @@ def make_jet_cut(event_dictionary, jet_mode):
   CleanJetGT30_phi_1, CleanJetGT30_phi_2, CleanJetGT30_phi_3 = [], [], []
   mjj_array, detajj_array = [], []
   from ROOT import TLorentzVector 
-  # TODO : this is the only place ROOT is used, removing it would speed things up
   for i, nJet, jet_pt, jet_eta, jet_phi, jet_mass in zip(*to_check):
     passingJets = 0
     passingJetsPt, passingJetsEta, passingJetsPhi, passingJetsMass = [], [], [], []
@@ -136,51 +136,53 @@ def make_jet_cut(event_dictionary, jet_mode):
 
     if (passingJets == 2) and (jet_mode == "Inclusive" or jet_mode == "2j"):
       pass_2j_cuts.append(i)
-      TLorentzJets, j1_idx, j2_idx, mjj, ST = return_TLorentz_Jets(passingJetsPt, passingJetsEta, passingJetsPhi, passingJetsMass)
-      j1_TVec, j2_TVec = TLorentzJets[j1_idx], TLorentzJets[j2_idx]
-      CleanJetGT30_pt_1.append(passingJetsPt[j1_idx])
-      CleanJetGT30_pt_2.append(passingJetsPt[j2_idx])
-      CleanJetGT30_eta_1.append(passingJetsEta[j1_idx])
-      CleanJetGT30_eta_2.append(passingJetsEta[j2_idx])
-      CleanJetGT30_phi_1.append(passingJetsPhi[j1_idx])
-      CleanJetGT30_phi_2.append(passingJetsPhi[j2_idx])
-      mjj_array.append(mjj)
-      #mjj_array.append((j1_TVec + j2_TVec).M())
-      # TODO can try to make the comparison here
-      detajj_array.append(abs(j1_TVec.Eta() - j2_TVec.Eta()))
+      CleanJetGT30_pt_1.append(passingJetsPt[0])
+      CleanJetGT30_pt_2.append(passingJetsPt[1])
+      CleanJetGT30_eta_1.append(passingJetsEta[0])
+      CleanJetGT30_eta_2.append(passingJetsEta[1])
+      CleanJetGT30_phi_1.append(passingJetsPhi[0])
+      CleanJetGT30_phi_2.append(passingJetsPhi[1])
+      j1_vec, j2_vec = TLorentzVector(), TLorentzVector() # surprisingly, you can't combine this with the following line
+      j1_vec.SetPtEtaPhiM(passingJetsPt[0], passingJetsEta[0], passingJetsPhi[0], passingJetsMass[0])
+      j2_vec.SetPtEtaPhiM(passingJetsPt[1], passingJetsEta[1], passingJetsPhi[1], passingJetsMass[1])
+      mjj_array.append((j1_vec + j2_vec).M())
+      detajj_array.append(abs(j1_vec.Eta() - j2_vec.Eta()))
 
     if (passingJets >= 2) and (jet_mode == "GTE2j"): 
       pass_GTE2j_cuts.append(i)
-      TLorentzJets, j1_idx, j2_idx, mjj, ST = return_TLorentz_Jets(passingJetsPt, passingJetsEta, passingJetsPhi, passingJetsMass)
-      j1_TVec, j2_TVec = TLorentzJets[j1_idx], TLorentzJets[j2_idx]
-      CleanJetGT30_pt_1.append(passingJetsPt[j1_idx])
-      CleanJetGT30_pt_2.append(passingJetsPt[j2_idx])
-      CleanJetGT30_eta_1.append(passingJetsEta[j1_idx])
-      CleanJetGT30_eta_2.append(passingJetsEta[j2_idx])
-      CleanJetGT30_phi_1.append(passingJetsPhi[j1_idx])
-      CleanJetGT30_phi_2.append(passingJetsPhi[j2_idx])
-      mjj_array.append(mjj)
-      #mjj_array.append((j1_TVec+j2_TVec).M())
+      TLorentzVector_Jets = []
+      for i in range(passingJets):
+        temp_jet_vec = TLorentzVector()
+        temp_jet_vec.SetPtEtaPhiM(passingJetsPt[i], passingJetsEta[i], passingJetsPhi[i], passingJetsMass[i])
+        TLorentzVector_Jets.append(temp_jet_vec)
+      j1_TVec, j2_TVec = highest_mjj_pair(TLorentzVector_Jets)
+      CleanJetGT30_pt_1.append(passingJetsPt[0])
+      CleanJetGT30_pt_2.append(passingJetsPt[1])
+      CleanJetGT30_eta_1.append(passingJetsEta[0])
+      CleanJetGT30_eta_2.append(passingJetsEta[1])
+      CleanJetGT30_phi_1.append(passingJetsPhi[0])
+      CleanJetGT30_phi_2.append(passingJetsPhi[1])
+      mjj_array.append((j1_TVec+j2_TVec).M())
       detajj_array.append(abs(j1_TVec.Eta()-j2_TVec.Eta()))
 
     if (passingJets >= 1) and (jet_mode == "GTE1j"): 
       pass_GTE1j_cuts.append(i)
+      TLorentzVector_Jets = []
+      for i in range(passingJets):
+        temp_jet_vec = TLorentzVector()
+        temp_jet_vec.SetPtEtaPhiM(passingJetsPt[i], passingJetsEta[i], passingJetsPhi[i], passingJetsMass[i])
+        TLorentzVector_Jets.append(temp_jet_vec)
+      CleanJetGT30_pt_1.append(passingJetsPt[0])
+      CleanJetGT30_eta_1.append(passingJetsEta[0])
+      CleanJetGT30_phi_1.append(passingJetsPhi[0])
       if (passingJets >= 2):
-        TLorentzJets, j1_idx, j2_idx, mjj, ST = return_TLorentz_Jets(passingJetsPt, passingJetsEta, passingJetsPhi, passingJetsMass)
-        j1_TVec, j2_TVec = TLorentzJets[j1_idx], TLorentzJets[j2_idx]
-        CleanJetGT30_pt_1.append(passingJetsPt[j1_idx])
-        CleanJetGT30_pt_2.append(passingJetsPt[j2_idx])
-        CleanJetGT30_eta_1.append(passingJetsEta[j1_idx])
-        CleanJetGT30_eta_2.append(passingJetsEta[j2_idx])
-        CleanJetGT30_phi_1.append(passingJetsPhi[j1_idx])
-        CleanJetGT30_phi_2.append(passingJetsPhi[j2_idx])
-        mjj_array.append(mjj)
-        #mjj_array.append((j1_TVec+j2_TVec).M())
+        j1_TVec, j2_TVec = highest_mjj_pair(TLorentzVector_Jets)
+        CleanJetGT30_pt_2.append(passingJetsPt[1])
+        CleanJetGT30_eta_2.append(passingJetsEta[1])
+        CleanJetGT30_phi_2.append(passingJetsPhi[1])
+        mjj_array.append((j1_TVec+j2_TVec).M())
         detajj_array.append(abs(j1_TVec.Eta()-j2_TVec.Eta()))
       else:
-        CleanJetGT30_pt_1.append(passingJetsPt[0])
-        CleanJetGT30_eta_1.append(passingJetsEta[0])
-        CleanJetGT30_phi_1.append(passingJetsPhi[0])
         CleanJetGT30_pt_2.append(-1)
         CleanJetGT30_eta_2.append(-1)
         CleanJetGT30_phi_2.append(-1)
@@ -194,8 +196,20 @@ def make_jet_cut(event_dictionary, jet_mode):
 
   elif jet_mode == "Inclusive":
     pass
- 
-  # there is certainly a better way to do this 
+    # fill branches like above
+    #event_dictionary["pass_0j_cuts"]    = np.array(pass_0j_cuts)
+    #event_dictionary["pass_1j_cuts"]    = np.array(pass_1j_cuts)
+    #event_dictionary["pass_2j_cuts"]    = np.array(pass_2j_cuts)
+    #event_dictionary["pass_3j_cuts"]    = np.array(pass_3j_cuts)
+    #event_dictionary["pass_GTE2j_cuts"] = np.array(pass_GTE2j_cuts)
+
+    #event_dictionary["CleanJetGT30_pt_1"]  = np.array(CleanJetGT30_pt_1)
+    #event_dictionary["CleanJetGT30_pt_2"]  = np.array(CleanJetGT30_pt_2)
+    #event_dictionary["CleanJetGT30_pt_3"]  = np.array(CleanJetGT30_pt_3)
+    #event_dictionary["CleanJetGT30_eta_1"] = np.array(CleanJetGT30_eta_1)
+    #event_dictionary["CleanJetGT30_eta_2"] = np.array(CleanJetGT30_eta_2)
+    #event_dictionary["CleanJetGT30_eta_3"] = np.array(CleanJetGT30_eta_3)
+  
   elif jet_mode == "0j":
     # literally don't do any of the above
     event_dictionary["pass_0j_cuts"]    = np.array(pass_0j_cuts)
@@ -221,7 +235,9 @@ def make_jet_cut(event_dictionary, jet_mode):
 
   elif jet_mode == "3j" or jet_mode == "GTE2j":
     # importantly different from inclusive
+    #event_dictionary["pass_2j_cuts"]    = np.array(pass_2j_cuts)
     #event_dictionary["pass_3j_cuts"]    = np.array(pass_3j_cuts)
+    #event_dictionary["pass_GTE1j_cuts"]    = np.array(pass_GTE1j_cuts)
     event_dictionary["pass_GTE2j_cuts"]    = np.array(pass_GTE2j_cuts)
     event_dictionary["CleanJetGT30_pt_1"]  = np.array(CleanJetGT30_pt_1)
     event_dictionary["CleanJetGT30_pt_2"]  = np.array(CleanJetGT30_pt_2)
@@ -236,15 +252,27 @@ def make_jet_cut(event_dictionary, jet_mode):
     event_dictionary["FS_detajj"] = np.array(detajj_array)
 
   elif jet_mode == "GTE1j":
+    # importantly different from inclusive
+    #event_dictionary["pass_2j_cuts"]    = np.array(pass_2j_cuts)
+    #event_dictionary["pass_3j_cuts"]    = np.array(pass_3j_cuts)
     event_dictionary["pass_GTE1j_cuts"]    = np.array(pass_GTE1j_cuts)
+    #event_dictionary["pass_GTE2j_cuts"]    = np.array(pass_GTE2j_cuts)
     event_dictionary["CleanJetGT30_pt_1"]  = np.array(CleanJetGT30_pt_1)
     event_dictionary["CleanJetGT30_pt_2"]  = np.array(CleanJetGT30_pt_2)
+    #event_dictionary["CleanJetGT30_pt_3"]  = np.array(CleanJetGT30_pt_3)
     event_dictionary["CleanJetGT30_eta_1"] = np.array(CleanJetGT30_eta_1)
     event_dictionary["CleanJetGT30_eta_2"] = np.array(CleanJetGT30_eta_2)
+    #event_dictionary["CleanJetGT30_eta_3"] = np.array(CleanJetGT30_eta_3)
     event_dictionary["CleanJetGT30_phi_1"] = np.array(CleanJetGT30_phi_1)
     event_dictionary["CleanJetGT30_phi_2"] = np.array(CleanJetGT30_phi_2)
+    #event_dictionary["CleanJetGT30_phi_3"] = np.array(CleanJetGT30_phi_3)
     event_dictionary["FS_mjj"] = np.array(mjj_array)
     event_dictionary["FS_detajj"] = np.array(detajj_array)
+
+  # can only do this if inclusive
+  #if jet_mode == "Inclusive":
+    #print("nEvents with exactly 0 and ≥1 jets")
+    #print(f"{len(np.array(pass_0j_cuts))}, {len(np.array(pass_GTE1j_cuts))}")
 
   return event_dictionary
 
@@ -359,6 +387,13 @@ def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, u
     if (useMiniIso == True):
       event_dictionary = make_dimuon_cut(event_dictionary, useMiniIso==True)
       event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
+
+  elif final_state_mode == "emu":
+    event_dictionary = make_emu_SR_cut(event_dictionary)
+    event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
+    if (event_dictionary == None): return event_dictionary
+    event_dictionary = make_emu_cut(event_dictionary)
+    event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   else:
     print(f"No cuts to apply for {final_state_mode} final state.")
   return event_dictionary
@@ -422,20 +457,21 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
       customize_DY(process, final_state_mode)
       #append_Zpt_weight(process_events)
     keep_fakes = False
-    #keep_fakes = True # TODO : fix this block
-    #'''
+    keep_fakes = True # TODO : fix this block
+    '''
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("mutau" in final_state_mode)):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("etau" in final_state_mode)):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
-    #if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("ditau" in final_state_mode)):
-    if ( (("DY" in process) or ("QCD" in process)) and (final_state_mode=="ditau")):
+    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("ditau" in final_state_mode)):
+    #if ( (("DY" in process) or ("QCD" in process)) and (final_state_mode=="ditau")):
       keep_fakes = True
-    #'''
-    process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
-    process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
+    '''
+    #Uncomment for etau and mutau and ditau
+    #process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
+    #process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
 
   FS_cut_events = apply_final_state_cut(process_events, final_state_mode, DeepTau_version, useMiniIso=useMiniIso)
@@ -534,6 +570,9 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_
       keep_fakes = True
     if (("DY" in process) and (final_state_mode=="ditau")):
       keep_fakes = True
+    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="emu")):
+      # when FF method is finished/improved no longer need to keep TT and WJ fakes
+      keep_fakes = True
     process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
     process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
@@ -550,6 +589,11 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_
       event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
     if (final_state_mode == "etau"):
       event_dictionary = make_etau_AR_cut(event_dictionary, DeepTau_version)
+      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
+      event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
+      event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
+    if (final_state_mode == "emu"):
+      event_dictionary = make_emu_AR_cut(event_dictionary, iso_region_el=True, iso_region_mu=True)
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
       event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
