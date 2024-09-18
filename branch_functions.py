@@ -5,7 +5,7 @@ def set_branches(final_state_mode, DeepTau_version, process="None"):
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass",
-    "HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
+    "HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mT", "FastMTT_mass",
     "HTT_pdgId",
     #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
     "PV_npvs", "Pileup_nPU",
@@ -13,7 +13,7 @@ def set_branches(final_state_mode, DeepTau_version, process="None"):
   ]
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
-  if final_state_mode != "dimuon": branches = add_DeepTau_branches(branches, DeepTau_version)
+  if final_state_mode != ["dimuon", "emu"]: branches = add_DeepTau_branches(branches, DeepTau_version)
   branches = add_trigger_branches(branches, final_state_mode)
 
   if ("DY" in process): branches = add_Zpt_branches(branches)
@@ -45,6 +45,13 @@ def add_final_state_branches(branches_, final_state_mode):
     "dimuon" : ["Lepton_pdgId", "Lepton_muIdx",
                 "Muon_dxy", "Muon_dz", "Muon_charge",
                 "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
+
+    "emu"   : ["Electron_dxy", "Electron_dz", "Electron_charge", 
+                "Muon_dxy", "Muon_dz", "Muon_charge", 
+                "Lepton_elIdx", "Lepton_muIdx",
+                "PuppiMET_pt", "PuppiMET_phi", "Lepton_tauIdx", 
+                "Electron_mass", "Muon_mass",
+                "CleanJet_btagWP", "HTT_PZeta_using_PUPPI_MET", "HTT_mT_l1l2met_using_PUPPI_MET"],   #Naila: DO we need Lepton_pdgID in emu state ?      
   }
 
   branch_to_add = final_state_branches[final_state_mode]
