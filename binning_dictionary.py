@@ -27,8 +27,6 @@ label_dictionary = {
   "FS_t2_chg"  : r'Sub-leading Tau Charge',
   "FS_t2_DM"   : r'Sub-leading Tau Decay Mode',
 
-  "FS_trig_idx" : r'Trigger Indices',
-
   "FS_m1_pt"   : r'Leading Muon $p_T$ [GeV]',
   "FS_m1_eta"  : r'Leading Muon $\eta$',
   "FS_m1_phi"  : r'Leading Muon $\phi$',
@@ -95,8 +93,8 @@ label_dictionary = {
   "HTT_m_vis-KSUbinning" : r'$m_{vis}$ [GeV]',
   "HTT_m_vis-SFbinning"  : r'$m_{vis}$ [GeV]',
   "HTT_pT_l1l2" : r'$p_T^{ll}$',
-  "FastMTT_PUPPIMET_mT"   : r'Fast MTT Transverse Mass [GeV]',
-  "FastMTT_PUPPIMET_mass" : r'Fast MTT Mass [GeV]',
+  "FastMTT_mT"   : r'Fast MTT Transverse Mass [GeV]',
+  "FastMTT_mass" : r'Fast MTT Mass [GeV]',
   "PV_npvs"     : r'Number of Primary Vertices',
 
   "pass_tag"    : r'Pass Tag Requirements',
@@ -135,8 +133,6 @@ binning_dictionary = {
     "FS_t2_rawPNetVSjet" : np.linspace(0, 1, 50+1),
     "FS_t2_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
     "FS_t2_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
-
-    "FS_trig_idx" : np.linspace(-1, 4, 5+1),
   },
 
   "mutau" : {
@@ -226,6 +222,24 @@ binning_dictionary = {
     "FS_m2_chg"  : np.linspace(-2, 2, 5+1),
     "FS_m_vis_tight" : np.linspace(70, 110, 80+1),
   },
+  #Naila
+  "emu" : {
+    "FS_el_pt"   : np.linspace(0, 120, 40+1),
+    "FS_el_eta"  : np.linspace(-3, 3, 30+1),
+    "FS_el_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_el_iso"  : np.linspace(0, 1, 25+1),
+    "FS_el_dxy"  : np.linspace(0, 0.05, 50+1),
+    "FS_el_dz"   : np.linspace(0, 0.25, 50+1),
+    "FS_el_chg"  : np.linspace(-2, 2, 5+1),
+
+    "FS_mu_pt"   : np.linspace(0, 120, 40+1),
+    "FS_mu_eta"  : np.linspace(-3, 3, 30+1),
+    "FS_mu_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_mu_iso"  : np.linspace(0, 1, 25+1),
+    "FS_mu_dxy"  : np.linspace(0, 0.025, 50+1),
+    "FS_mu_dz"   : np.linspace(0, 0.25, 50+1),
+    "FS_mu_chg"  : np.linspace(-2, 2, 5+1), #What is m_vis_tightfor muon in dimuon
+  },  
 
   "common" : {
     # calculated on the fly
@@ -259,9 +273,9 @@ binning_dictionary = {
     "HTT_dR"                : np.linspace(0, 6, 60+1),
     "HTT_m_vis-KSUbinning"  : np.linspace(0, 300, 30+1),
     "HTT_m_vis-SFbinning"   : np.linspace(0, 200, 40+1),
-    "HTT_pT_l1l2" : np.linspace(0, 250, 50+1),
-    "FastMTT_PUPPIMET_mT"   : np.linspace(0, 400, 40+1),
-    "FastMTT_PUPPIMET_mass" : np.linspace(0, 400, 20+1),
+    "HTT_pT_l1l2" : np.linspace(0, 150, 30+1),
+    "FastMTT_mT"   : np.linspace(0, 400, 40+1),
+    "FastMTT_mass" : np.linspace(0, 400, 20+1),
     "FS_t1_flav" : np.linspace(0, 11, 11+1),
     "FS_t2_flav" : np.linspace(0, 11, 11+1),
     "PV_npvs"    : np.linspace(0, 90, 30+1),
