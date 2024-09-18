@@ -9,7 +9,6 @@ from MC_dictionary        import MC_dictionary
 from binning_dictionary   import binning_dictionary, label_dictionary
 from triggers_dictionary  import triggers_dictionary
 
-from luminosity_dictionary import luminosities_with_normtag as luminosities
 from calculate_functions  import yields_for_CSV, calculate_underoverflow
 
 
@@ -104,6 +103,7 @@ def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mo
   eta_phi_by_FS_dict = {"ditau"  : ["FS_t1_eta", "FS_t1_phi", "FS_t2_eta", "FS_t2_phi"],
                         "mutau"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
                         "etau"   : ["FS_el_eta", "FS_el_phi", "FS_tau_eta", "FS_tau_phi"],
+                        "emu"    : ["FS_el_eta", "FS_el_phi", "FS_mu_eta", "FS_mu_phi"],
                         "mutau_TnP"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
                         "dimuon" : ["FS_m1_eta", "FS_m1_phi", "FS_m2_eta", "FS_m2_phi"]}
   eta_phi_by_FS = eta_phi_by_FS_dict[final_state_mode]
@@ -170,17 +170,13 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
   histogram_axis.fill_between(xbins, error_down, error_up, step="post", color="gray", alpha=0.15)
 
 
-def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity,
-            custom=False, color="default", label="MC", fill=False):
+def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity):
   '''
   Similar to plot_MC, except signals are not stacked, and the 'stair' method
   of matplotlib DOES expect histogram data, so no adjustment to xbins is necessary.
   '''
   for signal in signal_dictionary:
-    if custom == True:
-      pass
-    else:
-      color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
+    color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
     current_hist = signal_dictionary[signal]["BinnedEvents"]
     label += f" [{np.sum(current_hist):>.0f}]"
     stairs = histogram_axis.stairs(current_hist, xbins, color=color, label=label, fill=False)
@@ -191,23 +187,15 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   Obtain process-specific styling and scaling information.
   MC_dictionary is maintained in a separate file.
   '''
-  if "alt" in process: process = process.replace("_alt","")
   color = MC_dictionary[process]["color"]
   label = MC_dictionary[process]["label"]
-  lumi_key = [key for key in luminosities.items() if key[1] == luminosity][0][0]
   if scaling:
-    scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
-    # hacky unscaling and rescaling so that "testing" still works
-    if ("C" in lumi_key) or ("D" in lumi_key):
-      scaling *= 1 / luminosities["2022 CD"]
-    elif ("E" in lumi_key) or ("F" in lumi_key) or ("G" in lumi_key):
-      scaling *= 1 / luminosities["2022 EFG"]
-    else:
-      print(f"unrecognized lumi_key: {lumi_key}")
-    scaling *= luminosity
+  # factor of 1000 comes from lumi and XSec units of fb^-1 = 10E15 b^-1 and pb = 10E-12 b respectively
+    plot_scaling = MC_dictionary[process]["plot_scaling"] # 1 for all non-signal processes by default
+    scaling = 1000. * plot_scaling * luminosity * MC_dictionary[process]["XSec"] / MC_dictionary[process]["NWEvents"]
     if process=="myQCD": scaling = 1
   if signal:
-    label += " x" + str(MC_dictionary[process]["plot_scaling"])
+    label += " x" + str(plot_scaling)
   return (color, label, scaling)
 
 
@@ -249,6 +237,7 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
     "mutau_TnP"  : r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$",
     "etau"   : r"${\tau_e}{\tau_h}$",
     "dimuon" : r"${\mu}{\mu}$",
+    "emu"    : r"${e}{\mu}$",
   }
   jet_mode_str = {
     "Inclusive" : "≥0j",
@@ -262,10 +251,9 @@ def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
             final_state_str[final_state_mode] + " : " + jet_mode_str[jet_mode], 
             transform=axis.transAxes, fontsize=10)
 
-def add_text(axis, text_to_add, loc=[0.05, 0.85], rotation=0, ha="left", va="baseline"):
+def add_text(axis, text_to_add, loc=[0.05, 0.85]):
   axis.text(loc[0], loc[1], text_to_add,
-            transform=axis.transAxes, fontsize=10, 
-            rotation=rotation, ha=ha, va=va)
+            transform=axis.transAxes, fontsize=10)
 
 
 def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, jet_mode, yrange=None,
@@ -304,14 +292,6 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
 
   ratio_plot_axis.set_ylim([0.45, 1.55]) # 0.0, 2.0 also make sense
   ratio_plot_axis.set_xlabel(variable_name) # shared axis label
-  if variable_name == "Trigger Indices":
-    ratio_plot_axis.set_xlabel("") # shared axis label
-    trig_labels = ["DiTau", "DiTau+Jet", "VBFRun3", "VBFRun2"]
-    xpos  = 0.26
-    xstep = 0.18
-    ypos  = -0.35
-    for i,nlabel in enumerate(trig_labels):
-      add_text(ratio_plot_axis, nlabel, loc=[xpos+xstep*i, ypos], rotation=35, ha="center", va="center")
   ratio_plot_axis.set_ylabel("Obs. / Exp.")
   ratio_plot_axis.axhline(y=1, color='grey', linestyle='--')
   ratio_plot_axis.minorticks_on()
@@ -373,14 +353,30 @@ def spruce_up_legend(histogram_axis, final_state_mode):
     print("Removed samples with yield=0 from legend!")
 
 
+def make_ratio_no_plot(numerator_data, numerator_type, numerator_weight,
+                       denominator_data, denominator_type, denominator_weight):
+  # a smarter and braver person than me would make this part of the "make_ratio_plot" function below
+  ratio = numerator_data/denominator_data
+  ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
+  if (numerator_type=="Data") and (denominator_type=="Data"):
+    # ratio error = (A/B) * √ [ (1/A) + (1/B) ] \
+    statistical_error = np.array([ ratio[i] * np.sqrt( (1/numerator_data[i]) + (1/denominator_data[i]))
+                        if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
+                        for i,_ in enumerate(denominator_data)]) 
+  statistical_error[np.isnan(statistical_error)] = 0
+  return ratio, statistical_error
+ 
+ 
 def make_ratio_plot(ratio_axis, xbins, 
                     numerator_data, numerator_type, numerator_weight,
-                    denominator_data, denominator_type, denominator_weight, no_midpoints = False, no_plot = False,
+                    denominator_data, denominator_type, denominator_weight, no_midpoints = False,
                     label=None, color="black"):
   '''
   Uses provided numerator and denominator info to make a ratio to add to given plotting axis.
   Errors are also calculated using the same matplotlib function as used in plot_data.
   '''
+  numerator_data = numerator_data["Data"]["BinnedEvents"] # fixed this, but implies that summed backgrounds should be
+                                                          # changed
   ratio = numerator_data/denominator_data
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
   # TODO : technically errors from stack should be individually calculated, not one stack
@@ -399,13 +395,11 @@ def make_ratio_plot(ratio_axis, xbins,
                         if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
                         for i,_ in enumerate(denominator_data)]) 
   statistical_error[np.isnan(statistical_error)] = 0
-  if no_plot == True:
-    pass
-  else:
-    midpoints = get_midpoints(xbins)
-    bin_width  = abs(xbins[0:-1]-xbins[1:])/2
-    ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
-                      color=color, marker="o", linestyle='none', markersize=2, label=label)
+  #xbins = xbins if no_midpoints else get_midpoints(xbins)
+  midpoints = get_midpoints(xbins)
+  bin_width  = abs(xbins[0:-1]-xbins[1:])/2
+  ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
+                    color=color, marker="o", linestyle='none', markersize=2, label=label)
 
   return ratio, statistical_error
 
@@ -451,6 +445,9 @@ def adjust_scaling(final_state, process, scaling):
     },
     "dimuon" : {
       "DYInc" : 6.482345 # for "New DiMuon DY", whatever that means :)
+    },
+    "emu" : {
+      #"TTTo2L2Nu" : 68,
     },
   }
   try:
@@ -531,13 +528,13 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
 
   # add together subprocesses of each MC family
   h_MC_by_family = {}
+  # see what processes exist in the dictionary
   if "myQCD" in background_dictionary.keys(): # QCD is on bottom of stack since it is first called
     h_MC_by_family["myQCD"] = {}
     h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
-    h_MC_by_family["myQCD"]["BinnedErrors"] = h_MC_by_process["myQCD"]["BinnedErrors"]
-    all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
+    all_MC_families  = ["TT", "ST", "WJ", "VV", "DYInc", "DYIncNLO"] # far left is bottom of stack
   else:
-    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"]
+    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYInc", "DYIncNLO"]
   used_MC_families = []
   for family in all_MC_families:
     for process in h_MC_by_process:
@@ -551,24 +548,13 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
     # only split here for readability
     h_MC_by_family[family]["BinnedEvents"], _ = accumulate_MC_subprocesses(family, h_MC_by_process)
     _, h_MC_by_family[family]["BinnedErrors"] = accumulate_MC_subprocesses(family, h_MC_by_process)
-  return h_MC_by_family
-
-
-def get_summed_backgrounds(h_backgrounds):
-  '''
-  Return a dictionary of summed backgrounds
-  Expecting h_backgrounds to be split and binned already
-  '''
-  accumulated_values = 0
-  accumulated_errors = 0
+  h_backgrounds = h_MC_by_family
+  # used for ratio plot
+  # TODO : make part of ratio plot or into it's own function
+  h_summed_backgrounds = 0
   for background in h_backgrounds:
-    accumulated_values += h_backgrounds[background]["BinnedEvents"]
-    accumulated_errors += h_backgrounds[background]["BinnedErrors"]
-  h_summed_backgrounds = {}
-  h_summed_backgrounds["Bkgd"] = {}
-  h_summed_backgrounds["Bkgd"]["BinnedEvents"] = accumulated_values
-  h_summed_backgrounds["Bkgd"]["BinnedErrors"] = accumulated_errors #still squared errors
-  return h_summed_backgrounds
+    h_summed_backgrounds += h_backgrounds[background]["BinnedEvents"]
+  return h_backgrounds, h_summed_backgrounds
 
 
 def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_, lumi_):
@@ -619,7 +605,7 @@ def get_parent_process(MC_process, skip_process=False):
   #elif "LepFakes" in MC_process:  parent_process = "DYLepFakes" # DEBUG
   #elif "Genuine"  in MC_process:  parent_process = "DY" # DEBUG
   if skip_process: parent_process = MC_process
-  #if "DY" in MC_process: parent_process = "DY"
+  elif "DYInc"    in MC_process: parent_process = "DYInc"
   elif ("QCD" in MC_process) and (MC_process != "myQCD"): parent_process = "QCD"
   elif "WJets" in MC_process:  parent_process = "WJ"
   elif "TT"    in MC_process:  parent_process = "TT"
@@ -646,12 +632,6 @@ def get_MC_weights(MC_dictionary, process):
   TT_NNLO = MC_dictionary[process]["Weight_TTbar_NNLO"]
   full_weights = gen * PU * TauSF * MuSF * ElSF *\
                  BTagSF * DY_Zpt * TT_NNLO
-
-  # use this to achieve no SF weights
-  skip_SFs = False
-  if skip_SFs == True:
-    print("  NO SFs APPLIED!  "*100)
-    return MC_dictionary[process]["Generator_weight"]
   return full_weights
 
 
@@ -665,7 +645,6 @@ final_state_vars = {
                 #"FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
                 "FS_t1_DeepTauVSjet", "FS_t1_DeepTauVSmu", "FS_t1_DeepTauVSe", 
                 "FS_t2_DeepTauVSjet", "FS_t2_DeepTauVSmu", "FS_t2_DeepTauVSe", 
-                "FS_trig_idx",
                ],
 
     "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
@@ -686,6 +665,11 @@ final_state_vars = {
 
     "dimuon" : ["FS_m1_pt", "FS_m1_eta", "FS_m1_phi", "FS_m1_iso", "FS_m1_dxy", "FS_m1_dz",
                 "FS_m2_pt", "FS_m2_eta", "FS_m2_phi", "FS_m2_iso", "FS_m2_dxy", "FS_m2_dz",
+               ],
+
+    "emu"    : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg",
+                "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
+                "FS_nbJet", 
                ],
 }
 
@@ -717,9 +701,9 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   Helper function to keep plotting variables organized
   Shouldn't this be in  plotting functions?
   '''
-  #vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
-  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2",
-                  "PuppiMET_pt", "PuppiMET_phi", "PV_npvs"]
+  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", #"FastMTT_PUPPIMET_mT", 
+                  "FastMTT_mass",
+                  "PuppiMET_pt", "PuppiMET_phi", "PV_npvs", "HTT_mT_l1l2met_using_PUPPI_MET"]
                   #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj"] 
                   # common to all final states # add Tau_decayMode
   FS_vars_to_add = final_state_vars[final_state_mode]
