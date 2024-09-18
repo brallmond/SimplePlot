@@ -33,6 +33,11 @@ triggers_dictionary = {
              "HLT_IsoMu24",
              "HLT_IsoMu27",
           ],
+
+  "emu"  : [
+             "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+             "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ", #Naila Added
+          ],
 }
 
 
