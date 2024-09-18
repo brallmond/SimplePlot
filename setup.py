@@ -14,7 +14,7 @@ class setup_handler:
     self.parser.add_argument('--final_state',  dest='final_state', default="mutau",     action='store')
     self.parser.add_argument('--jet_mode',     dest='jet_mode',    default="Inclusive", action='store')
     self.parser.add_argument('--era',          dest='era',         default="2022 EFG",  action='store')
-    self.parser.add_argument('--use_NLO',      dest='use_NLO',     default=False,       action='store_true')
+    self.parser.add_argument('--use_NLO',      dest='use_NLO',     default=False,       action='store')
     self.parser.add_argument('--plot_dir',     dest='plot_dir',    default="plots",     action='store')
     self.parser.add_argument('--DeepTau',      dest='DeepTau_version', default="2p5",   action='store')
     self.parser.add_argument('--hide_plots',   dest='hide_plots',  default=False,       action='store_true')
@@ -63,18 +63,20 @@ class setup_handler:
     #lxplus_redirector = "root://cms-xrd-global.cern.ch//"
     #eos_dir           = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/"
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
-    home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
-    active_dir = "/V12_PFRel_"+era_modifier_2022+"_nominal/"
-    #active_dir = "/V12_PFRel_"+era_modifier_2022+"_notriggermatching/"
-    #active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
-    active_dir += final_state_mode
-    full_dir = home_dir + active_dir # add lxplus redirector if on eos
+    #home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
+    #home_dir = "/Users/nailaislam/htt/new_samples/Run3FSSplitSamples/"
+    home_dir = "/Users/nailaislam/htt/new_samples/Hlep/"
+    #active_dir = "/V12_PFRel_"+era_modifier_2022+"_nominal/"
+    #active_dir += final_state_mode
+    home_dir += final_state_mode
+    full_dir = home_dir #+ active_dir # add lxplus redirector if on eos
     return full_dir
+
 
   
   def set_file_map(self, testing, use_NLO, era):
     file_map = testing_file_map if testing else full_file_map
-    if (use_NLO == True):
+    if (use_NLO == True): 
       file_map.pop("DYInc")
       file_map.pop("WJetsInc")
     else: 
@@ -125,7 +127,7 @@ def set_good_events(final_state_mode, AR_region=False, disable_triggers=False, u
   good_events += jet_vetomaps
   if AR_region: return good_events # give output with MET filters, lepton veto, and veto maps
 
-  good_events += HTT_preselect_events
+  #good_events += HTT_preselect_events
   # UNDER STUDY!
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) "\
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) & "\
@@ -155,6 +157,11 @@ def set_good_events(final_state_mode, AR_region=False, disable_triggers=False, u
     good_events += " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
     if disable_triggers: good_events = good_events.replace(" & (Trigger_etau)", "")
 
+  elif final_state_mode == "emu":
+    good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
+    #good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
+    if disable_triggers: good_events = good_events.replace(" & (Trigger_emu)", "")
+
   # non-HTT FS modes
   elif final_state_mode == "mutau_TnP": # remove HTT_SRevent
     good_events = "(METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==13*15)"
@@ -181,7 +188,7 @@ if __name__ == "__main__":
   from plotting_functions  import set_vars_to_plot
   from file_map_dictionary import set_dataset_info
 
-  good_events  = set_good_events(final_state_mode)
+  good_events  = set_good_events(final_state_mode)              
   branches     = set_branches(final_state_mode, DeepTau_version)
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
   dataset, reject_datasets = set_dataset_info(final_state_mode)
