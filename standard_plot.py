@@ -24,7 +24,7 @@ from cut_and_study_functions import apply_cut, set_protected_branches
 # plotting
 from plotting_functions import get_midpoints, make_eta_phi_plot
 from luminosity_dictionary import luminosities_with_normtag as luminosities
-from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals, get_summed_backgrounds
+from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import setup_single_plot, spruce_up_single_plot, add_text
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart
@@ -35,6 +35,7 @@ from calculate_functions   import calculate_signal_background_ratio, yields_for_
 from utility_functions     import time_print, make_directory, print_setup_info, log_print
 
 if __name__ == "__main__":
+
   '''
   Just read the code, it speaks for itself.
   Kidding.
@@ -64,7 +65,12 @@ if __name__ == "__main__":
   using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode = setup.misc_info
 
+ 
   print_setup_info(setup)
+
+  # add FF weights :) # almost the same as SR, except SS and 1st tau fails iso (applied in AR_cuts)
+
+  do_QCD = do_JetFakes
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
@@ -78,7 +84,7 @@ if __name__ == "__main__":
     branches     = set_branches(final_state_mode, DeepTau_version, process)
  
     if (process in reject_datasets): continue
-
+   
     if ("WJ" in process) and (("WJ" in semilep_mode) or ("Full" in semilep_mode)): continue
     new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
                                               branches, good_events, final_state_mode,
@@ -90,6 +96,7 @@ if __name__ == "__main__":
     if cut_events == None: continue
 
     # TODO : extendable to jet cuts (something I've meant to do for some time)
+    '''
     if ("DY" in process) and (final_state_mode != "dimuon"):
       # def split_DY_by_gen, return combined_process_dictionary
       event_flavor_arr = cut_events["event_flavor"]
@@ -101,6 +108,7 @@ if __name__ == "__main__":
           pass_lep_flav.append(i)
         if event_flavor == "J":
           pass_jet_flav.append(i)
+        
     
       protected_branches = set_protected_branches(final_state_mode="none", jet_mode="Inclusive")
       background_gen_deepcopy = copy.deepcopy(cut_events)
@@ -128,12 +136,15 @@ if __name__ == "__main__":
     else:
       combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
                                                                  combined_process_dictionary)
-
+    '''
+    combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
+                                                                 combined_process_dictionary)
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
-  fakesLabel = "myQCD" # can change to JetFakes if you propagate to the plotting stuff
-  FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
+  # TODO fix myQCD print statements
+  fakesLabel = "myQCD" # can change to JetFakes once you propagate to the plotting stuff
+  #FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
 
   log_print("Processing finished!", log_file, time=True)
   ## end processing loop, begin plotting
@@ -142,8 +153,8 @@ if __name__ == "__main__":
   eta_phi_plot = False
   if (eta_phi_plot == True): make_eta_phi_plot(data_dictionary, dataset, final_state_mode, jet_mode, "Data")
 
-  #vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx"]
+  vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
+  #vars_to_plot = ["HTT_m_vis"]
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
   vars_to_plot.append("HTT_m_vis-KSUbinning")
@@ -155,14 +166,15 @@ if __name__ == "__main__":
     xbins = make_bins(var, final_state_mode)
     hist_ax, hist_ratio = setup_ratio_plot()
 
+    # TODO: helper function to fill these guys out in a standard way
+    # data_dictionary, background_dictionary, signal_dictionary,
+    # final_state, testing, var, xbins, lumi
     temp_var = var # hack to plot the same variable twice with two different binnings
     if "HTT_m_vis" in var: var = "HTT_m_vis"
     h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
-    if (final_state_mode != "dimuon") and (do_JetFakes == True):
+    if (final_state_mode != "dimuon") and (do_QCD == True):
       background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
-      #background_dictionary[fakesLabel] = FF_dictionary[fakesLabel] # manually include QCD as background
-    h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
-    h_summed_backgrounds = get_summed_backgrounds(h_backgrounds)
+    h_backgrounds, h_summed_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
     h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi) 
     var = temp_var
 
@@ -172,8 +184,8 @@ if __name__ == "__main__":
     plot_signal( hist_ax, xbins, h_signals,     lumi)
 
     make_ratio_plot(hist_ratio, xbins, 
-                    h_data["Data"]["BinnedEvents"], "Data", np.ones(np.shape(h_data)),
-                    h_summed_backgrounds["Bkgd"]["BinnedEvents"], "Data", np.ones(np.shape(h_summed_backgrounds)))
+                    h_data, "Data", np.ones(np.shape(h_data)),
+                    h_summed_backgrounds, "Data", np.ones(np.shape(h_summed_backgrounds)))
 
     # reversed dictionary search for era name based on lumi 
     title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
@@ -192,11 +204,11 @@ if __name__ == "__main__":
 
     # calculate and print these quantities only once
     if (var == "HTT_dR" and False): 
-      desired_order=["Data", "Z", "DY, j", "Z{\rightarrow}ll", "TT", "ST", "W+", "Diboson", "VBF", "ggH", "Fakes"]
+      desired_order=["Data", "Z", "DY, j", "Z{\rightarrow}ll", "TT", "ST", "W+", "Diboson", "VBF_TauTau", "ggH_TauTau", "Fakes"]
       labels, yields = yields_for_CSV(hist_ax, desired_order)
       for val_label, val_yield in zip(desired_order, yields):
-        if ("VBF" in val_label): val_yield = val_yield/500.0 # VBF scaling
-        if ("ggH" in val_label): val_yield = val_yield/100.0 # ggH scaling
+        if ("VBF_TauTau" in val_label): val_yield = val_yield/500.0 # VBF scaling
+        if ("ggH_TauTau" in val_label): val_yield = val_yield/100.0 # ggH scaling
         print(f"{val_label}, {val_yield}")
       log_print(f"Reordered     Labels: {labels}", log_file)
       log_print(f"Corresponding Yields: {yields}", log_file)
