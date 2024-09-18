@@ -11,8 +11,7 @@ from cut_and_study_functions import apply_AR_cut
 
 def set_AR_region(final_state_mode):
   common_selection = set_good_events(final_state_mode, AR_region=True)
-  #AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
-  AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau | Trigger_ditauplusjet | Trigger_VBFditau)"
+  AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
   AR_region_mutau  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
   AR_region_etau   = common_selection + " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
   AR_region_emu    = common_selection + " & (abs(HTT_pdgId)==11*13) & (Trigger_emu)"
@@ -52,4 +51,3 @@ def produce_FF_weight(setup, jet_mode, semilep_mode):
       FF_dictionary[fakesLabel]["PlotEvents"][var] = cut_events_AR[var]
 
     return FF_dictionary
-
