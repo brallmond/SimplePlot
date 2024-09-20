@@ -94,8 +94,11 @@ full_file_map = {
   #"DYJetsToLL_M-50_3J" : "DY/DYJetsToLL_M-50_3J*",
   #"DYJetsToLL_M-50_4J" : "DY/DYJetsToLL_M-50_4J*",
 
-  "DYIncNLO"    : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
-  #"DY10to50NLO" : "DY/DYJetsToLL_M-10to50_NLO_HTauTau*",
+  #"DYIncNLO"    : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
+  "DY10to50NLO" : "DY/DYJetsToLL_M-10to50_NLO_HTauTau*",
+  "DY0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
+  "DY1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
+  "DY2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
 
   "TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
@@ -149,8 +152,8 @@ full_file_map = {
   #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
 
   #"VBF"   : "Signal/VBF*private*",
-  "VBF"   : "Signal/VBF*",
-  "ggH"   : "Signal/ggH*",
-  #"VBF"   : "Signal/VBF*UnFiltered*",
-  #"ggH"   : "Signal/ggH*UnFiltered*",
+  #"VBF"   : "Signal/VBF*",
+  #"ggH"   : "Signal/ggH*",
+  "VBF"   : "Signal/VBF_TauTau_UnFiltered*",
+  "ggH"   : "Signal/ggH_TauTau_UnFiltered*",
 }

@@ -86,9 +86,9 @@ MC_dictionary = {
   "DYLep10to50NLO"    : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1},
   "DYJet10to50NLO"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1},
 
-
-
-
+  "DY0JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DY1JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DY2JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
 
   "TTTo2L2Nu"          : {"label": "TT", "color": color_dictionary["TT"], "plot_scaling" : 1},
   "TTToFullyHadronic"  : {"label": "TT", "color": color_dictionary["TT"], "plot_scaling" : 1},

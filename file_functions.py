@@ -85,7 +85,6 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "Generator_weight":  cut_events["Generator_weight"],
       "Weight_TTbar_NNLO": cut_events["Weight_TTbar_NNLO"],
       "Weight_DY_Zpt":     cut_events["Weight_DY_Zpt_LO"],
-      #"Weight_DY_Zpt":     cut_events["Weight_DY_Zpt_NLO"],
       "TauSFweight": cut_events["TauSFweight"],
       "MuSFweight":  cut_events["MuSFweight"],
       "ElSFweight":  cut_events["ElSFweight"],
@@ -93,10 +92,12 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "PUweight"  :  cut_events["PUweight"],
       "SF_weight": np.ones(cut_events["Generator_weight"].shape)
     }
-    if   ("DY" in process) and ("NLO" not in process): print("using LO DY ZpT")
-    elif ("DY" in process) and ("NLO" in process):     print("using NLO DY ZpT")
+    if   ("DY" in process) and ("NLO" not in process): 
+      print("using LO DY ZpT")
+    elif ("DY" in process) and ("NLO" in process):
+      print("using NLO DY ZpT")
+      combined_processes[process]["Weight_DY_Zpt"] = cut_events["Weight_DY_Zpt_NLO"]
     else:  pass
-    #if "DY" in process: combined_processes[process]["Weight_DY_Zpt_by_hand"] = cut_events["Weight_DY_Zpt_by_hand"]
   elif "Data" in process:
     combined_processes[process] = { 
       "PlotEvents": {},
@@ -126,13 +127,15 @@ def load_and_store_NWEvents(process, event_dictionary):
   #MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0] # old style
   MC_dictionary[process]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
   #MC_dictionary[process]["XSecMCweight"]  = 1 # DEBUG
-  if "VBF" in process:
-    print("HARDCODING VBF NWEVENTS AND XSECMCWEIGHT")
-    ##MC_dictionary[process]["XSecMCweight"] = 0.002829568
-    MC_dictionary[process]["XSecMCweight"] = 0.0016263 # from "nominal" preEE sample # hack for pre Hlep
-  if "ggH" in process:
-    print("HARDCODING ggH NWEVENTS AND XSECMCWEIGHT")
-    #MC_dictionary[process]["XSecMCweight"] = 0.0027819 # from "nominal" preEE sample # hack for pre Hlep
+  HACK = False # should only be true for KSU notriggermatching samples
+  if (HACK == True):
+    if "VBF" in process:
+      print("HARDCODING VBF NWEVENTS AND XSECMCWEIGHT")
+      ##MC_dictionary[process]["XSecMCweight"] = 0.002829568
+      MC_dictionary[process]["XSecMCweight"] = 0.0016263 # from "nominal" preEE sample # hack for pre Hlep
+    if "ggH" in process:
+      print("HARDCODING ggH NWEVENTS AND XSECMCWEIGHT")
+      MC_dictionary[process]["XSecMCweight"] = 0.0027819 # from "nominal" preEE sample # hack for pre Hlep
   #print("XSecMCweight", process, MC_dictionary[process]["XSecMCweight"]) # DEBUG
   #event_dictionary.pop("NWEvents")
   event_dictionary.pop("XSecMCweight")
