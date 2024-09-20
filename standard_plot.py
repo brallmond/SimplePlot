@@ -32,7 +32,7 @@ from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, ma
 from binning_dictionary import label_dictionary
 
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
-from utility_functions     import time_print, make_directory, print_setup_info, log_print
+from utility_functions     import time_print, make_directory, print_setup_info, log_print, print_processing_info
 
 if __name__ == "__main__":
   '''
@@ -65,6 +65,9 @@ if __name__ == "__main__":
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _ = setup.misc_info
 
   print_setup_info(setup)
+  # used for printing, might be different from what is called per process
+  good_events  = set_good_events(final_state_mode) 
+  print_processing_info(good_events, "dummy value", "dummy value", log_file)
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
@@ -73,7 +76,6 @@ if __name__ == "__main__":
     gc.collect()
     # being reset each run, but they're literally strings so who cares
     _, reject_datasets = set_dataset_info(final_state_mode)
-    good_events  = set_good_events(final_state_mode) 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
     branches     = set_branches(final_state_mode, DeepTau_version, process)
  
@@ -88,7 +90,7 @@ if __name__ == "__main__":
     cut_events = apply_HTT_FS_cuts_to_process(process, new_process_dictionary, log_file, final_state_mode, jet_mode,
                                               DeepTau_version=DeepTau_version)
     if cut_events == None: continue
-    
+    '''
     # TODO : extendable to jet cuts (something I've meant to do for some time)
     if ("DY" in process) and (final_state_mode != "dimuon"):
       # def split_DY_by_gen, return combined_process_dictionary
@@ -132,8 +134,9 @@ if __name__ == "__main__":
     else:
       combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
                                                                  combined_process_dictionary)
-    #combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
-    #                                                           combined_process_dictionary)
+    '''
+    combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
+                                                               combined_process_dictionary)
  
 
   # after loop, sort big dictionary into three smaller ones
@@ -153,18 +156,18 @@ if __name__ == "__main__":
   CUSTOM_VARS = False
   if CUSTOM_VARS == True:
     vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx",
-                    "HTT_DiJet_MassInv_fromHighestMjj",
-                    "HTT_DiJet_MassInv_fromLeadingJets",
-                    "HTT_DiJet_dEta_fromHighestMjj",
-                    "HTT_DiJet_dEta_fromLeadingJets",
-                    "HTT_DiJet_j1index",
-                    "HTT_DiJet_j2index",
-                    "FS_mjj",
-                    "FS_detajj",
-                    "FS_j1index",
-                    "FS_j2index",
-                    "FS_dijet_pair_calc",
-                    "FS_dijet_pair_HTT",
+                    #"HTT_DiJet_MassInv_fromHighestMjj",
+                    #"HTT_DiJet_MassInv_fromLeadingJets",
+                    #"HTT_DiJet_dEta_fromHighestMjj",
+                    #"HTT_DiJet_dEta_fromLeadingJets",
+                    #"HTT_DiJet_j1index",
+                    #"HTT_DiJet_j2index",
+                    #"FS_mjj",
+                    #"FS_detajj",
+                    #"FS_j1index",
+                    #"FS_j2index",
+                    #"FS_dijet_pair_calc",
+                    #"FS_dijet_pair_HTT",
                    ]
   # remove mvis, replace with mvis_HTT and mvis_SF
   vars_to_plot.remove("HTT_m_vis")
@@ -190,9 +193,9 @@ if __name__ == "__main__":
     var = temp_var
 
     # plot everything :)
-    plot_data(   hist_ax, xbins, h_data,        lumi)
-    plot_MC(     hist_ax, xbins, h_backgrounds, lumi)
-    plot_signal( hist_ax, xbins, h_signals,     lumi)
+    plot_data(   hist_ax, xbins, h_data,        lumi, hide_yields)
+    plot_MC(     hist_ax, xbins, h_backgrounds, lumi, hide_yields)
+    plot_signal( hist_ax, xbins, h_signals,     lumi, hide_yields)
 
     make_ratio_plot(hist_ratio, xbins, 
                     h_data["Data"]["BinnedEvents"], "Data", np.ones(np.shape(h_data)),
@@ -203,12 +206,19 @@ if __name__ == "__main__":
     title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
     
     #spruce_up_single_plot(hist_ax, label_dictionary[var], "Events", title, final_state_mode, jet_mode)
-    spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, set_x_log=False)
+    set_y_log_ = False
+    if ("dxy" in var) or ("dz" in var):
+      set_y_log_ = True
+      hist_ax.set_yscale('log')
+    spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, 
+                   set_x_log=False)
+                   #set_x_log=False, set_y_log=set_y_log_)
     spruce_up_legend(hist_ax, final_state_mode)
 
-    text = r'S/$\sqrt{S+B}$ = '
-    text += calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
-    add_text(hist_ax, text)
+    # TODO: add presentation_mode bool
+    #text = r'S/$\sqrt{S+B}$ = '
+    #text += calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
+    #add_text(hist_ax, text)
 
     plt.savefig(plot_dir + "/" + str(var) + ".png")
  

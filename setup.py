@@ -73,10 +73,11 @@ class setup_handler:
     home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
     active_dir = "/V12_PFRel_"+era_modifier_2022+"_nominal/"
     #active_dir = "/V12_PFRel_"+era_modifier_2022+"_notriggermatching/"
-    #active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
+    active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
     #active_dir = "/Hlep_2023preBPIX/"
     active_dir += final_state_mode
     full_dir = home_dir + active_dir # add lxplus redirector if on eos
+    #full_dir = "/Volumes/IDrive/HTauTau_Data/mutau_postEE_Hlep_comparison/Hlep/" # SSD hack
     return full_dir
 
   
@@ -130,6 +131,8 @@ def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_
   good_events =  "(METfilters) & (LeptonVeto==0)"
   #jet_vetomaps = "" # deactivated for 2023
   jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
+  #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV) & (JetMapVeto_TauEE)" # only for postEE, KSU
+  #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV) & (JetMapVeto_TauEEBPix)" # only for postEE, HLep
   #jet_vetomaps = " & (JetMapVeto_EE_25GeV) & (JetMapVeto_HotCold_25GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV)"
