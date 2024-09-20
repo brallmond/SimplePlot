@@ -127,7 +127,7 @@ def plot_raw(histogram_axis, xbins, input_vals, luminosity,
                           color=color, marker=marker, fillstyle=fillstyle, label=label,
                           linestyle='none', markersize=3)
 
-def plot_data(histogram_axis, xbins, data_dictionary, luminosity, 
+def plot_data(histogram_axis, xbins, data_dictionary, luminosity, hide_yields=False,
               color="black", label="Data", marker="o", fillstyle="full"):
   '''
   Add the data histogram to the existing histogram axis, computing errors in a simple way.
@@ -139,7 +139,8 @@ def plot_data(histogram_axis, xbins, data_dictionary, luminosity,
   sum_of_data = np.sum(data_info)
   midpoints   = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2 # only works for uniform bin widths
-  label = f"Data [{sum_of_data:>.0f}]" if label == "Data" else label
+  #label  = "Data[{sum_of_data:>.0f}]" if label == "Data" else label
+  label += "" if hide_yields else f" [{sum_of_data:>.0f}]"
   histogram_axis.errorbar(midpoints, data_info, xerr=bin_width, yerr=stat_error, 
                           color=color, marker=marker, fillstyle=fillstyle, label=label,
                           linestyle='none', markersize=3)
@@ -147,7 +148,7 @@ def plot_data(histogram_axis, xbins, data_dictionary, luminosity,
   #histogram_axis.plot(midpoints, data_info, color="black", marker=marker, linestyle='none', markersize=3, label=label)
 
 
-def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
+def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, hide_yields=False,
             custom=False, color="default", label="MC", fill=True):
   '''
   Add background MC histograms to the existing histogram axis. The input 'stack_dictionary'
@@ -169,7 +170,7 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
     #if "QCD" not in MC_process:
     #  total_error += stack_dictionary[MC_process]["BinnedErrors"]
     total_error += stack_dictionary[MC_process]["BinnedErrors"]
-    label += f" [{np.sum(current_hist):>.0f}]"
+    label += "" if hide_yields else f" [{np.sum(current_hist):>.0f}]"
     color_array.append(color)
     label_array.append(label)
     stack_array.append(current_hist)
@@ -184,7 +185,7 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity,
                               color="grey", alpha=0.50, edgecolor="none", hatch="/////") # no hatchcolor option :(
 
 
-def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity,
+def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity, hide_yields=False,
             custom=False, color="default", label="MC", fill=False):
   '''
   Similar to plot_MC, except signals are not stacked, and the 'stair' method
@@ -196,7 +197,7 @@ def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity,
     else:
       color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
     current_hist = signal_dictionary[signal]["BinnedEvents"]
-    label += f" [{np.sum(current_hist):>.0f}]"
+    label += "" if hide_yields else f" [{np.sum(current_hist):>.0f}]"
     stairs = histogram_axis.stairs(current_hist, xbins, color=color, label=label, fill=False)
 
 
@@ -500,6 +501,7 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
   '''
   h_processes = {}
   for process in process_dictionary:
+    #print(process) # DEBUG
     process_variable = process_dictionary[process]["PlotEvents"][variable]
     if len(process_variable) == 0: continue
     if "Data" in process:
@@ -509,6 +511,8 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     else:
       process_weights = get_MC_weights(process_dictionary, process)
     h_processes[process] = {}
+    #print(process_variable) # DEBUG
+    #print(process_weights)  # DEBUG
     binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, xbins_, process_weights, lumi_)
     h_processes[process]["BinnedEvents"] = binned_values
     h_processes[process]["BinnedErrors"] = binned_errors
@@ -548,11 +552,18 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
     h_MC_by_family["myQCD"] = {}
     h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
     h_MC_by_family["myQCD"]["BinnedErrors"] = h_MC_by_process["myQCD"]["BinnedErrors"]
-    all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
+    #all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
     #all_MC_families  = ["TT", "ST", "WJ", "VV", "DYInc"] 
+    #all_MC_families  = ["TT", "ST", "WJ", "VV", "DYIncNLO"] 
+    #all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJetNLO", "DYLepNLO", "DYGenNLO"]
+    all_MC_families  = ["TT", "ST", "WJ", "VV", "DY"]
   else:
-    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"]
+    #all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"]
     #all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYInc"]
+    #all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYIncNLO"]
+    #all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJetNLO", "DYLepNLO", "DYGenNLO"]
+    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DY"]
+  # TODO: in "presentation mode" merge small backgrounds into "other" category
   used_MC_families = []
   for family in all_MC_families:
     for process in h_MC_by_process:
@@ -563,7 +574,7 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
 
   for family in used_MC_families:
     h_MC_by_family[family] = {}
-    # only split here for readability
+    # lines are only split here for readability
     h_MC_by_family[family]["BinnedEvents"], _ = accumulate_MC_subprocesses(family, h_MC_by_process)
     _, h_MC_by_family[family]["BinnedErrors"] = accumulate_MC_subprocesses(family, h_MC_by_process)
   return h_MC_by_family
@@ -607,7 +618,8 @@ def accumulate_MC_subprocesses(parent_process, process_dictionary):
   accumulated_errors = 0
   for MC_process in process_dictionary:
     skip_process = False
-    if ("DY" in MC_process): skip_process = True # DYInc, DYGen, DYLep, DYJet are essentially preprocessed
+    # TODO: this breaks for 10to50 and 0,1,2J samples, shouldn't this be togglable?
+    #if ("DY" in MC_process): skip_process = True # DYInc, DYGen, DYLep, DYJet are essentially preprocessed
     if get_parent_process(MC_process, skip_process=skip_process) == parent_process:
       accumulated_values += process_dictionary[MC_process]["BinnedEvents"]
       accumulated_errors += process_dictionary[MC_process]["BinnedErrors"]
@@ -630,6 +642,7 @@ def get_parent_process(MC_process, skip_process=False):
   #elif "Genuine"  in MC_process:  parent_process = "DY" # DEBUG
   if skip_process: parent_process = MC_process
   elif ("QCD" in MC_process) and (MC_process != "myQCD"): parent_process = "QCD"
+  elif "DY"    in MC_process:  parent_process = "DY"
   elif "WJets" in MC_process:  parent_process = "WJ"
   elif "TT"    in MC_process:  parent_process = "TT"
   elif "ST"    in MC_process:  parent_process = "ST"
@@ -641,6 +654,7 @@ def get_parent_process(MC_process, skip_process=False):
       pass
     else:
       print(f"No matching parent process for {MC_process}, continuing as individual process...")
+      parent_process = MC_process
   return parent_process
 
 
