@@ -202,9 +202,9 @@ def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta,
     # This results in a 2jet case and a 3jet case, hence the special tag :)
     if (passTrig and passTauKinems and passJetKinems): pass_ditau_VBFRun2 = True
 
-  return [pass_ditau, False, False, False] # test removing all cross-triggers
+  #return [pass_ditau, False, False, False] # test removing all cross-triggers
   #return [pass_ditau, pass_ditau_jet, False, False] # test removing VBF trigger decisions
-  #return [pass_ditau, pass_ditau_jet, pass_ditau_VBFRun3, False] # test removing VBF Run2 trigger decision
+  return [pass_ditau, pass_ditau_jet, pass_ditau_VBFRun3, False] # test removing VBF Run2 trigger decision
   #return [pass_ditau, False, pass_ditau_VBFRun3, False] # test removing ditau+jet and VBF Run2
   #return [pass_ditau, False, pass_ditau_VBFRun3, pass_ditau_VBFRun2] # test removing ditau+jet
   #return [pass_ditau, False, False, pass_ditau_VBFRun2] # test using only VBFRun2
