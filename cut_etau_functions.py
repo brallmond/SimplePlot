@@ -28,22 +28,12 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
       l1_idx, l2_idx, btag,\
       vJet, vMu, vEle, trg32el, trg35el, crosstrg in zip(*to_check):
 
-    # some handling to figure out which FS index applies to what lepton
-    # note for the DeepTauID we use the tau branch index directly instead of the lepton branch
-    # (for tau branches we need the tau_idx, for lepton branches we can simply use the l1_idx, l2_idx)
-    tauFSLoc, tauBranchLoc, elFSLoc, elBranchLoc = 999, 999, 999, 999
-    if (tau_idx[l1_idx] != -1 and el_idx[l2_idx] != -1):
-      tauFSLoc = l1_idx
-      tauBranchLoc = tau_idx[l1_idx]
-      elFSLoc  = l2_idx
-      elBranchLoc = el_idx[l2_idx]
-    elif (tau_idx[l2_idx] != -1 and el_idx[l1_idx] != -1):
-      tauFSLoc = l2_idx
-      tauBranchLoc = tau_idx[l2_idx]
-      elFSLoc  = l1_idx
-      elBranchLoc = el_idx[l1_idx]
-    else:
-      print("Should not print :)")
+    # in ETau, electron is always lepton 1 in FS branches, tau is always lepton 2
+
+    elFSLoc      = l1_idx
+    elBranchLoc  = el_idx[l1_idx]
+    tauFSLoc     = l2_idx
+    tauBranchLoc = tau_idx[l2_idx]
 
     elPtVal    = lep_pt[elFSLoc] 
     elEtaVal   = lep_eta[elFSLoc]

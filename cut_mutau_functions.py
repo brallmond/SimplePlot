@@ -33,22 +33,12 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
       l1_idx, l2_idx, btag, tau_LeadTkPtOverTauPt,\
       vJet, vMu, vEle, trg24mu, trg27mu, crosstrg in zip(*to_check):
 
-    # some handling to figure out which FS index applies to what lepton
-    # note for the DeepTauID we use the tau branch index directly instead of the lepton branch
-    # (for tau branches we need the tau_idx, for lepton branches we can simply use the l1_idx, l2_idx)
-    tauFSLoc, tauBranchLoc, muFSLoc, muBranchLoc = 999, 999, 999, 999
-    if (tau_idx[l1_idx] != -1 and mu_idx[l2_idx] != -1):
-      tauFSLoc = l1_idx
-      tauBranchLoc = tau_idx[l1_idx]
-      muFSLoc  = l2_idx
-      muBranchLoc = mu_idx[l2_idx]
-    elif (tau_idx[l2_idx] != -1 and mu_idx[l1_idx] != -1):
-      tauFSLoc = l2_idx
-      tauBranchLoc = tau_idx[l2_idx]
-      muFSLoc  = l1_idx
-      muBranchLoc = mu_idx[l1_idx]
-    else:
-      print("Should not print :)")
+    # in MuTau, muon is always lepton 1 in FS branches, tau is always lepton 2
+    
+    muFSLoc      = l1_idx
+    muBranchLoc  = mu_idx[l1_idx]
+    tauFSLoc     = l2_idx
+    tauBranchLoc = tau_idx[l2_idx]
 
     muPtVal    = lep_pt[muFSLoc] 
     muEtaVal   = lep_eta[muFSLoc]
