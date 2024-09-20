@@ -7,7 +7,7 @@ from calculate_functions  import highest_mjj_pair, return_TLorentz_Jets
 from utility_functions    import text_options, log_print
 
 from cut_ditau_functions  import make_ditau_cut 
-from cut_mutau_functions  import make_mutau_cut, make_mutau_TnP_cut
+from cut_mutau_functions  import make_mutau_cut
 from cut_etau_functions   import make_etau_cut
 from cut_dimuon_functions import make_dimuon_cut, manual_dimuon_lepton_veto
  
@@ -355,12 +355,12 @@ def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, u
     if (event_dictionary == None): return event_dictionary
     event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
-  elif final_state_mode == "mutau_TnP": # special mode for Tau TRG studies
-    event_dictionary = make_mutau_SR_cut(event_dictionary, DeepTau_version)
-    event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
-    if (event_dictionary == None): return event_dictionary
-    event_dictionary = make_mutau_TnP_cut(event_dictionary, DeepTau_version)
-    event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
+  #elif final_state_mode == "mutau_TnP": # special mode for Tau TRG studies
+  #  event_dictionary = make_mutau_SR_cut(event_dictionary, DeepTau_version)
+  #  event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
+  #  if (event_dictionary == None): return event_dictionary
+  #  event_dictionary = make_mutau_TnP_cut(event_dictionary, DeepTau_version)
+  #  event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "etau":
     event_dictionary = make_etau_SR_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
