@@ -88,7 +88,7 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
 
     leadTkPtOverTau = tau_LeadTkPtOverTauPt[tauBranchLoc]
     passLeadTkRatio = (leadTkPtOverTau < 0.9)
-    passZmassWindow = (50.0 < mvis < 90.0)
+    passZmassWindow = (mvis < 80.0) #(50.0 < mvis < 90.0)
 
     pass_bTag = True
     nbJet = 0
@@ -99,7 +99,8 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
 
     if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep):
     #if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep 
-    #     and restrictTauDM and passZmassWindow and passLeadTkRatio):
+    #     and restrictTauDM and passZmassWindow):
+    #     #and restrictTauDM and passZmassWindow and passLeadTkRatio):
       pass_cuts.append(i)
       FS_mu_pt.append(muPtVal)
       FS_mu_eta.append(muEtaVal)
