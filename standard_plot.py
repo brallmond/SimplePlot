@@ -27,7 +27,8 @@ from luminosity_dictionary import luminosities_with_normtag as luminosities
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals, get_summed_backgrounds
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import setup_single_plot, spruce_up_single_plot, add_text
-from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart
+from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart, make_two_dimensional_plot
+from plotting_functions    import make_two_dimensional_ratio_plot
 
 from binning_dictionary import label_dictionary
 
@@ -62,7 +63,7 @@ if __name__ == "__main__":
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
   using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
-  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _ = setup.misc_info
+  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, presentation_mode = setup.misc_info
 
   print_setup_info(setup)
   # used for printing, might be different from what is called per process
@@ -153,9 +154,9 @@ if __name__ == "__main__":
   if (eta_phi_plot == True): make_eta_phi_plot(data_dictionary, dataset, final_state_mode, jet_mode, "Data")
 
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  CUSTOM_VARS = False
+  CUSTOM_VARS = True
   if CUSTOM_VARS == True:
-    vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx",
+    vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx", "FastMTT_mass",
                     #"HTT_DiJet_MassInv_fromHighestMjj",
                     #"HTT_DiJet_MassInv_fromLeadingJets",
                     #"HTT_DiJet_dEta_fromHighestMjj",
@@ -169,11 +170,6 @@ if __name__ == "__main__":
                     #"FS_dijet_pair_calc",
                     #"FS_dijet_pair_HTT",
                    ]
-  # remove mvis, replace with mvis_HTT and mvis_SF
-  vars_to_plot.remove("HTT_m_vis")
-  vars_to_plot.append("HTT_m_vis-KSUbinning")
-  vars_to_plot.append("HTT_m_vis-SFbinning")
-  text = ""
   for var in vars_to_plot:
     if DEBUG: log_print(f"Plotting {var}", log_file, time=True)
 
@@ -181,8 +177,6 @@ if __name__ == "__main__":
     hist_ax, hist_ratio = setup_ratio_plot()
     #hist_ax = setup_single_plot() # part of removing data
 
-    temp_var = var # hack to plot the same variable twice with two different binnings
-    if "HTT_m_vis" in var: var = "HTT_m_vis"
     h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
     if (final_state_mode != "dimuon") and (do_JetFakes == True):
       background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
@@ -190,12 +184,15 @@ if __name__ == "__main__":
     h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
     h_summed_backgrounds = get_summed_backgrounds(h_backgrounds)
     h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi) 
-    var = temp_var
 
     # plot everything :)
-    plot_data(   hist_ax, xbins, h_data,        lumi, hide_yields)
-    plot_MC(     hist_ax, xbins, h_backgrounds, lumi, hide_yields)
-    plot_signal( hist_ax, xbins, h_signals,     lumi, hide_yields)
+    blind, blind_range = False, []
+    if (var == "HTT_m_vis") or (var == "FastMTT_mass"):
+      blind = True
+      blind_range = [90, 110] if var=="HTT_m_vis" else [115, 135]
+    plot_data(   hist_ax, xbins, h_data,        lumi, presentation_mode, blind, blind_range)
+    plot_MC(     hist_ax, xbins, h_backgrounds, lumi, presentation_mode)
+    plot_signal( hist_ax, xbins, h_signals,     lumi, presentation_mode)
 
     make_ratio_plot(hist_ratio, xbins, 
                     h_data["Data"]["BinnedEvents"], "Data", np.ones(np.shape(h_data)),
@@ -206,23 +203,17 @@ if __name__ == "__main__":
     title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
     
     #spruce_up_single_plot(hist_ax, label_dictionary[var], "Events", title, final_state_mode, jet_mode)
-    set_y_log_ = False
-    if ("dxy" in var) or ("dz" in var):
-      set_y_log_ = True
-      hist_ax.set_yscale('log')
-    spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode, 
-                   set_x_log=False)
-                   #set_x_log=False, set_y_log=set_y_log_)
+    if ("dxy" in var) or ("dz" in var):  hist_ax.set_yscale('log')
+    spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode)
     spruce_up_legend(hist_ax, final_state_mode)
 
-    # TODO: add presentation_mode bool
-    #text = r'S/$\sqrt{S+B}$ = '
-    #text += calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
-    #add_text(hist_ax, text)
+    sqrt_SoB = calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
+    text = "" if presentation_mode == True else r'S/$\sqrt{S+B}$ = ' + sqrt_SoB
+    add_text(hist_ax, text)
 
     plt.savefig(plot_dir + "/" + str(var) + ".png")
  
-    #if (var == "HTT_m_vis-KSUbinning"): make_pie_chart(h_data, h_backgrounds)
+    #if (var == "HTT_m_vis"): make_pie_chart(h_data, h_backgrounds)
 
     # calculate and print these quantities only once
     if (var == "HTT_dR" and False): 
@@ -234,6 +225,35 @@ if __name__ == "__main__":
         print(f"{val_label}, {val_yield}")
       log_print(f"Reordered     Labels: {labels}", log_file)
       log_print(f"Corresponding Yields: {yields}", log_file)
+
+
+  '''
+  varY = "FS_t2_pt"
+  if (jet_mode == "Inclusive"):
+    list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET"]
+    list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1)]
+  elif (jet_mode == "1j"):
+    list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET", "CleanJetGT30_pt_1"]
+    list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1), np.linspace(0, 600, 12+1)]
+  #list_of_processes = ["DataTau", "ggH", "VBF", "DY0JNLO", "myQCD"]
+  list_of_processes = ["DataTau", "ggH", "VBF"]
+  for varX, binX in zip(list_varX, list_binX):
+    for single_process in list_of_processes:
+      secondary_dict = signal_dictionary if ("ggH" in single_process) or ("VBF" in single_process) else background_dictionary
+      use_dict = data_dictionary if "Data" in single_process else secondary_dict
+      make_two_dimensional_plot(use_dict[single_process]["PlotEvents"], final_state_mode,
+                                varX, varY, add_to_title=single_process,
+                                alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 14+1))
+      plt.savefig("ditau_2D_plot/" + process + "_" + varX + "_" + varY + ".png")
+
+  for varX, binX in zip(list_varX, list_binX):
+    make_two_dimensional_ratio_plot(signal_dictionary, data_dictionary,
+                                    final_state_mode, varX, varY, add_to_title="Expected Higgs / Obs.",
+                                    #final_state_mode, varX, varY, add_to_title="Expected Higgs / √Obs.",
+                                    alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 14+1))
+                                    #alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 7+1))
+    plt.savefig("ditau_2D_plot/ratio_" + varX + "_" + varY + ".png")
+  '''
 
   print(f"Plots are in {plot_dir}")
   if hide_plots: pass

@@ -99,6 +99,59 @@ def make_two_dimensional_plot(input_dictionary, final_state, x_var, y_var,
   axis.set_ylabel(label_dictionary[y_var])
   plt.colorbar(cmesh)
 
+def make_two_dimensional_ratio_plot(numerator_dictionary, denominator_dictionary,
+                                    final_state, x_var, y_var,
+                                    add_to_title="", alt_x_bins=[], alt_y_bins=[]):
+  fig, axis = plt.subplots()
+
+  from matplotlib.colors import ListedColormap
+  cmap = ListedColormap(["#f9f954", "#f7e752", "#f6d453", "#edc756", "#ddc15f", "#cdbc67", "#b5bc70", 
+                         "#9dbd7a", "#85bb86", "#6eb894", "#5cb4a4", "#52adb3", "#4da5bf", "#479bc8", 
+                         "#408cca", "#3c7fcf", "#3470d2", "#2d62d4", "#2951c5", "#2b3da2"][::-1]) # ROOT 2D default
+
+  x_bins  = make_bins(x_var, final_state) if len(alt_x_bins) == 0 else alt_x_bins
+  y_bins  = make_bins(y_var, final_state) if len(alt_y_bins) == 0 else alt_y_bins
+  # TODO: remove all exposed calls to binning dictionary in preference of the helper function :)
+  #x_bins  = binning_dictionary[final_state][x_var] if len(alt_x_bins) == 0 else alt_x_bins
+  #y_bins  = binning_dictionary[final_state][y_var] if len(alt_y_bins) == 0 else alt_y_bins
+
+  num_keys = [*numerator_dictionary.keys()] # python for 1) put in a list [], 2) unpack *, 3) dict keys .keys
+  num1_x_array = numerator_dictionary[num_keys[0]]["PlotEvents"][x_var]
+  num1_y_array = numerator_dictionary[num_keys[0]]["PlotEvents"][y_var]
+  num1_h2d, xbins, ybins = np.histogram2d(num1_x_array, num1_y_array, bins=(x_bins, y_bins))
+  num1_h2d = num1_h2d/100. # unscale signal
+  num2_x_array = numerator_dictionary[num_keys[1]]["PlotEvents"][x_var]
+  num2_y_array = numerator_dictionary[num_keys[1]]["PlotEvents"][y_var]
+  num2_h2d, xbins, ybins = np.histogram2d(num2_x_array, num2_y_array, bins=(x_bins, y_bins))
+  num2_h2d = num2_h2d/100. # unscale signal
+  num_h2d = num1_h2d + num2_h2d
+
+  den_keys = [*denominator_dictionary.keys()]
+  den_x_array = denominator_dictionary[den_keys[0]]["PlotEvents"][x_var]
+  den_y_array = denominator_dictionary[den_keys[0]]["PlotEvents"][y_var]
+  den_h2d, xbins, ybins = np.histogram2d(den_x_array, den_y_array, bins=(x_bins, y_bins))
+
+  ratio_h2d = num_h2d / den_h2d
+  #ratio_h2d = num_h2d / np.sqrt(den_h2d)
+  ratio_h2d = ratio_h2d.T # transpose from image coordinates to data coordinates
+  ratio_h2d[np.isnan(ratio_h2d)] = 0 # zero over zero 
+  ratio_h2d[np.isinf(ratio_h2d)] = np.min(ratio_h2d[np.nonzero(ratio_h2d)]) # div by zero, assume there's data there and use the lowest signal value
+  cmesh = axis.pcolormesh(xbins, ybins, ratio_h2d, cmap=cmap) #pcolormesh uses data coordinates by default, imshow uses array of 1x1 squares
+  axis.set_title(f"{final_state} :" + f" {add_to_title}")
+  axis.set_xlabel(label_dictionary[x_var])
+  axis.set_ylabel(label_dictionary[y_var])
+
+  plt.colorbar(cmesh)
+
+  #print("shape and xbins")
+  #print(ratio_h2d.shape[0])
+  #print(ybins)
+  #print()
+  #print(ratio_h2d.shape[1])
+  #print(xbins)
+  #for i in range(ratio_h2d.shape[0] - 1):
+  #  for j in range(ratio_h2d.shape[1] - 1):
+  #    plt.text(ybins[i], xbins[j], f"{ratio_h2d[i,j]:.2f}", ha='center', va='center')
 
 def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mode, label_suffix):
   eta_phi_by_FS_dict = {"ditau"  : ["FS_t1_eta", "FS_t1_phi", "FS_t2_eta", "FS_t2_phi"],
@@ -127,7 +180,16 @@ def plot_raw(histogram_axis, xbins, input_vals, luminosity,
                           color=color, marker=marker, fillstyle=fillstyle, label=label,
                           linestyle='none', markersize=3)
 
-def plot_data(histogram_axis, xbins, data_dictionary, luminosity, hide_yields=False,
+def blind_region(input_array, allbins, blind_range):
+  # zero-out anything in the blind range
+  output_array = input_array
+  blind_idx = np.where((allbins > blind_range[0]) & (allbins < blind_range[1])) # get indices greater/less than range
+  output_array[blind_idx] = 0
+  return output_array
+  
+
+def plot_data(histogram_axis, xbins, data_dictionary, luminosity, presentation_mode=False,
+              blind_var=False, blind_range=[],
               color="black", label="Data", marker="o", fillstyle="full"):
   '''
   Add the data histogram to the existing histogram axis, computing errors in a simple way.
@@ -139,8 +201,8 @@ def plot_data(histogram_axis, xbins, data_dictionary, luminosity, hide_yields=Fa
   sum_of_data = np.sum(data_info)
   midpoints   = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2 # only works for uniform bin widths
-  #label  = "Data[{sum_of_data:>.0f}]" if label == "Data" else label
-  label += "" if hide_yields else f" [{sum_of_data:>.0f}]"
+  label += "" if presentation_mode else f" [{sum_of_data:>.0f}]"
+  if (blind_var): data_info = blind_region(data_info, xbins, blind_range)
   histogram_axis.errorbar(midpoints, data_info, xerr=bin_width, yerr=stat_error, 
                           color=color, marker=marker, fillstyle=fillstyle, label=label,
                           linestyle='none', markersize=3)
@@ -148,7 +210,7 @@ def plot_data(histogram_axis, xbins, data_dictionary, luminosity, hide_yields=Fa
   #histogram_axis.plot(midpoints, data_info, color="black", marker=marker, linestyle='none', markersize=3, label=label)
 
 
-def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, hide_yields=False,
+def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, presentation_mode=False,
             custom=False, color="default", label="MC", fill=True):
   '''
   Add background MC histograms to the existing histogram axis. The input 'stack_dictionary'
@@ -170,7 +232,7 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, hide_yields=Fal
     #if "QCD" not in MC_process:
     #  total_error += stack_dictionary[MC_process]["BinnedErrors"]
     total_error += stack_dictionary[MC_process]["BinnedErrors"]
-    label += "" if hide_yields else f" [{np.sum(current_hist):>.0f}]"
+    label += "" if presentation_mode else f" [{np.sum(current_hist):>.0f}]"
     color_array.append(color)
     label_array.append(label)
     stack_array.append(current_hist)
@@ -185,7 +247,7 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, hide_yields=Fal
                               color="grey", alpha=0.50, edgecolor="none", hatch="/////") # no hatchcolor option :(
 
 
-def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity, hide_yields=False,
+def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity, presentation_mode=False,
             custom=False, color="default", label="MC", fill=False):
   '''
   Similar to plot_MC, except signals are not stacked, and the 'stair' method
@@ -197,7 +259,7 @@ def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity, hide_yield
     else:
       color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
     current_hist = signal_dictionary[signal]["BinnedEvents"]
-    label += "" if hide_yields else f" [{np.sum(current_hist):>.0f}]"
+    label += "" if presentation_mode else f" [{np.sum(current_hist):>.0f}]"
     stairs = histogram_axis.stairs(current_hist, xbins, color=color, label=label, fill=False)
 
 
@@ -217,6 +279,8 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
       scaling *= 1 / luminosities["2022 CD"]
     elif ("E" in lumi_key) or ("F" in lumi_key) or ("G" in lumi_key):
       scaling *= 1 / luminosities["2022 EFG"]
+    elif (lumi_key == "2022"):
+      scaling *= 1 / luminosities["2022"]
     elif (lumi_key == ""):
       print(f"custom luminosity set to {luminosity} for {process} process")
     else:
@@ -319,7 +383,9 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
   #yticks[0].label1.set_visible(false) # hides a zero that overlaps with the upper plot
 
   ylimmin, ylimmax = histogram_axis.get_ylim()
-  histogram_axis.set_ylim(ylimmin, ylimmax*1.5) # scale up graph so legend fits without crazy overlap
+  # posisble to make multicol, consider part of presentation_mode?
+  # https://www.geeksforgeeks.org/use-multiple-columns-in-a-matplotlib-legend/
+  histogram_axis.set_ylim(ylimmin, ylimmax*1.75) # scale up graph so legend fits without crazy overlap
 
   ratio_plot_axis.set_ylim([0.45, 1.55]) # 0.0, 2.0 also make sense
   ratio_plot_axis.set_xlabel(variable_name) # shared axis label
@@ -501,7 +567,6 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
   '''
   h_processes = {}
   for process in process_dictionary:
-    #print(process) # DEBUG
     process_variable = process_dictionary[process]["PlotEvents"][variable]
     if len(process_variable) == 0: continue
     if "Data" in process:
@@ -511,6 +576,8 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     else:
       process_weights = get_MC_weights(process_dictionary, process)
     h_processes[process] = {}
+    #print(process)  # DEBUG
+    #print(variable) # DEBUG
     #print(process_variable) # DEBUG
     #print(process_weights)  # DEBUG
     binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, xbins_, process_weights, lumi_)
@@ -694,6 +761,11 @@ final_state_vars = {
                 "FS_t1_DeepTauVSjet", "FS_t1_DeepTauVSmu", "FS_t1_DeepTauVSe", 
                 "FS_t2_DeepTauVSjet", "FS_t2_DeepTauVSmu", "FS_t2_DeepTauVSe", 
                 "FS_trig_idx",
+                "FS_mt_t1t2", "FS_mt_t1_MET", "FS_mt_t2_MET", "FS_mt_TOT", "FS_dphi_t1t2", "FS_deta_t1t2",
+                "FS_t1_FLsig", "FS_t1_FLX", "FS_t1_FLY", "FS_t1_FLZ", "FS_t1_FLmag",
+                "FS_t1_ipLsig", "FS_t1_ip3d", "FS_t1_tk_lambda", "FS_t1_tk_qoverp",
+                "FS_t2_FLsig", "FS_t2_FLX", "FS_t2_FLY", "FS_t2_FLZ", "FS_t2_FLmag",
+                "FS_t2_ipLsig", "FS_t2_ip3d", "FS_t2_tk_lambda", "FS_t2_tk_qoverp",
                ],
 
     "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
@@ -748,11 +820,11 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   Helper function to keep plotting variables organized
   '''
   #vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mT", "FastMTT_mass",
-  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", 
+  vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mass",
                   "PuppiMET_pt", "PuppiMET_phi", "PV_npvs",
+                  "HTT_H_pt_using_PUPPI_MET",
                   #"Generator_weight",
                   #"FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
-                  #"HTT_H_pt_using_PUPPI_MET",
                   #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj",
                   #"HTT_DiJet_MassInv_fromLeadingJets", "HTT_DiJet_dEta_fromLeadingJets",
                   #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
