@@ -288,7 +288,7 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   # TODO could be improved by reducing variable name size and simplifying below operations
   JetFakes_dictionary = {}
   _, final_state_mode, jet_mode, _, _ = setup.state_info
-  _, _, _, do_JetFakes, _, _ = setup.misc_info
+  _, _, _, do_JetFakes, _, _, _ = setup.misc_info
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
   if (jet_mode != "Inclusive") and (do_JetFakes==True):
     JetFakes_dictionary = produce_FF_weight(setup, jet_mode, semilep_mode)

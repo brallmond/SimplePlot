@@ -42,7 +42,7 @@ if __name__ == "__main__":
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
   using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
-  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _ = setup.misc_info
+  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, _ = setup.misc_info
 
   print_setup_info(setup)
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
   do_QCD = False
   semilep_mode = "QCD" #"QCD" or "WJ"
   #for region in ["AR", "DRsr", "DRar", "SR_aiso", "AR_aiso", "DRsr_aiso", "DRar_aiso"]:
-  for region in ["AR"]:
+  for region in ["AR", "DRsr", "DRar"]:
     good_events  = set_good_events(final_state_mode, AR_region=("AR" in region.upper()), DR_region=("DR" in region))
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
@@ -183,14 +183,12 @@ if __name__ == "__main__":
 
     vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
     # remove mvis, replace with mvis_HTT and mvis_SF
-    vars_to_plot.remove("HTT_m_vis")
-    vars_to_plot.append("HTT_m_vis-KSUbinning")
     if (final_state_mode == "ditau"):
-      vars_to_plot = ["HTT_m_vis-KSUbinning", 
+      vars_to_plot = ["HTT_m_vis", 
                     "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",
                     "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt"]
     if (final_state_mode == "mutau"):
-      vars_to_plot = ["HTT_m_vis-KSUbinning", 
+      vars_to_plot = ["HTT_m_vis", 
                     "FS_tau_pt", "FS_tau_eta", "FS_tau_phi",
                     "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "PuppiMET_pt", "FS_mt"]
     # and add back variables unique to the jet mode
@@ -202,13 +200,10 @@ if __name__ == "__main__":
       xbins = make_bins(var, final_state_mode)
       hist_ax = setup_single_plot()
 
-      temp_var = var
-      if "HTT_m_vis" in var: var = "HTT_m_vis"
       h_data               = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
       h_backgrounds        = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
       h_summed_backgrounds = get_summed_backgrounds(h_backgrounds)
       h_signals            = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi) 
-      var = temp_var
 
       # plot everything :)
       plot_data(hist_ax, xbins, h_data, lumi)
