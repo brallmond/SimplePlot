@@ -131,8 +131,8 @@ def make_two_dimensional_ratio_plot(numerator_dictionary, denominator_dictionary
   den_y_array = denominator_dictionary[den_keys[0]]["PlotEvents"][y_var]
   den_h2d, xbins, ybins = np.histogram2d(den_x_array, den_y_array, bins=(x_bins, y_bins))
 
-  ratio_h2d = num_h2d / den_h2d
-  #ratio_h2d = num_h2d / np.sqrt(den_h2d)
+  #ratio_h2d = num_h2d / den_h2d
+  ratio_h2d = num_h2d / np.sqrt(den_h2d)
   ratio_h2d = ratio_h2d.T # transpose from image coordinates to data coordinates
   ratio_h2d[np.isnan(ratio_h2d)] = 0 # zero over zero 
   ratio_h2d[np.isinf(ratio_h2d)] = np.min(ratio_h2d[np.nonzero(ratio_h2d)]) # div by zero, assume there's data there and use the lowest signal value
@@ -288,7 +288,8 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
     scaling *= luminosity
     if process=="myQCD": scaling = 1
   if signal:
-    label += " x" + str(MC_dictionary[process]["plot_scaling"])
+    #label += " x" + str(MC_dictionary[process]["plot_scaling"])
+    label += " x100"
   return (color, label, scaling)
 
 
@@ -801,6 +802,9 @@ clean_jet_vars = {
 
     "0j" : ["nCleanJetGT30"],
     "1j" : ["nCleanJetGT30", "CleanJetGT30_pt_1", "CleanJetGT30_eta_1", "CleanJetGT30_phi_1"],
+    "2j" : ["nCleanJetGT30"],
+    "3j" : ["nCleanJetGT30"],
+    "4j" : ["nCleanJetGT30"],
     "GTE1j" : ["nCleanJetGT30", 
                "CleanJetGT30_pt_1", "CleanJetGT30_eta_1", "CleanJetGT30_phi_1",
                "CleanJetGT30_pt_2", "CleanJetGT30_eta_2", "CleanJetGT30_phi_2",
