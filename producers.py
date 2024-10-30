@@ -58,7 +58,7 @@ def produce_FF_weight(setup, jet_mode, semilep_mode):
                                               branches, AR_region, final_state_mode,
                                               data=True, testing=testing)
       AR_events = AR_process_dictionary[dataset]["info"]
-      cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version)
+      cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version, tau_pt_cut)
       if "FF_weight" not in FF_dictionary[fakesLabel]: # First file, or not doing one at a time
         FF_dictionary[fakesLabel]["FF_weight"]  = cut_events_AR["FF_weight"]
         for var in vars_to_plot:

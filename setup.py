@@ -66,7 +66,7 @@ class setup_handler:
     state_info_template = namedtuple("State_info", "testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut")
     self.state_info     = state_info_template(testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut)
     file_info_template  = namedtuple("File_info", "infile_directory, plot_dir_name, logfile, use_NLO, file_map, oneAtATime")
-    self.file_info      = file_info_template(infile_directory, plot_dir_name, logfile, use_NLO, file_map)
+    self.file_info      = file_info_template(infile_directory, plot_dir_name, logfile, use_NLO, file_map, oneAtATime)
     misc_info_template  = namedtuple("Misc_info", "hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, one_process, presentation_mode")
     self.misc_info      = misc_info_template(hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, one_process, presentation_mode)
   # end class init

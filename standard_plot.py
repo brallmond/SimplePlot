@@ -118,7 +118,7 @@ if __name__ == "__main__":
       if new_process_dictionary == None: continue # skip process if empty
 
       cut_events = apply_HTT_FS_cuts_to_process(process, new_process_dictionary, log_file, final_state_mode, jet_mode,
-                                                DeepTau_version=DeepTau_version)
+                                                DeepTau_version, tau_pt_cut)
       if cut_events == None: continue
       '''
       # TODO : extendable to jet cuts (something I've meant to do for some time)
@@ -166,7 +166,7 @@ if __name__ == "__main__":
                                                                    combined_process_dictionary)
       '''
       combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
-                                                               combined_process_dictionary)
+                                                               combined_process_dictionary, one_file_at_a_time)
       del new_process_dictionary
       del cut_events
       gc.collect()
