@@ -7,6 +7,8 @@ from utility_functions import log_print
 from file_map_dictionary import set_dataset_info
 from file_functions import load_process_from_file
 from cut_and_study_functions import apply_AR_cut
+import numpy as np
+import gc
 
 
 def set_AR_region(final_state_mode):
@@ -27,8 +29,9 @@ def set_AR_region(final_state_mode):
 def produce_FF_weight(setup, jet_mode, semilep_mode):
     # kinda weird, but okay
     testing, final_state_mode, _, _, _, tau_pt_cut = setup.state_info
-    using_directory, _, log_file, _, file_map = setup.file_info
+    using_directory, _, log_file, _, file_map, one_file_at_a_time = setup.file_info
     _, _, DeepTau_version, _, _, _, _ = setup.misc_info
+    if one_file_at_a_time: import glob
 
     fakesLabel = "myQCD"
     jet_mode = jet_mode.removesuffix("_testing")
@@ -36,20 +39,40 @@ def produce_FF_weight(setup, jet_mode, semilep_mode):
     AR_region    = set_AR_region(final_state_mode) # same role as "set_good_events"
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
     branches     = set_branches(final_state_mode, DeepTau_version, process=dataset)
- 
-    log_print(f"Processing ditau AR region!", log_file, time=True)
-    AR_process_dictionary = load_process_from_file(dataset, using_directory, file_map, log_file,
-                                            branches, AR_region, final_state_mode,
-                                            data=True, testing=testing)
-    AR_events = AR_process_dictionary[dataset]["info"]
-    cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version, tau_pt_cut)
+
     FF_dictionary = {}
     FF_dictionary[fakesLabel] = {}
     FF_dictionary[fakesLabel]["PlotEvents"] = {}
-    FF_dictionary[fakesLabel]["FF_weight"]  = cut_events_AR["FF_weight"]
-    for var in vars_to_plot:
-      if ("flav" in var) or ("Generator_weight" in var): continue
-      FF_dictionary[fakesLabel]["PlotEvents"][var] = cut_events_AR[var]
+ 
+    log_print(f"Processing ditau AR region!", log_file, time=True)
+    if not one_file_at_a_time:
+      # One single entry per process, probably containing wildcard symbol, as defined in file_map_dictionary.py
+      input_files = [file_map[dataset]]
+    else:
+      # Multiple entries per process, results from wildcard search
+      input_files = glob.glob( using_directory + "/" + file_map[dataset] + ".root")
+      input_files = sorted([f.replace(using_directory+"/","")[:-5] for f in input_files])
+    for input_file in input_files:
+      this_file_map = {dataset: input_file} # Make a temporary filemap just for this loop
+      AR_process_dictionary = load_process_from_file(dataset, using_directory, this_file_map, log_file,
+                                              branches, AR_region, final_state_mode,
+                                              data=True, testing=testing)
+      AR_events = AR_process_dictionary[dataset]["info"]
+      cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version)
+      if "FF_weight" not in FF_dictionary[fakesLabel]: # First file, or not doing one at a time
+        FF_dictionary[fakesLabel]["FF_weight"]  = cut_events_AR["FF_weight"]
+        for var in vars_to_plot:
+          if ("flav" in var) or ("Generator_weight" in var): continue
+          FF_dictionary[fakesLabel]["PlotEvents"][var] = cut_events_AR[var]
+      else:
+        FF_dictionary[fakesLabel]["FF_weight"]  = np.append(FF_dictionary[fakesLabel]["FF_weight"], cut_events_AR["FF_weight"])
+        for var in vars_to_plot:
+          if ("flav" in var): continue
+          FF_dictionary[fakesLabel]["PlotEvents"][var] = np.append(FF_dictionary[fakesLabel]["PlotEvents"][var], cut_events_AR[var])
+      del AR_process_dictionary
+      del AR_events
+      del cut_events_AR
+      gc.collect()
 
     return FF_dictionary
 
