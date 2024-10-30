@@ -22,6 +22,7 @@ class setup_handler:
     self.parser.add_argument('--do_JetFakes',  dest='do_JetFakes', default=True,        action='store')
     self.parser.add_argument('--semilep_mode', dest='semilep_mode', default="Full",     action='store')
     self.parser.add_argument('--presentation', dest='presentation_mode',  default=False, action='store')
+    self.parser.add_argument('--tau_pt',       dest='tau_pt_cut',  default="None",      action='store')
 
     self.parser.add_argument('--one_process',    dest='one_process',    default=None,      action='store')
 
@@ -33,6 +34,7 @@ class setup_handler:
     final_state_mode = args.final_state # default mutau [possible values ditau, mutau, etau, dimuon]
     jet_mode         = args.jet_mode    # default Inclusive [possible values 0j, 1j, 2j, GTE1j, GTE2j]
     era              = args.era
+    tau_pt_cut       = args.tau_pt_cut
     if testing: era = "2022 G"     # testing overrides era inputs
     lumi = luminosities[era]
 
@@ -59,8 +61,8 @@ class setup_handler:
 
     # set three named tuples to collect class information that can be accessed later
     from collections import namedtuple
-    state_info_template = namedtuple("State_info", "testing, final_state_mode, jet_mode, era, lumi")
-    self.state_info     = state_info_template(testing, final_state_mode, jet_mode, era, lumi)
+    state_info_template = namedtuple("State_info", "testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut")
+    self.state_info     = state_info_template(testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut)
     file_info_template  = namedtuple("File_info", "infile_directory, plot_dir_name, logfile, use_NLO, file_map")
     self.file_info      = file_info_template(infile_directory, plot_dir_name, logfile, use_NLO, file_map)
     misc_info_template  = namedtuple("Misc_info", "hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, one_process, presentation_mode")
@@ -196,7 +198,7 @@ def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_
 
 if __name__ == "__main__":
   setup = setup_handler()
-  testing, final_state_mode, jet_mode, era, lumi = setup.state_info
+  testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut = setup.state_info
   infile_directory, plot_dir_name, logfile, use_NLO, file_map = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, one_process, presentation_mode = setup.misc_info
 
