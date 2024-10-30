@@ -89,8 +89,9 @@ SPACER = "-"
 def print_setup_info(setup):
   # how do you specify class types with pylint? 
   
-  testing, final_state_mode, jet_mode, era, lumi = setup.state_info
+  testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut = setup.state_info
   using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time = setup.file_info
+
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, _ = setup.misc_info
 
   screen_width, spacer = SCREEN_WIDTH, SPACER
@@ -103,6 +104,7 @@ def print_setup_info(setup):
   log_print("Miscellaneous info ".upper().center(screen_width, spacer), log_file)
   log_print(f"NLO samples (DY/WJ)={use_NLO} \t DeepTauVersion={DeepTau_version}", log_file)
   log_print(f"Include JetFakes={do_JetFakes} \t \t FF semileptonic mode={semilep_mode}", log_file)
+  log_print(f"Tau pT Cut = {tau_pt_cut}", log_file)
   log_print(spacer*screen_width, log_file)
 
 

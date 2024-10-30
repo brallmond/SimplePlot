@@ -3,7 +3,7 @@ import numpy as np
 from calculate_functions import calculate_mt, calculate_acoplan
 from branch_functions import add_trigger_branches, add_DeepTau_branches
 
-def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
+def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_cut="None"):
   '''
   Works similarly to 'make_ditau_cut'. 
   Notably, the mutau cuts are more complicated, but it is simple to 
@@ -87,7 +87,7 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
         pass_bTag = False
         nbJet += 1
 
-    if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep):
+    if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep and restrictTauDM):
     #if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep 
     #     and restrictTauDM and passZmassWindow):
     #     #and restrictTauDM and passZmassWindow and passLeadTkRatio):

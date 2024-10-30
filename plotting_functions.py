@@ -131,8 +131,8 @@ def make_two_dimensional_ratio_plot(numerator_dictionary, denominator_dictionary
   den_y_array = denominator_dictionary[den_keys[0]]["PlotEvents"][y_var]
   den_h2d, xbins, ybins = np.histogram2d(den_x_array, den_y_array, bins=(x_bins, y_bins))
 
-  ratio_h2d = num_h2d / den_h2d
-  #ratio_h2d = num_h2d / np.sqrt(den_h2d)
+  #ratio_h2d = num_h2d / den_h2d
+  ratio_h2d = num_h2d / np.sqrt(den_h2d)
   ratio_h2d = ratio_h2d.T # transpose from image coordinates to data coordinates
   ratio_h2d[np.isnan(ratio_h2d)] = 0 # zero over zero 
   ratio_h2d[np.isinf(ratio_h2d)] = np.min(ratio_h2d[np.nonzero(ratio_h2d)]) # div by zero, assume there's data there and use the lowest signal value
@@ -288,7 +288,8 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
     scaling *= luminosity
     if process=="myQCD": scaling = 1
   if signal:
-    label += " x" + str(MC_dictionary[process]["plot_scaling"])
+    #label += " x" + str(MC_dictionary[process]["plot_scaling"])
+    label += " x100"
   return (color, label, scaling)
 
 
@@ -308,8 +309,15 @@ def setup_single_plot():
 
 
 def setup_TnP_plot():
-  fig, ax = plt.subplots() #subplot?
+  fig, ax = plt.subplots()
   return ax
+
+
+def setup_unrolled_plot(n_ax):
+  gridspec_kw = {'height_ratios': [3, 1], 'hspace': 0.09, 'wspace': 0} # used to be 4:1
+  fig, (upper_n_ax, lower_n_ax) = plt.subplots(ncols=n_ax, nrows=2, sharex='col', sharey='row', figsize=(16, 6),
+                                               gridspec_kw=gridspec_kw)
+  return fig, upper_n_ax, lower_n_ax
 
 
 def add_CMS_preliminary(axis):
@@ -414,6 +422,53 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
     histogram_axis.set_yscale('log')
     ratio_plot_axis.set_yscale('log')
 
+def spruce_up_unrolled_plot(fig, histogram_axes, ratio_axes, variable_name, title, final_state_mode, jet_mode, tau_pt_cut,
+                            set_x_log = False, set_y_log = False):
+
+  vals = {
+   "ditau" : { "None" : [], "Low" : [25, 50],  "Mid" : [50, 70],  "High" : [70, 10000]  },
+   "mutau" : { "None" : [], "Low" : [30, 50],  "Mid" : [50, 70],  "High" : [70, 10000]  },
+   "etau"  : { "None" : [], "Low" : [30, 50],  "Mid" : [50, 70],  "High" : [70, 10000]  },
+  }
+  midax = int(len(histogram_axes)/2)
+  use_vals = vals[final_state_mode][tau_pt_cut]
+  if   tau_pt_cut == "None": valstring = "- Inclusive"; tau_pt_cut = ""
+  elif tau_pt_cut == "High": valstring = f"> {use_vals[0]}"
+  else:                      valstring = f"[{use_vals[0]}, {use_vals[1]}]"
+  #valstring = f"[{use_vals[0]}, {use_vals[1]}]" if tau_pt_cut != "High" else f"> {use_vals[0]}"
+  histogram_axes[midax].set_title(f"{tau_pt_cut} Tau pT Category {valstring}")
+  histogram_axes[0].text(0.01, 1.02, "CMS Preliminary", transform=histogram_axes[0].transAxes, fontsize=16, weight='bold')
+  histogram_axes[-1].set_title(title, loc='right', y=0.98)
+  histogram_axes[0].set_ylabel("Events")
+  for histogram_axis in histogram_axes:
+    histogram_axis.minorticks_on()
+    histogram_axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
+
+  #ylimmin, ylimmax = histogram_axes[0].get_ylim()
+  #for histogram_axis in histogram_axes: # don't do this, it will break
+  #  histogram_axis.set_ylim(ylimmin, ylimmax*1.25) # scale up graph
+
+  ratio_axes[0].set_ylabel("Obs. / Exp.")
+  ratio_axes[midax].set_xlabel(variable_name) # shared axis label on middle-ish plot
+  for ratio_axis in ratio_axes:
+    ratio_axis.set_ylim([0.45, 1.55]) # 0.0, 2.0 also make sense
+    ratio_axis.axhline(y=1, color='grey', linestyle='--')
+    ratio_axis.minorticks_on()
+    ratio_axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
+    ratio_axis.yaxis.set_major_locator(plt.FixedLocator([0.6, 0.8, 1.0, 1.2, 1.4]))
+    ratio_axis.yaxis.set_major_formatter('{x:.1f}')
+    ratio_axis.yaxis.set_minor_locator(plt.MultipleLocator(0.05))
+
+  if (set_y_log == True): # put in loop if you want to use...
+    for histogram_axis in histogram_axes:
+      histogram_axis.set_yscale('log')
+    #for ratio_axis in ratio_axes: # almost never will want this
+    #  ratio_axis.set_yscale('log')
+  
+  handles, labels = histogram_axes[0].get_legend_handles_labels()
+  leg = fig.legend(handles, labels, loc="upper center", frameon=False, ncol=len(labels),
+                   labelspacing=0.35, handlelength=0.8, handleheight=0.8, handletextpad=0.4)
+ 
 
 def spruce_up_TnP_plot(axis, variable_name, title):
   add_CMS_preliminary(axis)
@@ -424,6 +479,7 @@ def spruce_up_TnP_plot(axis, variable_name, title):
   axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
   axis.set_xlabel(variable_name) # shared axis label
   axis.grid(True)
+
 
 
 def spruce_up_legend(histogram_axis, final_state_mode):
@@ -533,7 +589,7 @@ def adjust_scaling(final_state, process, scaling):
   return scaling * adjustment_factor
 
 
-def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity):
+def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask=[]):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
   'scaling' is either set to 1 for data (no scaling) or retrieved from the MC_dictionary.
@@ -543,6 +599,9 @@ def get_binned_info(final_state, testing, process_name, process_variable, xbins,
   scaling = 1 if "Data" in process_name else set_MC_process_info(process_name, luminosity, scaling=True)[2]
   if testing == True: scaling = adjust_scaling(final_state, process_name, scaling)
   weights = scaling * process_weights
+  if (len(mask) != 0): 
+    process_variable = process_variable[mask]
+    weights = weights[mask]
   underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, xbins, weights)
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
   binned_values[0]   += underflow
@@ -560,14 +619,16 @@ def get_weight_stats(process_name, process_weights):
   print(stats.describe(process_weights))
   
 
-def get_binned_process(final_state, testing, process_dictionary, variable, xbins_, lumi_):
+def get_binned_process(final_state, testing, process_dictionary, variable, xbins_, lumi_, mask=[], mask_n=999):
   '''
   Standard loop to get only the plotted variable from a dictionary containing info and multiple variables.
   This is written to only get on process at a time. Other functions combine the processes when necessary.
   '''
   h_processes = {}
+
   for process in process_dictionary:
     process_variable = process_dictionary[process]["PlotEvents"][variable]
+    process_mask = mask[process][mask_n] if mask_n != 999 else []
     if len(process_variable) == 0: continue
     if "Data" in process:
       process_weights = np.ones(np.shape(process_variable)) # weights of one for data
@@ -576,18 +637,22 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     else:
       process_weights = get_MC_weights(process_dictionary, process)
     h_processes[process] = {}
+    #print("process, variable, process_variable, process_weights, process_mask, lengths(var, weights, mask)") # DEBUG
     #print(process)  # DEBUG
     #print(variable) # DEBUG
     #print(process_variable) # DEBUG
     #print(process_weights)  # DEBUG
-    binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, xbins_, process_weights, lumi_)
+    #print(process_mask) # DEBUG
+    #print(len(process_variable), len(process_weights), len(process_mask)) # DEBUG
+    binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, 
+                                                   xbins_, process_weights, lumi_, process_mask)
     h_processes[process]["BinnedEvents"] = binned_values
     h_processes[process]["BinnedErrors"] = binned_errors
   return h_processes
 
 
-def get_binned_data(final_state, testing, data_dictionary, variable, xbins_, lumi_):
-  h_data_by_dataset = get_binned_process(final_state, testing, data_dictionary, variable, xbins_, lumi_)
+def get_binned_data(final_state, testing, data_dictionary, variable, xbins_, lumi_, mask=[], mask_n=999):
+  h_data_by_dataset = get_binned_process(final_state, testing, data_dictionary, variable, xbins_, lumi_, mask, mask_n)
   h_data = {}
   h_data["Data"] = {}
   h_data["Data"]["BinnedEvents"], h_data["Data"]["BinnedErrors"] = accumulate_datasets(h_data_by_dataset)
@@ -606,12 +671,12 @@ def accumulate_datasets(dataset_dictionary):
   return accumulated_values, accumulated_errors
 
 
-def get_binned_backgrounds(final_state, testing, background_dictionary, variable, xbins_, lumi_):
+def get_binned_backgrounds(final_state, testing, background_dictionary, variable, xbins_, lumi_, mask=[], mask_n=999):
   '''
   Treat each MC process, then group the output by family into flat dictionaries.
   Also, sum all backgrounds into h_summed_backgrounds to use in ratio plot.
   '''
-  h_MC_by_process = get_binned_process(final_state, testing, background_dictionary, variable, xbins_, lumi_)
+  h_MC_by_process = get_binned_process(final_state, testing, background_dictionary, variable, xbins_, lumi_, mask, mask_n)
 
   # add together subprocesses of each MC family
   h_MC_by_family = {}
@@ -664,8 +729,8 @@ def get_summed_backgrounds(h_backgrounds):
   return h_summed_backgrounds
 
 
-def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_, lumi_):
-  h_signals = get_binned_process(final_state, testing, signal_dictionary, variable, xbins_, lumi_)
+def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_, lumi_, mask=[], mask_n=999):
+  h_signals = get_binned_process(final_state, testing, signal_dictionary, variable, xbins_, lumi_, mask, mask_n)
   return h_signals
 
 
@@ -801,6 +866,9 @@ clean_jet_vars = {
 
     "0j" : ["nCleanJetGT30"],
     "1j" : ["nCleanJetGT30", "CleanJetGT30_pt_1", "CleanJetGT30_eta_1", "CleanJetGT30_phi_1"],
+    "2j" : ["nCleanJetGT30"],
+    "3j" : ["nCleanJetGT30"],
+    "4j" : ["nCleanJetGT30"],
     "GTE1j" : ["nCleanJetGT30", 
                "CleanJetGT30_pt_1", "CleanJetGT30_eta_1", "CleanJetGT30_phi_1",
                "CleanJetGT30_pt_2", "CleanJetGT30_eta_2", "CleanJetGT30_phi_2",

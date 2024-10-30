@@ -3,7 +3,7 @@ import numpy as np # TODO is importing this everywhere slowing things down? does
 from calculate_functions import calculate_mt, calculate_acoplan
 from branch_functions import add_trigger_branches, add_DeepTau_branches
 
-def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
+def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_cut="None"):
   '''
   Works similarly to 'make_ditau_cut'. 
   '''

@@ -243,6 +243,7 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
   unpack_FF_vars = (event_dictionary.get(key) for key in unpack_FF_vars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_FF_vars]
   FF_weights = []
+  if (jet_mode == "2j") or (jet_mode == "3j") or (jet_mode == "4j"): jet_mode = "GTE2j"
   QCD_fitvals   = FF_fit_values[final_state_mode][jet_mode]["QCD"]
   if (final_state_mode != "ditau"):
     WJ_fitvals   = FF_fit_values[final_state_mode][jet_mode]["WJ"]
@@ -287,7 +288,7 @@ from producers import produce_FF_weight
 def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   # TODO could be improved by reducing variable name size and simplifying below operations
   JetFakes_dictionary = {}
-  _, final_state_mode, jet_mode, _, _ = setup.state_info
+  _, final_state_mode, jet_mode, _, _, _ = setup.state_info # TODO this needs to come from somewhere else
   _, _, _, do_JetFakes, _, _, _ = setup.misc_info
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
   if (jet_mode != "Inclusive") and (do_JetFakes==True):

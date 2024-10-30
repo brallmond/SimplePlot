@@ -28,7 +28,7 @@ def set_AR_region(final_state_mode):
 
 def produce_FF_weight(setup, jet_mode, semilep_mode):
     # kinda weird, but okay
-    testing, final_state_mode, _, _, _ = setup.state_info
+    testing, final_state_mode, _, _, _, tau_pt_cut = setup.state_info
     using_directory, _, log_file, _, file_map, one_file_at_a_time = setup.file_info
     _, _, DeepTau_version, _, _, _, _ = setup.misc_info
     if one_file_at_a_time: import glob
@@ -39,6 +39,7 @@ def produce_FF_weight(setup, jet_mode, semilep_mode):
     AR_region    = set_AR_region(final_state_mode) # same role as "set_good_events"
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
     branches     = set_branches(final_state_mode, DeepTau_version, process=dataset)
+
     FF_dictionary = {}
     FF_dictionary[fakesLabel] = {}
     FF_dictionary[fakesLabel]["PlotEvents"] = {}

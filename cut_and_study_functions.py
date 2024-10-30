@@ -117,6 +117,7 @@ def make_jet_cut(event_dictionary, jet_mode):
   j1_idxs_array, j2_idxs_array, dijet_idxs_array_calc, dijet_idxs_array_HTT = [], [], [], []
   from ROOT import TLorentzVector 
   # TODO : this is the only place ROOT is used, removing it would speed things up
+  # replace with python vector library
   #for i, nJet, jet_pt, jet_eta, jet_phi, jet_mass, HTT_j1idx, HTT_j2idx in zip(*to_check):
   for i, nJet, jet_pt, jet_eta, jet_phi, jet_mass in zip(*to_check):
     passingJets = 0
@@ -331,7 +332,7 @@ def make_run_cut(event_dictionary, good_runs):
   return event_dictionary
 
 
-def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, useMiniIso=False):
+def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, tau_pt_cut, useMiniIso=False):
   '''
   Organizational function that generalizes call to a (set of) cuts based on the
   final cut. Importantly, the function that rejects events, 'apply_cut',
@@ -343,29 +344,24 @@ def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, u
   #  protected_branches = set_protected_branches(final_state_mode="mutau_TnP", jet_mode="Inclusive")
   #else:
   protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="Inclusive")
+  skip_DeepTau = False
   if final_state_mode == "ditau":
     event_dictionary = make_ditau_SR_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     if (event_dictionary == None): return event_dictionary
-    event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version)
+    event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "mutau":
     event_dictionary = make_mutau_SR_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     if (event_dictionary == None): return event_dictionary
-    event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version)
+    event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
-  #elif final_state_mode == "mutau_TnP": # special mode for Tau TRG studies
-  #  event_dictionary = make_mutau_SR_cut(event_dictionary, DeepTau_version)
-  #  event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
-  #  if (event_dictionary == None): return event_dictionary
-  #  event_dictionary = make_mutau_TnP_cut(event_dictionary, DeepTau_version)
-  #  event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "etau":
     event_dictionary = make_etau_SR_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     if (event_dictionary == None): return event_dictionary
-    event_dictionary = make_etau_cut(event_dictionary, DeepTau_version)
+    event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "dimuon":
     # old samples need manual lepton veto
@@ -418,7 +414,7 @@ def apply_jet_cut(event_dictionary, jet_mode):
 
 def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
                                  final_state_mode, jet_mode="Inclusive", 
-                                 DeepTau_version="2p5", useMiniIso=False):
+                                 DeepTau_version="2p5", tau_pt_cut="None", useMiniIso=False):
   '''
   Organizational function to hold two function calls and empty list handling that
   is performed for all loaded datasets in our framework.
@@ -456,7 +452,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
     process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
 
-  FS_cut_events = apply_final_state_cut(process_events, final_state_mode, DeepTau_version, useMiniIso=useMiniIso)
+  FS_cut_events = apply_final_state_cut(process_events, final_state_mode, DeepTau_version, tau_pt_cut, useMiniIso=useMiniIso)
   if (FS_cut_events==None or len(FS_cut_events["run"])==0): return None 
   cut_events = apply_jet_cut(FS_cut_events, jet_mode)
   if (cut_events==None or len(cut_events["run"])==0): return None
@@ -529,7 +525,7 @@ def set_protected_branches(final_state_mode, jet_mode, DeepTau_version="none"):
   return protected_branches
 
 
-def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_mode, DeepTau_version):
+def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_mode, DeepTau_version, tau_pt_cut):
   '''
   Organizational function
   added 'skip_DeepTau' to apply a partial selection (all but leading tau deeptau reqs)
@@ -556,21 +552,22 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_
     process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
   if (final_state_mode != "dimuon"):
+    skip_DeepTau = True
     if (final_state_mode == "ditau"):
       event_dictionary = make_ditau_AR_cut(event_dictionary, DeepTau_version)
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
+      event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     if (final_state_mode == "mutau"):
       event_dictionary = make_mutau_AR_cut(event_dictionary, DeepTau_version)
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
+      event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     if (final_state_mode == "etau"):
       event_dictionary = make_etau_AR_cut(event_dictionary, DeepTau_version)
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
+      event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
     event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
     # weights associated with jet_mode key (testing suffix automatically removed)

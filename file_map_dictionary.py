@@ -159,8 +159,8 @@ full_file_map = {
   #"VBF"   : "Signal/VBF*",
   #"ggH"   : "Signal/ggH*",
 
-  "VBF"   : "Signal/VBF_TauTau_UnFiltered*",
-  "ggH"   : "Signal/ggH_TauTau_UnFiltered*",
-  #"VBF"   : "Signal/VBF_TauTau_Filtered*",
-  #"ggH"   : "Signal/ggH_TauTau_Filtered*",
+  #"VBF"   : "Signal/VBF_TauTau_UnFiltered*",
+  #"ggH"   : "Signal/ggH_TauTau_UnFiltered*",
+  "VBF"   : "Signal/VBF_TauTau_Filtered*",
+  "ggH"   : "Signal/ggH_TauTau_Filtered*",
 }

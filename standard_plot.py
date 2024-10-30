@@ -29,11 +29,29 @@ from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_p
 from plotting_functions    import setup_single_plot, spruce_up_single_plot, add_text
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart, make_two_dimensional_plot
 from plotting_functions    import make_two_dimensional_ratio_plot
+from plotting_functions    import setup_unrolled_plot, spruce_up_unrolled_plot
 
 from binning_dictionary import label_dictionary
 
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print, print_processing_info
+
+def make_masks_per_bin(input_dictionary, var, binning):
+  passing_var_bins_dict = {}
+  for process in input_dictionary.keys():
+    passing_var_bins = []
+    input_array = input_dictionary[process]["PlotEvents"][var]
+    for i in range(len(binning)):
+      if (i != len(binning) - 1):
+        premask1 = input_array >= binning[i] # this used to be (prior to Oct 30th, 15:20 CST) just >, not >=
+        premask2 = input_array < binning[i+1]
+        mask = np.logical_and(premask1, premask2)
+      else:
+        mask = input_array > binning[i] # does this work like you expect it to?
+      passing_var_bins.append(mask)
+    passing_var_bins_dict[process] = passing_var_bins
+  return passing_var_bins_dict # dictionary of list of masks
+
 
 if __name__ == "__main__":
   '''
@@ -61,7 +79,7 @@ if __name__ == "__main__":
   '''
   # do setup
   setup = setup_handler()
-  testing, final_state_mode, jet_mode, era, lumi = setup.state_info
+  testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut = setup.state_info
   using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, presentation_mode = setup.misc_info
   if one_file_at_a_time: import glob
@@ -159,6 +177,10 @@ if __name__ == "__main__":
   fakesLabel = "myQCD" # can change to JetFakes if you propagate to the plotting stuff
   FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
 
+  if (final_state_mode != "dimuon") and (do_JetFakes == True):
+    background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
+    #background_dictionary[fakesLabel] = FF_dictionary[fakesLabel] # manually include QCD as background
+
   log_print("Processing finished!", log_file, time=True)
   ## end processing loop, begin plotting
 
@@ -166,10 +188,16 @@ if __name__ == "__main__":
   eta_phi_plot = False
   if (eta_phi_plot == True): make_eta_phi_plot(data_dictionary, dataset, final_state_mode, jet_mode, "Data")
 
+  # reversed dictionary search for era name based on lumi 
+  title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
+  title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
+ 
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
   CUSTOM_VARS = True
   if CUSTOM_VARS == True:
     vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx", "FastMTT_mass",
+                    "HTT_H_pt_using_PUPPI_MET",
+                    "nCleanJetGT30",
                     #"HTT_DiJet_MassInv_fromHighestMjj",
                     #"HTT_DiJet_MassInv_fromLeadingJets",
                     #"HTT_DiJet_dEta_fromHighestMjj",
@@ -183,6 +211,59 @@ if __name__ == "__main__":
                     #"FS_dijet_pair_calc",
                     #"FS_dijet_pair_HTT",
                    ]
+  plots_unrolled = True
+  if (plots_unrolled == True):
+    rolled_vars = ["FastMTT_mass"]
+    H_pT_bins = [0, 45, 80, 120, 200, 350, 450]
+    unrolled_vars = {
+      "HTT_H_pt_using_PUPPI_MET" : [0, 45, 80, 120, 200, 350, 450],
+      "nCleanJetGT30"            : [0, 1, 2, 3, 4],
+      #"leading_jet"          : [0j, 30, 60, 120, 200, 350],
+    }
+
+    for unrolled_var, unrolled_bins in unrolled_vars.items():
+      unrolled_bins_data       = make_masks_per_bin(data_dictionary, unrolled_var, unrolled_bins)
+      unrolled_bins_background = make_masks_per_bin(background_dictionary, unrolled_var, unrolled_bins)
+      unrolled_bins_signal     = make_masks_per_bin(signal_dictionary, unrolled_var, unrolled_bins)
+  
+      for rolled_var in rolled_vars:
+        xbins = make_bins(rolled_var, final_state_mode)
+        fig_unroll, stack_n_ax, ratio_n_ax = setup_unrolled_plot(len(unrolled_bins))
+  
+        for ith_bin in range(len(unrolled_bins)):
+          h_data_ur = get_binned_data(final_state_mode, testing, data_dictionary, rolled_var, xbins, lumi,
+                                        unrolled_bins_data, mask_n=ith_bin)
+          h_backgrounds_ur = get_binned_backgrounds(final_state_mode, testing, background_dictionary, rolled_var, xbins, lumi,
+                                        unrolled_bins_background, mask_n=ith_bin)
+          h_summed_backgrounds_ur = get_summed_backgrounds(h_backgrounds_ur)
+          h_signals_ur = get_binned_signals(final_state_mode, testing, signal_dictionary, rolled_var, xbins, lumi,
+                                        unrolled_bins_signal, mask_n=ith_bin)
+          blind, blind_range = False, []
+          # remove yields for these plots by setting presentation_mode to True below
+          plot_data(   stack_n_ax[ith_bin], xbins, h_data_ur,        lumi, True, blind, blind_range)
+          plot_MC(     stack_n_ax[ith_bin], xbins, h_backgrounds_ur, lumi, True)
+          plot_signal( stack_n_ax[ith_bin], xbins, h_signals_ur,     lumi, True)
+  
+          make_ratio_plot(ratio_n_ax[ith_bin], xbins, 
+                          h_data_ur["Data"]["BinnedEvents"], "Data", np.ones(np.shape(h_data_ur)),
+                          h_summed_backgrounds_ur["Bkgd"]["BinnedEvents"], "Data", np.ones(np.shape(h_summed_backgrounds_ur)))
+  
+          spruce_up_unrolled_plot(fig_unroll, stack_n_ax, ratio_n_ax, label_dictionary[rolled_var], title+" Unrolled", 
+                                  final_state_mode, jet_mode, tau_pt_cut, set_x_log=False, set_y_log=True)
+          text = ""
+          if (unrolled_var == "HTT_H_pt_using_PUPPI_MET"):
+            try:               text = f"{unrolled_bins[ith_bin]} ≤ H_pT < {unrolled_bins[ith_bin+1]}"
+            except IndexError: text = f"H_pT > {unrolled_bins[ith_bin]}"
+          elif (unrolled_var == "nCleanJetGT30"):
+            nJet = f"{unrolled_bins[ith_bin]}"
+            text = f"nJet = {nJet}" if ith_bin != (len(unrolled_bins)-1) else f"nJet ≥ {nJet}"
+          else:
+            print("haven't styled that variable yet, no text added")
+          add_text(stack_n_ax[ith_bin], text, loc=[0.05, 0.90])
+
+        plt.savefig(plot_dir + "/" + "unrolled_" + str(rolled_var) + ".png")
+ 
+
   for var in vars_to_plot:
     if DEBUG: log_print(f"Plotting {var}", log_file, time=True)
 
@@ -191,9 +272,6 @@ if __name__ == "__main__":
     #hist_ax = setup_single_plot() # part of removing data
 
     h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
-    if (final_state_mode != "dimuon") and (do_JetFakes == True):
-      background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
-      #background_dictionary[fakesLabel] = FF_dictionary[fakesLabel] # manually include QCD as background
     h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
     h_summed_backgrounds = get_summed_backgrounds(h_backgrounds)
     h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi) 
@@ -202,7 +280,7 @@ if __name__ == "__main__":
     blind, blind_range = False, []
     if (var == "HTT_m_vis") or (var == "FastMTT_mass"):
       blind = True
-      blind_range = [90, 110] if var=="HTT_m_vis" else [115, 135]
+      blind_range = [80, 120] if var=="HTT_m_vis" else [110, 150] # TODO: make this a greedy range in the function
     plot_data(   hist_ax, xbins, h_data,        lumi, presentation_mode, blind, blind_range)
     plot_MC(     hist_ax, xbins, h_backgrounds, lumi, presentation_mode)
     plot_signal( hist_ax, xbins, h_signals,     lumi, presentation_mode)
@@ -210,11 +288,7 @@ if __name__ == "__main__":
     make_ratio_plot(hist_ratio, xbins, 
                     h_data["Data"]["BinnedEvents"], "Data", np.ones(np.shape(h_data)),
                     h_summed_backgrounds["Bkgd"]["BinnedEvents"], "Data", np.ones(np.shape(h_summed_backgrounds)))
-
-    # reversed dictionary search for era name based on lumi 
-    title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
-    title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
-    
+   
     #spruce_up_single_plot(hist_ax, label_dictionary[var], "Events", title, final_state_mode, jet_mode)
     if ("dxy" in var) or ("dz" in var):  hist_ax.set_yscale('log')
     spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode)
@@ -239,34 +313,33 @@ if __name__ == "__main__":
       log_print(f"Reordered     Labels: {labels}", log_file)
       log_print(f"Corresponding Yields: {yields}", log_file)
 
-
-  '''
-  varY = "FS_t2_pt"
-  if (jet_mode == "Inclusive"):
-    list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET"]
-    list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1)]
-  elif (jet_mode == "1j"):
-    list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET", "CleanJetGT30_pt_1"]
-    list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1), np.linspace(0, 600, 12+1)]
-  #list_of_processes = ["DataTau", "ggH", "VBF", "DY0JNLO", "myQCD"]
-  list_of_processes = ["DataTau", "ggH", "VBF"]
-  for varX, binX in zip(list_varX, list_binX):
-    for single_process in list_of_processes:
-      secondary_dict = signal_dictionary if ("ggH" in single_process) or ("VBF" in single_process) else background_dictionary
-      use_dict = data_dictionary if "Data" in single_process else secondary_dict
-      make_two_dimensional_plot(use_dict[single_process]["PlotEvents"], final_state_mode,
-                                varX, varY, add_to_title=single_process,
-                                alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 14+1))
-      plt.savefig("ditau_2D_plot/" + process + "_" + varX + "_" + varY + ".png")
-
-  for varX, binX in zip(list_varX, list_binX):
-    make_two_dimensional_ratio_plot(signal_dictionary, data_dictionary,
-                                    final_state_mode, varX, varY, add_to_title="Expected Higgs / Obs.",
-                                    #final_state_mode, varX, varY, add_to_title="Expected Higgs / √Obs.",
-                                    alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 14+1))
-                                    #alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 7+1))
-    plt.savefig("ditau_2D_plot/ratio_" + varX + "_" + varY + ".png")
-  '''
+  plots_2D = False
+  if (plots_2D == True):
+    varY = "FS_t2_pt"
+    if (jet_mode == "Inclusive"):
+      list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET"]
+      list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1)]
+    elif (jet_mode == "1j"):
+      list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET", "CleanJetGT30_pt_1"]
+      list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1), np.linspace(0, 600, 12+1)]
+    #list_of_processes = ["DataTau", "ggH", "VBF", "DY0JNLO", "myQCD"]
+    list_of_processes = ["DataTau", "ggH", "VBF"]
+    for varX, binX in zip(list_varX, list_binX):
+      for single_process in list_of_processes:
+        secondary_dict = signal_dictionary if ("ggH" in single_process) or ("VBF" in single_process) else background_dictionary
+        use_dict = data_dictionary if "Data" in single_process else secondary_dict
+        make_two_dimensional_plot(use_dict[single_process]["PlotEvents"], final_state_mode,
+                                  varX, varY, add_to_title=single_process,
+                                  alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 14+1))
+        plt.savefig("ditau_2D_plot/" + process + "_" + varX + "_" + varY + ".png")
+  
+    for varX, binX in zip(list_varX, list_binX):
+      make_two_dimensional_ratio_plot(signal_dictionary, data_dictionary,
+                                      #final_state_mode, varX, varY, add_to_title="Expected Higgs / Obs.",
+                                      final_state_mode, varX, varY, add_to_title="Expected Higgs / √Obs.",
+                                      alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 14+1))
+                                      #alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 7+1))
+      plt.savefig("ditau_2D_plot/ratio_" + varX + "_" + varY + ".png")
 
   print(f"Plots are in {plot_dir}")
   if hide_plots: pass
