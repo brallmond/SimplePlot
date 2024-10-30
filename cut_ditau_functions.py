@@ -3,7 +3,8 @@ import numpy as np
 from calculate_functions import calculate_acoplan, return_TLorentz_Jets, calculate_mt, phi_mpi_pi
 from branch_functions import add_trigger_branches, add_DeepTau_branches
 
-def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
+def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
+#def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_cut="None"):
   '''
   Use a minimal set of branches to define selection criteria and identify events which pass.
   A separate function uses the generated branch "pass_cuts" to remove the info from the
@@ -101,6 +102,7 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     t1_decayMode = tau_decayMode[t1_br_idx]
     t2_decayMode = tau_decayMode[t2_br_idx]
     #good_tau_decayMode = ((t1_decayMode == 11) and (t2_decayMode == 11))
+    #good_tau_decayMode = ((t1_decayMode == 0) and (t2_decayMode == 0))
     good_tau_decayMode = True
 
     t1_chg = tau_chg[t1_br_idx]
@@ -121,6 +123,14 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     t1_tk_lambda, t1_tk_qoverp = tau_tk_lambda[t1_br_idx], tau_tk_qoverp[t1_br_idx]
     t2_tk_lambda, t2_tk_qoverp = tau_tk_lambda[t2_br_idx], tau_tk_qoverp[t2_br_idx]
 
+    #if (tau_pt_cut == "None"): 
+    #  subtau_req = True
+    #else:
+    cut_map = { "Low" : [25, 50],  "Mid" : [50, 70],  "High" : [70, 10000]  }
+    subtau_req = True 
+    if (tau_pt_cut == "None"): pass # do nothing
+    else:
+      subtau_req = (cut_map[tau_pt_cut][0] <= t2_pt <= cut_map[tau_pt_cut][1])
     #subtau_req = (25 <= t2_pt < 50) # 25-50, 40-50, 50-70, >70
     #subtau_req = (25 <= t2_pt < 40)
     #subtau_req = (40 <= t2_pt < 50)
@@ -139,11 +149,12 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False):
     mvis_req = (mvis > 50) # remove disagreement at low mvis values
     deta_t1t2_req = (deta_t1t2 < 1.5) # try 2 also
 
-    if (passKinems and t1passDT and t2passDT and good_tau_decayMode):
+    #if (passKinems and t1passDT and t2passDT and good_tau_decayMode):
     #if (passKinems and t1passDT and t2passDT and good_tau_decayMode and deta_t1t2_req):
-    #if (passKinems and t1passDT and t2passDT and good_tau_decayMode and deta_t1t2_req and mvis_req):
+    #if (passKinems and t1passDT and t2passDT and good_tau_decayMode and deta_t1t2_req and mvis_req and subtau_req):
     #if (passKinems and t1passDT and t2passDT and good_tau_decayMode and mvis_req):
-    #if (passKinems and t1passDT and t2passDT and good_tau_decayMode and subtau_req):
+    if (passKinems and t1passDT and t2passDT and good_tau_decayMode and subtau_req):
+    #if True:
       pass_cuts.append(i)
       FS_t1_pt.append(t1_pt)
       FS_t1_eta.append(t1_eta)
@@ -279,6 +290,7 @@ def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta,
   passTrig, passTauKinems, passJetKinems = False, False, False
   pass_ditau_jet = False
   if (ditau_jet_low_trig or ditau_jet_high_trig) and not (ditau_trig):
+  #if (ditau_jet_low_trig or ditau_jet_high_trig):
     passTrig = True
     passTauKinems = (t1_pt > 35 and t2_pt > 35 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
     #passJetKinems = (j1_pt > 65)
@@ -287,6 +299,7 @@ def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta,
   passTrig, passTauKinems, passJetKinems = False, False, False
   pass_ditau_VBFRun3 = False
   if (ditau_VBFRun3_trig) and not (ditau_trig or ditau_jet_low_trig or ditau_jet_high_trig):
+  #if (ditau_VBFRun3_trig):
     passTrig = True
     passTauKinems = (t1_pt > 50 and t2_pt > 25 and abs(t1_eta) < 2.1 and abs(t2_eta) < 2.1)
     passJetKinems = (j1_pt > 45 and j2_pt > 45 and mjj > 600)
