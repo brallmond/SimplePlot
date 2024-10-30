@@ -74,7 +74,6 @@ if __name__ == "__main__":
   combined_process_dictionary = {}
   for process in file_map: 
 
-    gc.collect()
     # being reset each run, but they're literally strings so who cares
     _, reject_datasets = set_dataset_info(final_state_mode)
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
@@ -138,7 +137,9 @@ if __name__ == "__main__":
     '''
     combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
                                                                combined_process_dictionary)
- 
+    del new_process_dictionary
+    del cut_events
+    gc.collect()
 
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
