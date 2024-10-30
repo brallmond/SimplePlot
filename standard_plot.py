@@ -62,8 +62,9 @@ if __name__ == "__main__":
   # do setup
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
-  using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
+  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, presentation_mode = setup.misc_info
+  if one_file_at_a_time: import glob
 
   print_setup_info(setup)
   # used for printing, might be different from what is called per process
@@ -82,64 +83,75 @@ if __name__ == "__main__":
     if (process in reject_datasets): continue
 
     if ("WJ" in process) and (("WJ" in semilep_mode) or ("Full" in semilep_mode)): continue
-    new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
-                                              branches, good_events, final_state_mode,
-                                              data=("Data" in process), testing=testing)
-    if new_process_dictionary == None: continue # skip process if empty
 
-    cut_events = apply_HTT_FS_cuts_to_process(process, new_process_dictionary, log_file, final_state_mode, jet_mode,
-                                              DeepTau_version=DeepTau_version)
-    if cut_events == None: continue
-    '''
-    # TODO : extendable to jet cuts (something I've meant to do for some time)
-    if ("DY" in process) and (final_state_mode != "dimuon"):
-      # def split_DY_by_gen, return combined_process_dictionary
-      event_flavor_arr = cut_events["event_flavor"]
-      pass_gen_flav, pass_lep_flav, pass_jet_flav = [], [], []
-      for i, event_flavor in enumerate(event_flavor_arr):
-        if event_flavor == "G":
-          pass_gen_flav.append(i)
-        if event_flavor == "L":
-          pass_lep_flav.append(i)
-        if event_flavor == "J":
-          pass_jet_flav.append(i)
-    
-      protected_branches = set_protected_branches(final_state_mode="none", jet_mode="Inclusive")
-      background_gen_deepcopy = copy.deepcopy(cut_events)
-      background_gen_deepcopy["pass_flavor_cut"] = np.array(pass_gen_flav)
-      background_gen_deepcopy = apply_cut(background_gen_deepcopy, "pass_flavor_cut", protected_branches)
-      if background_gen_deepcopy == None: continue
-
-      background_lep_deepcopy = copy.deepcopy(cut_events)
-      background_lep_deepcopy["pass_flavor_cut"] = np.array(pass_lep_flav)
-      background_lep_deepcopy = apply_cut(background_lep_deepcopy, "pass_flavor_cut", protected_branches)
-      if background_lep_deepcopy == None: continue
-
-      background_jet_deepcopy = copy.deepcopy(cut_events)
-      background_jet_deepcopy["pass_flavor_cut"] = np.array(pass_jet_flav)
-      background_jet_deepcopy = apply_cut(background_jet_deepcopy, "pass_flavor_cut", protected_branches)
-      if background_jet_deepcopy == None: continue
-
-      new_process = ""
-      if ("Inc" in process): new_process = "DY"
-      if ("10to50" in process): new_process = "DY10to50"
-      if ("NLO" in process): new_process += "NLO"
-      process = new_process
-      combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYGen"), background_gen_deepcopy, vars_to_plot, 
-                                                                 combined_process_dictionary)
-      combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYLep"), background_lep_deepcopy, vars_to_plot, 
-                                                                 combined_process_dictionary)
-      combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYJet"), background_jet_deepcopy, vars_to_plot, 
-                                                                 combined_process_dictionary)
+    if not one_file_at_a_time:
+      # One single entry per process, probably containing wildcard symbol, as defined in file_map_dictionary.py
+      input_files = [file_map[process]]
     else:
+      # Multiple entries per process, results from wildcard search
+      input_files = glob.glob( using_directory + "/" + file_map[process] + ".root")
+      input_files = sorted([f.replace(using_directory+"/","")[:-5] for f in input_files])
+
+    for input_file in input_files:
+      this_file_map = {process: input_file} # Make a temporary filemap just for this loop
+      new_process_dictionary = load_process_from_file(process, using_directory, this_file_map, log_file,
+                                                branches, good_events, final_state_mode,
+                                                data=("Data" in process), testing=testing)
+      if new_process_dictionary == None: continue # skip process if empty
+
+      cut_events = apply_HTT_FS_cuts_to_process(process, new_process_dictionary, log_file, final_state_mode, jet_mode,
+                                                DeepTau_version=DeepTau_version)
+      if cut_events == None: continue
+      '''
+      # TODO : extendable to jet cuts (something I've meant to do for some time)
+      if ("DY" in process) and (final_state_mode != "dimuon"):
+        # def split_DY_by_gen, return combined_process_dictionary
+        event_flavor_arr = cut_events["event_flavor"]
+        pass_gen_flav, pass_lep_flav, pass_jet_flav = [], [], []
+        for i, event_flavor in enumerate(event_flavor_arr):
+          if event_flavor == "G":
+            pass_gen_flav.append(i)
+          if event_flavor == "L":
+            pass_lep_flav.append(i)
+          if event_flavor == "J":
+            pass_jet_flav.append(i)
+    
+        protected_branches = set_protected_branches(final_state_mode="none", jet_mode="Inclusive")
+        background_gen_deepcopy = copy.deepcopy(cut_events)
+        background_gen_deepcopy["pass_flavor_cut"] = np.array(pass_gen_flav)
+        background_gen_deepcopy = apply_cut(background_gen_deepcopy, "pass_flavor_cut", protected_branches)
+        if background_gen_deepcopy == None: continue
+
+        background_lep_deepcopy = copy.deepcopy(cut_events)
+        background_lep_deepcopy["pass_flavor_cut"] = np.array(pass_lep_flav)
+        background_lep_deepcopy = apply_cut(background_lep_deepcopy, "pass_flavor_cut", protected_branches)
+        if background_lep_deepcopy == None: continue
+
+        background_jet_deepcopy = copy.deepcopy(cut_events)
+        background_jet_deepcopy["pass_flavor_cut"] = np.array(pass_jet_flav)
+        background_jet_deepcopy = apply_cut(background_jet_deepcopy, "pass_flavor_cut", protected_branches)
+        if background_jet_deepcopy == None: continue
+
+        new_process = ""
+        if ("Inc" in process): new_process = "DY"
+        if ("10to50" in process): new_process = "DY10to50"
+        if ("NLO" in process): new_process += "NLO"
+        process = new_process
+        combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYGen"), background_gen_deepcopy, vars_to_plot, 
+                                                                   combined_process_dictionary)
+        combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYLep"), background_lep_deepcopy, vars_to_plot, 
+                                                                   combined_process_dictionary)
+        combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYJet"), background_jet_deepcopy, vars_to_plot, 
+                                                                   combined_process_dictionary)
+      else:
+        combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
+                                                                   combined_process_dictionary)
+      '''
       combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
-                                                                 combined_process_dictionary)
-    '''
-    combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
                                                                combined_process_dictionary)
-    del new_process_dictionary
-    del cut_events
-    gc.collect()
+      del new_process_dictionary
+      del cut_events
+      gc.collect()
 
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)

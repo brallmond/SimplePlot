@@ -74,9 +74,11 @@ def sort_combined_processes(combined_processes_dictionary):
   return data_dictionary, background_dictionary, signal_dictionary
 
 
-def append_to_combined_processes(process, cut_events, vars_to_plot, combined_processes):
+def append_to_combined_processes(process, cut_events, vars_to_plot, combined_processes, one_file_at_a_time):
+  orig_process = ""
   if process in combined_processes.keys():
-    print(f" !@#$%^&*&^%$#@! ADDING DUPLICATE PROCESS DATA FOR {process} NAMED {process}_alt !@#$%^&*&^%$#@!")
+    if not one_file_at_a_time: print(f" !@#$%^&*&^%$#@! ADDING DUPLICATE PROCESS DATA FOR {process} NAMED {process}_alt !@#$%^&*&^%$#@!")
+    orig_process = process
     process = process+"_alt"
   if "Data" not in process:
     combined_processes[process] = {
@@ -115,6 +117,19 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
     if cut in cut_events.keys():
       if ("Data" in process) and ("flav" in cut): continue
       combined_processes[process]["Cuts"][cut] = cut_events[cut]
+
+  if one_file_at_a_time and process.endswith("_alt") and orig_process!="":
+    for key1 in combined_processes[orig_process]:
+      assert key1 in combined_processes[process]
+      if isinstance(combined_processes[orig_process][key1], dict):
+        for key2 in combined_processes[orig_process][key1]:
+          assert key2 in combined_processes[process][key1]
+          combined_processes[orig_process][key1][key2] = np.append(combined_processes[orig_process][key1][key2], combined_processes[process][key1][key2])
+      elif isinstance(combined_processes[orig_process][key1], np.ndarray):
+        combined_processes[orig_process][key1] = np.append(combined_processes[orig_process][key1], combined_processes[process][key1])
+      else:
+        print("I don't know what happened here ('append_to_combined_processes' in file_functions.py)")
+    del combined_processes[process]
 
   return combined_processes
 

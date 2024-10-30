@@ -22,6 +22,7 @@ class setup_handler:
     self.parser.add_argument('--do_JetFakes',  dest='do_JetFakes', default=True,        action='store')
     self.parser.add_argument('--semilep_mode', dest='semilep_mode', default="Full",     action='store')
     self.parser.add_argument('--presentation', dest='presentation_mode',  default=False, action='store')
+    self.parser.add_argument('--oneatatime',   dest='oneAtATime',  default=False,       action='store_true')
 
     self.parser.add_argument('--one_process',    dest='one_process',    default=None,      action='store')
 
@@ -45,6 +46,7 @@ class setup_handler:
     logfile       = open('outputfile.log', 'w') # could be improved, not super important right now
     use_NLO       = args.use_NLO     # False by default, use LO DY if False
     file_map      = self.set_file_map(testing, use_NLO, era)
+    oneAtATime    = args.oneAtATime
 
     # misc info
     hide_plots  = args.hide_plots  # False by default, show plots unless otherwise specified
@@ -61,8 +63,8 @@ class setup_handler:
     from collections import namedtuple
     state_info_template = namedtuple("State_info", "testing, final_state_mode, jet_mode, era, lumi")
     self.state_info     = state_info_template(testing, final_state_mode, jet_mode, era, lumi)
-    file_info_template  = namedtuple("File_info", "infile_directory, plot_dir_name, logfile, use_NLO, file_map")
-    self.file_info      = file_info_template(infile_directory, plot_dir_name, logfile, use_NLO, file_map)
+    file_info_template  = namedtuple("File_info", "infile_directory, plot_dir_name, logfile, use_NLO, file_map, oneAtATime")
+    self.file_info      = file_info_template(infile_directory, plot_dir_name, logfile, use_NLO, file_map, oneAtATime)
     misc_info_template  = namedtuple("Misc_info", "hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, one_process, presentation_mode")
     self.misc_info      = misc_info_template(hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, one_process, presentation_mode)
   # end class init
@@ -197,7 +199,7 @@ def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_
 if __name__ == "__main__":
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
-  infile_directory, plot_dir_name, logfile, use_NLO, file_map = setup.file_info
+  infile_directory, plot_dir_name, logfile, use_NLO, file_map, one_file_at_a_time = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, one_process, presentation_mode = setup.misc_info
 
   # test setup

@@ -38,7 +38,7 @@ if __name__ == "__main__":
   # do setup
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi = setup.state_info
-  using_directory, plot_dir, log_file, use_NLO, file_map = setup.file_info
+  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, one_process = setup.misc_info
 
 
