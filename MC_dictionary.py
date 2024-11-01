@@ -27,6 +27,7 @@ color_dictionary = {
   "ST": "#8cb4dc", # their dark purple, from RGB 140 180 220 
   "WJ" : "#e44e4e", # dark red
   "VV" : "#de8c6a", # sandy red, from RGB 222 140 106
+  "HWW" : "#de8cff", # bluer than VV, probably comes out purplish
   #"VV" : "#808080", # grey
   "QCD": "#ffccff", # pink kMagenta -10
 }
@@ -38,18 +39,20 @@ label_dictionary = {
  "ST"  : "ST",
  "WJ"  : "WJ",
  "VV"  : "VV",
+ "HWW" : "HWW",
  "QCD" : "QCD",
  "myQCD" : "FF Jet Fakes",
 }
  
 MC_dictionary = {
-  "myQCD" : {"label": "QCD", "color": color_dictionary["QCD"]},
-  "QCD" : {"label": "QCD", "color": color_dictionary["QCD"]},
-  "DY"  : {"label": "DY", "color": color_dictionary["DY"]},
-  "TT"  : {"label": "TT", "color": color_dictionary["TT"]},
-  "ST"  : {"label": "ST", "color": color_dictionary["ST"]},
-  "WJ"  : {"label": "W+Jets", "color": color_dictionary["WJ"]},
+  "myQCD" : {"label": "QCD",   "color": color_dictionary["QCD"]},
+  "QCD" : {"label": "QCD",     "color": color_dictionary["QCD"]},
+  "DY"  : {"label": "DY",      "color": color_dictionary["DY"]},
+  "TT"  : {"label": "TT",      "color": color_dictionary["TT"]},
+  "ST"  : {"label": "ST",      "color": color_dictionary["ST"]},
+  "WJ"  : {"label": "W+Jets",  "color": color_dictionary["WJ"]},
   "VV"  : {"label": "Diboson", "color": color_dictionary["VV"]},
+  "HWW" : {"label": "HWW",     "color": color_dictionary["HWW"]},
 
   #########################################################
   # above are dummy dictionaries for grouped subprocesses #
@@ -126,12 +129,9 @@ MC_dictionary = {
   "ZZTo2Nu2Q"          : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
   "ZZTo4L"             : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
 
-  #"ggH_WW"             : {"XSec": XSec["ggH_WW"], "NWEvents": 1, 
-  #                        "label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
-  #"VBF_WW"             : {"XSec": XSec["VBF_WW"], "NWEvents": 1, 
-  #                        "label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
-  #"ttH_WW"             : {"XSec": XSec["ttH_WW"], "NWEvents": 1, 
-  #                        "label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
+  "ggH_WW"             : {"label": "HWW", "color": color_dictionary["HWW"], "plot_scaling" : 1},
+  "VBF_WW"             : {"label": "HWW", "color": color_dictionary["HWW"], "plot_scaling" : 1},
+  "ttH_nonbb_WW"       : {"label": "HWW", "color": color_dictionary["HWW"], "plot_scaling" : 1},
 
   # XSecMCweight is defined here for JetFakes process because it isn't set autmatically elsewhere
   "myQCD"              : {"label": "Jet Fakes", "color": color_dictionary["QCD"], "plot_scaling" : 1, "XSecMCweight" : 1},

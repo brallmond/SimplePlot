@@ -67,7 +67,7 @@ def sort_combined_processes(combined_processes_dictionary):
   for process in combined_processes_dictionary:
     if "Data" in process:
       data_dictionary[process]       = combined_processes_dictionary[process]
-    elif ("VBF" in process) or ("ggH" in process):
+    elif ((("VBF" in process) or ("ggH" in process)) and ("WW" not in process)): #puts HWW in backgrounds
       signal_dictionary[process]     = combined_processes_dictionary[process]
     else:
       background_dictionary[process] = combined_processes_dictionary[process]

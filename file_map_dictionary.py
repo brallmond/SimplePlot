@@ -143,6 +143,11 @@ full_file_map = {
   "ZZTo2Nu2Q" : "VV/ZZTo2Nu2Q*",
   "ZZTo4L"    : "VV/ZZTo4L*", 
 
+  #H WW
+  "VBF_WW"       : "WW/VBF_WW*",
+  "ggH_WW"       : "WW/ggH_WW*",
+  "ttH_nonbb_WW" : "WW/ttH_nonbb*",
+
   # Do Not Use
   #"QCD_HT-70to100"    : "QCD/QCD_HT70to100_HTauTau*",
   #"QCD_HT-100to200"   : "QCD/QCD_HT100to200_HTauTau*",
