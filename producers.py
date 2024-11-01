@@ -44,7 +44,7 @@ def produce_FF_weight(setup, jet_mode, semilep_mode):
     FF_dictionary[fakesLabel] = {}
     FF_dictionary[fakesLabel]["PlotEvents"] = {}
  
-    log_print(f"Processing ditau AR region!", log_file, time=True)
+    log_print(f"Processing {final_state_mode} AR region!", log_file, time=True)
     if not one_file_at_a_time:
       # One single entry per process, probably containing wildcard symbol, as defined in file_map_dictionary.py
       input_files = [file_map[dataset]]

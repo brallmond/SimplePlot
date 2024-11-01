@@ -330,22 +330,21 @@ def add_CMS_preliminary(axis):
   preliminary_text = "Preliminary"
   axis.text(0.12, 1.02, preliminary_text, transform=axis.transAxes, fontsize=16, style='italic')
 
-
-def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
-  final_state_str = {
+final_state_str = {
     "ditau"  : r"${\tau_h}{\tau_h}$",
     "mutau"  : r"${\tau_{\mu}}{\tau_h}$",
     "mutau_TnP"  : r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$",
     "etau"   : r"${\tau_e}{\tau_h}$",
     "dimuon" : r"${\mu}{\mu}$",
-  }
-  jet_mode_str = {
+}
+jet_mode_str = {
     "Inclusive" : "≥0j",
     "0j"    : "0j",
     "1j"    : "1j",
     "GTE1j" : "≥1j",
     "GTE2j" : "≥2j",
-  }
+}
+def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
   axis.text(0.05, 0.92, 
   #axis.text(0.45, -0.045, 
             final_state_str[final_state_mode] + " : " + jet_mode_str[jet_mode], 
@@ -435,8 +434,7 @@ def spruce_up_unrolled_plot(fig, histogram_axes, ratio_axes, variable_name, titl
   if   tau_pt_cut == "None": valstring = "- Inclusive"; tau_pt_cut = ""
   elif tau_pt_cut == "High": valstring = f"> {use_vals[0]}"
   else:                      valstring = f"[{use_vals[0]}, {use_vals[1]}]"
-  #valstring = f"[{use_vals[0]}, {use_vals[1]}]" if tau_pt_cut != "High" else f"> {use_vals[0]}"
-  histogram_axes[midax].set_title(f"{tau_pt_cut} Tau pT Category {valstring}")
+  histogram_axes[midax].set_title(f"{final_state_str[final_state_mode]} : {tau_pt_cut} Tau pT Category {valstring}")
   histogram_axes[0].text(0.01, 1.02, "CMS Preliminary", transform=histogram_axes[0].transAxes, fontsize=16, weight='bold')
   histogram_axes[-1].set_title(title, loc='right', y=0.98)
   histogram_axes[0].set_ylabel("Events")
