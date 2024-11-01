@@ -74,11 +74,18 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
     # Tight v Muon, VVVLoose v Ele
     passTauDTLep  = ((vMu[tauBranchLoc] >= 4) and (vEle[tauBranchLoc] >= 2))
 
-    restrictTauDM = (tau_decayMode[tauBranchLoc] == 0)
+    #restrictTauDM = (tau_decayMode[tauBranchLoc] == 0)
+    restrictTauDM = True
 
     leadTkPtOverTau = tau_LeadTkPtOverTauPt[tauBranchLoc]
     passLeadTkRatio = (leadTkPtOverTau < 0.9)
     passZmassWindow = (mvis < 80.0) #(50.0 < mvis < 90.0)
+
+    cut_map = { "Low" : [30, 50],  "Mid" : [50, 70],  "High" : [70, 10000]  }
+    subtau_req = True 
+    if (tau_pt_cut == "None"): pass # do nothing
+    else:
+      subtau_req = (cut_map[tau_pt_cut][0] <= tauPtVal <= cut_map[tau_pt_cut][1])
 
     pass_bTag = True
     nbJet = 0
@@ -87,7 +94,8 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
         pass_bTag = False
         nbJet += 1
 
-    if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep and restrictTauDM):
+    if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) 
+         and passTauDTLep and restrictTauDM and subtau_req):
     #if  (passTauPtAndEta and (pass25MuPt or pass28MuPt or passMuPtCrossTrigger) and passTauDTLep 
     #     and restrictTauDM and passZmassWindow):
     #     #and restrictTauDM and passZmassWindow and passLeadTkRatio):
