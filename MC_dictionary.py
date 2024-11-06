@@ -67,8 +67,12 @@ MC_dictionary = {
   "VBF_old"  : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 1},
   "VBF_new"  : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 1},
 
-  "DYInc"    : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.12}, # k-factor to NNLO
-  "DY10to50" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.12}, # k-factor to NNLO
+  "DYInc"    : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654}, # k-factor to NNLO
+  "DY10to50" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DYJetsToLL_M-50_1J" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
+  "DYJetsToLL_M-50_2J" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
+  "DYJetsToLL_M-50_3J" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
+  "DYJetsToLL_M-50_4J" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
 
   # copies of DYInc with different colors and labels
   "DYGen"    : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1.12},
@@ -79,8 +83,12 @@ MC_dictionary = {
   "DYJet10to50"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1.12},
 
 
-  "DYIncNLO"    : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DYIncNLO"    : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712}, # k-factor to NNLO
   "DY10to50NLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DYJetsToLL_M-50_0JNLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
+  "DYJetsToLL_M-50_1JNLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
+  "DYJetsToLL_M-50_2JNLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
+
   # copies of DYIncNLO with different colors and labels
   "DYGenNLO" : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1},
   "DYLepNLO" : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1},
@@ -89,9 +97,9 @@ MC_dictionary = {
   "DYLep10to50NLO"    : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1},
   "DYJet10to50NLO"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1},
 
-  "DY0JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
-  "DY1JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
-  "DY2JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DY0JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
+  "DY1JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
+  "DY2JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
 
   "TTTo2L2Nu"          : {"label": "TT", "color": color_dictionary["TT"], "plot_scaling" : 1},
   "TTToFullyHadronic"  : {"label": "TT", "color": color_dictionary["TT"], "plot_scaling" : 1},
@@ -110,11 +118,20 @@ MC_dictionary = {
   "ST_TbarWplus_LNu2Q" : {"label": "ST", "color": color_dictionary["ST"], "plot_scaling" : 1},
 
   "WJetsInc"           : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349}, #k-factor from Stitching config in NanoTauAnalysis
+  #"WJetsIncNLO"        : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 0.984076374},
+  "WJetsToLNu_1J"      : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349},
+  "WJetsToLNu_2J"      : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349},
+  "WJetsToLNu_3J"      : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349},
+  "WJetsToLNu_4J"      : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349},
+  #"WJetsToLNu_0JNLO"   : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 0.984076374},
+  #"WJetsToLNu_1JNLO"   : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 0.984076374},
+  #"WJetsToLNu_2JNLO"   : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 0.984076374},
+
+  # Stiching
   "WJetsIncNLO"        : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
-  "WJetsToLNu_1J"      : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
-  "WJetsToLNu_2J"      : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
-  "WJetsToLNu_3J"      : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
-  "WJetsToLNu_4J"      : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
+  "WJetsToLNu_0JNLO"   : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
+  "WJetsToLNu_1JNLO"   : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
+  "WJetsToLNu_2JNLO"   : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
 
   "WWTo2L2Nu"          : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
   "WWTo4Q"             : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},

@@ -16,6 +16,7 @@ def set_branches(final_state_mode, DeepTau_version, process="None"):
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
     #"HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
     #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
+    "FFweight", "StitchWeight_WJets_NLO",
   ]
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
@@ -54,6 +55,13 @@ def add_final_state_branches(branches_, final_state_mode):
     "dimuon" : ["Lepton_pdgId", "Lepton_muIdx",
                 "Muon_dxy", "Muon_dz", "Muon_charge",
                 "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
+
+    "emu"   : ["Electron_dxy", "Electron_dz", "Electron_charge", 
+                "Muon_dxy", "Muon_dz", "Muon_charge", 
+                "Lepton_elIdx", "Lepton_muIdx",
+                "PuppiMET_pt", "PuppiMET_phi", "Lepton_tauIdx", 
+                "Electron_mass", "Muon_mass",
+                "CleanJet_btagWP", "HTT_PZeta_using_PUPPI_MET", "HTT_mT_l1l2met_using_PUPPI_MET"],
   }
 
   branch_to_add = final_state_branches[final_state_mode]

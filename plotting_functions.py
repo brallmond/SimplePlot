@@ -157,6 +157,7 @@ def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mo
   eta_phi_by_FS_dict = {"ditau"  : ["FS_t1_eta", "FS_t1_phi", "FS_t2_eta", "FS_t2_phi"],
                         "mutau"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
                         "etau"   : ["FS_el_eta", "FS_el_phi", "FS_tau_eta", "FS_tau_phi"],
+                        "emu"    : ["FS_el_eta", "FS_el_phi", "FS_mu_eta", "FS_mu_phi"],
                         "mutau_TnP"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
                         "dimuon" : ["FS_m1_eta", "FS_m1_phi", "FS_m2_eta", "FS_m2_phi"]}
   eta_phi_by_FS = eta_phi_by_FS_dict[final_state_mode]
@@ -274,6 +275,7 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   lumi_key = "" if "QCD" in process else [key for key in luminosities.items() if key[1] == luminosity][0][0]
   if scaling:
     scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
+    if process.startswith("WJets"): scaling = MC_dictionary[process]["plot_scaling"] # Removing XSecMCweight if Stitchweight used instead
     # hacky unscaling and rescaling so that "testing" still works
     if ("C" in lumi_key) or ("D" in lumi_key):
       scaling *= 1 / luminosities["2022 CD"]
@@ -336,6 +338,7 @@ final_state_str = {
     "mutau_TnP"  : r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$",
     "etau"   : r"${\tau_e}{\tau_h}$",
     "dimuon" : r"${\mu}{\mu}$",
+    "emu"    : r"${e}{\mu}$",
 }
 jet_mode_str = {
     "Inclusive" : "≥0j",
@@ -579,6 +582,9 @@ def adjust_scaling(final_state, process, scaling):
     "dimuon" : {
       "DYInc" : 6.482345 # for "New DiMuon DY", whatever that means :)
     },
+    "emu" : {
+      "TTTo2L2Nu" : 68,
+    },
   }
   try:
     adjustment_factor = adjustment_dictionary[final_state][process]
@@ -800,6 +806,12 @@ def get_MC_weights(MC_dictionary, process):
   full_weights = gen * PU * TauSF * MuSF * ElSF *\
                  BTagSF * DY_Zpt * TT_NNLO
 
+  # Additional weights per individual sample
+  additional = 1.
+  if "WJets" in process: 
+    additional = MC_dictionary[process]["StitchWeight_WJets_NLO"]
+  full_weights *= additional
+
   # use this to achieve no SF weights, or no Gen Weights
   skip_SFs = False
   inclued_gen_weights = True
@@ -850,6 +862,11 @@ final_state_vars = {
 
     "dimuon" : ["FS_m1_pt", "FS_m1_eta", "FS_m1_phi", "FS_m1_iso", "FS_m1_dxy", "FS_m1_dz",
                 "FS_m2_pt", "FS_m2_eta", "FS_m2_phi", "FS_m2_iso", "FS_m2_dxy", "FS_m2_dz",
+               ],
+
+    "emu"    : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg",
+                "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
+                "FS_nbJet", 
                ],
 }
 

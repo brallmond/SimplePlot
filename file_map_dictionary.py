@@ -27,42 +27,52 @@ def update_data_filemap(luminosity_key, file_map):
     file_map["DataTau"]      = "Data/Tau_Run2022C*"
     file_map["DataMuon"]     = "Data/Muon_Run2022C*"
     file_map["DataElectron"] = "Data/EGamma_Run2022C*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2022C*"
   if luminosity_key == "2022 D":
     file_map["DataTau"]      = "Data/Tau_Run2022D*"
     file_map["DataMuon"]     = "Data/Muon_Run2022D*"
     file_map["DataElectron"] = "Data/EGamma_Run2022D*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2022D*"
   if luminosity_key == "2022 CD":
     file_map["DataTau"]      = "Data/Tau_Run2022*"
     file_map["DataMuon"]     = "Data/Muon_Run2022*"
     file_map["DataElectron"] = "Data/EGamma_Run2022*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2022*"
   if luminosity_key == "2022 E":
     file_map["DataTau"]      = "Data/Tau_Run2022E*"
     file_map["DataMuon"]     = "Data/Muon_Run2022E*"
     file_map["DataElectron"] = "Data/EGamma_Run2022E*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2022E*"
   if luminosity_key == "2022 F":
     file_map["DataTau"]      = "Data/Tau_Run2022F*"
     file_map["DataMuon"]     = "Data/Muon_Run2022F*"
     file_map["DataElectron"] = "Data/EGamma_Run2022F*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2022F*"
   if luminosity_key == "2022 G":
     file_map["DataTau"]      = "Data/Tau_Run2022G*"
     file_map["DataMuon"]     = "Data/Muon_Run2022G*"
     file_map["DataElectron"] = "Data/EGamma_Run2022G*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2022G*"
   if luminosity_key == "2022 EFG":
     file_map["DataTau"]      = "Data/Tau_Run2022*"
     file_map["DataMuon"]     = "Data/Muon_Run2022*"
     file_map["DataElectron"] = "Data/EGamma_Run2022*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2022*"
   if luminosity_key == "2022":
     file_map["DataTau"]      = "Data/Tau_Run2022*"
     file_map["DataMuon"]     = "Data/Muon_Run2022*"
     file_map["DataElectron"] = "Data/EGamma_Run2022*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2022*"
   if luminosity_key == "2023 C":
     file_map["DataTau"]      = "Data/Tau_Run2023*"
     file_map["DataMuon"]     = "Data/Muon_Run2023*"
     file_map["DataElectron"] = "Data/EGamma_Run2023*"
+    file_map["DataEMu"] = "Data/MuonEG_Run2023*"
   if luminosity_key == "2023 D":
     file_map["DataTau"]      = "Data/Tau_Run2023*"
     file_map["DataMuon"]     = "Data/Muon_Run2023*"
     file_map["DataElectron"] = "Data/EGamma_Run2023*"
+    file_map["DataEMu"] = "Data/MuonEG_Run2023*"
   return file_map 
 
 testing_file_map = {
@@ -79,8 +89,8 @@ testing_file_map = {
   "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
   "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
 
-  "VBF"   : "Signal/VBF*",
-  "ggH"   : "Signal/ggH*",
+  "VBF_TauTau"   : "Signal/VBF_TauTau_HTauTau*",
+  "ggH_TauTau"   : "Signal/ggH_TauTau_HTauTau_*",
 }
 
 
@@ -91,18 +101,22 @@ full_file_map = {
   "DataElectron" : "Data/EGamma_Run*",
   "DataEMu"  : "Data/MuonEG_Run*",
 
-  "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
-  #"DY10to50" : "DY/DYJetsToLL_M-10to50_LO_HTauTau*",
-  #"DYJetsToLL_M-50_1J" : "DY/DYJetsToLL_M-50_1J*",
-  #"DYJetsToLL_M-50_2J" : "DY/DYJetsToLL_M-50_2J*",
-  #"DYJetsToLL_M-50_3J" : "DY/DYJetsToLL_M-50_3J*",
-  #"DYJetsToLL_M-50_4J" : "DY/DYJetsToLL_M-50_4J*",
+  #"DYInc" : "DY/DYJetsToLL_M-50_LO_HTauTau*",
+  #"DYInc" : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
 
-  #"DYIncNLO"    : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
-  "DY10to50NLO" : "DY/DYJetsToLL_M-10to50_NLO_HTauTau*",
-  "DY0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
-  "DY1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
-  "DY2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
+  "DYJetsToLL_M-50_1J" : "DY/DY1JetsToLL_M-50_LO*",
+  "DYJetsToLL_M-50_2J" : "DY/DY2JetsToLL_M-50_LO*",
+  "DYJetsToLL_M-50_3J" : "DY/DY3JetsToLL_M-50_LO*",
+  "DYJetsToLL_M-50_4J" : "DY/DY4JetsToLL_M-50_LO*",
+
+  #"DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
+  #"DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
+  #"DYJetsToLL_M-50_2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
+
+  #"DYIncNLO" : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
+  "DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
+  "DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
+  "DYJetsToLL_M-50_2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
 
   "TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
@@ -119,13 +133,20 @@ full_file_map = {
   "ST_TWminus_4Q"      : "ST/ST_TWminus_4Q*",
   "ST_TWminus_LNu2Q"   : "ST/ST_TWminus_LNu2Q*",
 
-  "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
-  "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
+  #"WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
   #"WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
-  #"WJetsToLNu_1J" : "WJ/W1JetsToLNu*",
-  #"WJetsToLNu_2J" : "WJ/W2JetsToLNu*",
-  #"WJetsToLNu_3J" : "WJ/W3JetsToLNu*",
-  #"WJetsToLNu_4J" : "WJ/W4JetsToLNu*",
+  #"WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
+
+  "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
+  "WJetsToLNu_1J" : "WJ/W1JetsToLNu_LO_HTauTau*",
+  "WJetsToLNu_2J" : "WJ/W2JetsToLNu_LO_HTauTau*",
+  "WJetsToLNu_3J" : "WJ/W3JetsToLNu_LO_HTauTau*",
+  "WJetsToLNu_4J" : "WJ/W4JetsToLNu_LO_HTauTau*",
+
+  "WJetsIncNLO"      : "WJ/WJetsToLNu_HTauTau*",
+  "WJetsToLNu_0JNLO" : "WJ/W0JetsToLNu_HTauTau*",
+  "WJetsToLNu_1JNLO" : "WJ/W1JetsToLNu_HTauTau*",
+  "WJetsToLNu_2JNLO" : "WJ/W2JetsToLNu_HTauTau*",
 
   #"WW"        : "VV/WW*", # WW Inc. available but untested
   "WWTo2L2Nu" : "VV/WWTo2L2Nu*",
