@@ -447,7 +447,7 @@ def adjust_scaling(final_state, process, scaling):
       "DYInc" : 6.482345 # for "New DiMuon DY", whatever that means :)
     },
     "emu" : {
-      #"TTTo2L2Nu" : 68,
+      "TTTo2L2Nu" : 68,
     },
   }
   try:
@@ -533,6 +533,7 @@ def get_binned_backgrounds(final_state, testing, background_dictionary, variable
     h_MC_by_family["myQCD"] = {}
     h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
     all_MC_families  = ["TT", "ST", "WJ", "VV", "DYInc", "DYIncNLO"] # far left is bottom of stack
+    #all_MC_families  = ["DYInc"] # far left is bottom of stack
   else:
     all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYInc", "DYIncNLO"]
   used_MC_families = []
@@ -669,7 +670,7 @@ final_state_vars = {
 
     "emu"    : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg",
                 "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
-                "FS_nbJet", 
+                "FS_nbJet", "FS_PZeta",  "FS_mt_l1l2",
                ],
 }
 
@@ -702,7 +703,7 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   Shouldn't this be in  plotting functions?
   '''
   vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", #"FastMTT_PUPPIMET_mT", 
-                  "FastMTT_mass",
+                  "FastMTT_mass", "HTT_mT_l1l2met_using_PUPPI_MET",
                   "PuppiMET_pt", "PuppiMET_phi", "PV_npvs"]
                   #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj"] 
                   # common to all final states # add Tau_decayMode
@@ -717,5 +718,3 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
     vars_to_plot.append(jet_var)
 
   return vars_to_plot
-
-
