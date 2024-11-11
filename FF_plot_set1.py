@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
   # do setup
   setup = setup_handler()
-  testing, final_state_mode, jet_mode, era, lumi = setup.state_info
+  testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut = setup.state_info
   using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, _ = setup.misc_info
 
@@ -89,8 +89,9 @@ if __name__ == "__main__":
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
 
+      skip_DeepTau = True
       if (final_state_mode == "ditau"):
-        event_dictionary   = make_ditau_cut(event_dictionary, DeepTau_version) # no DeepTau or Charge requirements
+        event_dictionary   = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
         if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
       if (final_state_mode == "mutau"):
@@ -154,15 +155,15 @@ if __name__ == "__main__":
         if background_jet_deepcopy == None: continue
 
         combined_process_dictionary = append_to_combined_processes("DYGen", background_gen_deepcopy, vars_to_plot, 
-                                                                   combined_process_dictionary)
+                                                                   combined_process_dictionary, one_file_at_a_time)
         combined_process_dictionary = append_to_combined_processes("DYLep", background_lep_deepcopy, vars_to_plot, 
-                                                                   combined_process_dictionary)
+                                                                   combined_process_dictionary, one_file_at_a_time)
         combined_process_dictionary = append_to_combined_processes("DYJet", background_jet_deepcopy, vars_to_plot, 
-                                                                   combined_process_dictionary)
+                                                                   combined_process_dictionary, one_file_at_a_time)
         
       else:
         combined_process_dictionary = append_to_combined_processes(process, event_dictionary, vars_to_plot, 
-                                                                   combined_process_dictionary)
+                                                                   combined_process_dictionary, one_file_at_a_time)
 
     # after loop, sort big dictionary into three smaller ones
     data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
@@ -186,10 +187,11 @@ if __name__ == "__main__":
     if (final_state_mode == "ditau"):
       vars_to_plot = ["HTT_m_vis", 
                     "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",
-                    "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt"]
+                    "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt",
+                    "FS_t1_DM", "FS_t2_DM", "FS_t1_mass", "FS_t2_mass"]
     if (final_state_mode == "mutau"):
       vars_to_plot = ["HTT_m_vis", 
-                    "FS_tau_pt", "FS_tau_eta", "FS_tau_phi",
+                    "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_DM", "FS_tau_mass",
                     "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "PuppiMET_pt", "FS_mt"]
     # and add back variables unique to the jet mode
     if (jet_mode == "1j") or (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_1")
@@ -214,7 +216,7 @@ if __name__ == "__main__":
       title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
       title = f"{semilep_mode} {region} {title_era}, {lumi:.2f}" + r"$fb^{-1}$"
       
-      spruce_up_single_plot(hist_ax, label_dictionary[var], "Events/Bin", title, final_state_mode, jet_mode)
+      spruce_up_single_plot(hist_ax, label_dictionary[var], "Events", title, final_state_mode, jet_mode)
       spruce_up_legend(hist_ax, final_state_mode)
 
       plt.savefig(plot_dir + "/" + str(var) + "_" + semilep_mode + "_" + region + ".png")

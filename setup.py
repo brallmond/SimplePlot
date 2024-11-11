@@ -1,3 +1,4 @@
+from sys import exit
 
 from file_map_dictionary   import testing_file_map, full_file_map, update_data_filemap
 from luminosity_dictionary import luminosities_with_normtag as luminosities
@@ -39,11 +40,23 @@ class setup_handler:
     if testing: era = "2022 G"     # testing overrides era inputs
     lumi = luminosities[era]
 
+    if (final_state_mode == "ditau"):
+      possible_jet_modes = ["Inclusive", "0j", "1j", "GTE2j"]
+      if (jet_mode not in possible_jet_modes):
+        print(f"Your jet mode is {jet_mode}. Possible jet modes for {final_state_mode} are {possible_jet_modes}")
+        exit()
+
+    if ((final_state_mode == "mutau") or (final_state_mode == "etau")):
+      possible_jet_modes = ["Inclusive", "0j", "GTE1j"]
+      if (jet_mode not in possible_jet_modes):
+        print(f"Your jet mode is {jet_mode}. Possible jet modes for {final_state_mode} are {possible_jet_modes}")
+        exit()
+
     # file info
     infile_directory = self.set_infile_directory(era, final_state_mode)
     # for single process comparisons only
     #plot_dir_name = "FS_plots/" + args.one_process.split("HTauTau")[0] + args.plot_dir + "_" + "postEE" + final_state_mode + "_" + jet_mode
-    plot_dir_name = "FS_plots/" + args.plot_dir + "_" + final_state_mode + "_" + jet_mode
+    plot_dir_name = "FS_plots/" + args.plot_dir + "_" + final_state_mode + "_" + tau_pt_cut + "TauPtCategory_" + jet_mode
     plot_dir_name = make_directory(plot_dir_name, testing)
     logfile       = open('outputfile.log', 'w') # could be improved, not super important right now
     use_NLO       = args.use_NLO     # False by default, use LO DY if False
@@ -76,10 +89,8 @@ class setup_handler:
     #eos_dir           = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/"
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
     home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
-    active_dir = "/V12_PFRel_"+era_modifier_2022+"_nominal/"
-    #active_dir = "/V12_PFRel_"+era_modifier_2022+"_notriggermatching/"
+    #active_dir = "/new_V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
     active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
-    #active_dir = "/V12_combined_eras_2022_HLepRare_notriggermatching/"
     #active_dir = "/Hlep_2023preBPIX/"
     active_dir += final_state_mode
     full_dir = home_dir + active_dir # add lxplus redirector if on eos
@@ -135,13 +146,13 @@ def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_
   # apply FS cut separately so it can be used with reject_duplicate_events
   # STANDARD!
   good_events =  "(METfilters) & (LeptonVeto==0)"
-  #jet_vetomaps = "" # deactivated for 2023
+  jet_vetomaps = "" # deactivated for 2023
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
-  jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV)"
+  #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV) & (JetMapVeto_TauEE)" # only for postEE, KSU
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV) & (JetMapVeto_TauEEBPix)" # only for postEE, HLep
   #jet_vetomaps = " & (JetMapVeto_EE_25GeV) & (JetMapVeto_HotCold_25GeV)"
-  #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV)"
+  jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_25GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_15GeV)"
