@@ -41,13 +41,16 @@ def produce_FF_weight(setup, jet_mode, semilep_mode):
                                             branches, AR_region, final_state_mode,
                                             data=True, testing=testing)
     AR_events = AR_process_dictionary[dataset]["info"]
+    #print(final_state_mode, dataset,AR_events)
     cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version)
     FF_dictionary = {}
     FF_dictionary[fakesLabel] = {}
     FF_dictionary[fakesLabel]["PlotEvents"] = {}
     FF_dictionary[fakesLabel]["FF_weight"]  = cut_events_AR["FF_weight"]
+    
     for var in vars_to_plot:
       if ("flav" in var): continue
       FF_dictionary[fakesLabel]["PlotEvents"][var] = cut_events_AR[var]
-
+    #print("FF_dictionary from produce_FF_weight" )
     return FF_dictionary
+
