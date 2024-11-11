@@ -82,7 +82,7 @@ if __name__ == "__main__":
     good_events  = set_good_events(final_state_mode) 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
     branches     = set_branches(final_state_mode, DeepTau_version, process)
- 
+    #print("Branches", branches)
     if (process in reject_datasets): continue
    
     if ("WJ" in process) and (("WJ" in semilep_mode) or ("Full" in semilep_mode)): continue
@@ -139,12 +139,18 @@ if __name__ == "__main__":
     '''
     combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
                                                                  combined_process_dictionary)
+                                                                
+
+    #print("from combined_process_dictionary", combined_process_dictionary[process]["FF_weight"])
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
   # TODO fix myQCD print statements
-  fakesLabel = "myQCD" # can change to JetFakes once you propagate to the plotting stuff
-  #FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
+  fakesLabel = "myQCD"
+   # can change to JetFakes once you propagate to the plotting stuff
+  FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
+  #print("from FF_Dictionary", FF_dictionary.keys())
+  #print(FF_dictionary["myQCD"]["PlotEvents"].keys())
 
   log_print("Processing finished!", log_file, time=True)
   ## end processing loop, begin plotting
@@ -171,8 +177,9 @@ if __name__ == "__main__":
     # final_state, testing, var, xbins, lumi
     temp_var = var # hack to plot the same variable twice with two different binnings
     if "HTT_m_vis" in var: var = "HTT_m_vis"
+    #print(final_state_mode, do_QCD, type(do_QCD))
     h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
-    if (final_state_mode != "dimuon") and (do_QCD == True):
+    if (final_state_mode != "dimuon") and (do_QCD == "True"):
       background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
     h_backgrounds, h_summed_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
     h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi) 
