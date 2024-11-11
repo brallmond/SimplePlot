@@ -49,6 +49,8 @@ def load_process_from_file(process, file_directory, file_map, log_file,
                             "PUweight", "Weight_TTbar_NNLO", "Pileup_nPU"]
     for missing_branch in branches_not_in_data:
       branches = [branch for branch in branches if branch != missing_branch]
+  if "WJets" not in process:
+    branches = [branch for branch in branches if not branch.startswith("StitchWeight_WJets")]
   try:
     processed_events = uproot.concatenate([file_string], branches, cut=good_events, library="np")
   except FileNotFoundError:
@@ -67,7 +69,7 @@ def sort_combined_processes(combined_processes_dictionary):
   for process in combined_processes_dictionary:
     if "Data" in process:
       data_dictionary[process]       = combined_processes_dictionary[process]
-    elif ((("VBF" in process) or ("ggH" in process)) and ("WW" not in process)): #puts HWW in backgrounds
+    elif "_TauTau" in process: #puts HWW in backgrounds
       signal_dictionary[process]     = combined_processes_dictionary[process]
     else:
       background_dictionary[process] = combined_processes_dictionary[process]
@@ -104,9 +106,14 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
     combined_processes[process] = { 
       "PlotEvents": {},
       "Cuts": {},
+      "FFweight": cut_events["FFweight"]
     }
     if ("FF_weight" in cut_events.keys()):
       combined_processes[process]["FF_weight"] = cut_events["FF_weight"]
+
+  if "WJets" in process:
+    combined_processes[process]["StitchWeight_WJets_NLO"] = cut_events["StitchWeight_WJets_NLO"]
+    
   for var in vars_to_plot:
     if ("Data" in process) and (("flav" in var) or ("Generator" in var)): continue
     combined_processes[process]["PlotEvents"][var] = cut_events[var]
@@ -166,7 +173,7 @@ def customize_DY(process, final_state_mode):
   label_text = { "ditau" : r"$Z{\rightarrow}{\tau_h}{\tau_h}$",
                  "mutau" : r"$Z{\rightarrow}{\tau_{\mu}}{\tau_h}$",
                  "etau"  : r"$Z{\rightarrow}{\tau_e}{\tau_h}$",
-                 "emu"   : r"$Z{\rightarrow}{\tau_e}{tau_{\mu}}$",
+                 "emu"   : r"$Z{\rightarrow}{\tau_e}{\tau_{\mu}}$",
                  "mutau_TnP" : r"$Z{\rightarrow}{\mu}{\tau_h}$",
                  "dimuon": r"$Z{\rightarrow}{\mu}{\mu}$"}
   MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]

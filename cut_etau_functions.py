@@ -9,7 +9,8 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
   '''
   nEvents_precut = len(event_dictionary["Lepton_pt"])
   unpack_etau = ["Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
-                 "Electron_dxy", "Electron_dz", "Electron_charge", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_decayMode",
+                 "Electron_dxy", "Electron_dz", "Electron_charge", "Electron_mass", 
+                 "Tau_dxy", "Tau_dz", "Tau_charge", "Lepton_mass", "Tau_decayMode",
                  "PuppiMET_pt", "PuppiMET_phi", 
                  "Lepton_tauIdx", "Lepton_elIdx", "l1_indices", "l2_indices",
                  #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe"
@@ -20,14 +21,14 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
   unpack_etau = (event_dictionary.get(key) for key in unpack_etau)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_etau]
   pass_cuts, FS_mt, FS_nbJet = [], [], []
-  FS_el_pt, FS_el_eta, FS_el_phi, FS_el_iso, FS_el_dxy, FS_el_dz, FS_el_chg = [], [], [], [], [], [], []
-  FS_tau_pt, FS_tau_eta, FS_tau_phi, FS_tau_dxy, FS_tau_dz, FS_tau_chg, FS_tau_DM = [], [], [], [], [], [], []
+  FS_el_pt, FS_el_eta, FS_el_phi, FS_el_iso, FS_el_dxy, FS_el_dz, FS_el_chg, FS_el_mass = [], [], [], [], [], [], [], []
+  FS_tau_pt, FS_tau_eta, FS_tau_phi, FS_tau_dxy, FS_tau_dz, FS_tau_chg, FS_tau_mass, FS_tau_DM = [], [], [], [], [], [], [], []
   FS_dphi_etau, FS_deta_etau = [], []
   for i, lep_pt, lep_eta, lep_phi, lep_iso,\
-      el_dxy, el_dz, el_chg, tau_dxy, tau_dz, tau_chg, tau_decayMode,\
+      el_dxy, el_dz, el_chg, el_mass, tau_dxy, tau_dz, tau_chg, tau_mass, tau_decayMode,\
       MET_pt, MET_phi, tau_idx, el_idx,\
       l1_idx, l2_idx, btag,\
-      vJet, vMu, vEle, trg32el, trg35el, crosstrg in zip(*to_check):
+      vJet, vMu, vEle, trg30el, trg32el, trg35el, crosstrg in zip(*to_check):
 
     # in ETau, electron is always lepton 1 in FS branches, tau is always lepton 2
 
@@ -43,20 +44,23 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
     elDxy   = abs(el_dxy[elBranchLoc])
     elDz    = el_dz[elBranchLoc]
     elChg   = el_chg[elBranchLoc]
+    elMass  = el_mass[elBranchLoc]
     tauPt   = lep_pt[tauFSLoc] 
     tauEta  = lep_eta[tauFSLoc]
     tauPhi  = lep_phi[tauFSLoc]
     tauDxy  = abs(tau_dxy[tauBranchLoc])
     tauDz   = tau_dz[tauBranchLoc]
     tauChg  = tau_chg[tauBranchLoc]
+    tauMass = tau_mass[l2_idx]
     mt      = calculate_mt(elPt, elPhi, MET_pt, MET_phi)
 
     dphi_etau = elPhi - tauPhi
     deta_etau = elEta - elEta
 
     passTauPtAndEta  = ((tauPt > 30.0) and (abs(tauEta) < 2.5))
-    pass33ElPt   = ((trg32el) and (elPt > 33.0) and (abs(elEta) < 2.1))
-    pass36ElPt   = ((trg35el) and (elPt > 36.0) and (abs(elEta) < 2.1))
+    pass31ElPt   = ((trg30el) and (elPt > 31.0) and (abs(elEta) < 2.5))
+    pass33ElPt   = ((trg32el) and (elPt > 33.0) and (abs(elEta) < 2.5))
+    pass36ElPt   = ((trg35el) and (elPt > 36.0) and (abs(elEta) < 2.5))
     # upper bound on cross trigger will change if lower single electron trigger included
     # HLT_Ele24_eta2p1_WPTight_Gsf_LooseDeepTauPFTauHPS30_eta2p1_CrossL1
     passElPtCrossTrigger = ((crosstrg) and ((25.0 < elPt < 33.0) and (abs(elEta) < 2.1))
@@ -73,9 +77,11 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
 
     pass_bTag = True
     nbJet = 0
+    bveto = 0
     for value in btag:
       if (value > 0): 
-        pass_bTag = False
+        bveto += value
+        if bveto > 1: pass_bTag = False
         nbJet += 1
     # hacky barrel restriction (can you try removing DM2 also?)
     #if (abs(tauEta) < 1.5):
@@ -83,8 +89,8 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
     #if (abs(elEta) < 1.5):
     #  pass33ElPt, pass36ElPt, passElPtCrossTrigger = False, False, False
     #if (passTauPtAndEta and (pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep and restrict_tau_DM):
-    if (passTauPtAndEta and (pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep):
-    #if (passTauPtAndEta and (pass33ElPt or pass36ElPt) and passTauDTLep):
+    #if (passTauPtAndEta and (pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep):
+    if (passTauPtAndEta and (pass31ElPt or pass33ElPt or pass36ElPt or passElPtCrossTrigger) and passTauDTLep):
       pass_cuts.append(i)
       FS_el_pt.append(elPt)
       FS_el_eta.append(elEta)
@@ -93,6 +99,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
       FS_el_dxy.append(elDxy)
       FS_el_dz.append(elDz)
       FS_el_chg.append(elChg)
+      FS_el_mass.append(elMassVal)
 
       FS_tau_pt.append(tauPt)
       FS_tau_eta.append(tauEta)
@@ -100,6 +107,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
       FS_tau_dxy.append(tauDxy)
       FS_tau_dz.append(tauDz)
       FS_tau_chg.append(tauChg)
+      FS_tau_mass.append(tauMass)
       FS_tau_DM.append(encoded_tau_decayMode)
 
       FS_mt.append(mt)
@@ -115,12 +123,14 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
   event_dictionary["FS_el_dxy"]  = np.array(FS_el_dxy)
   event_dictionary["FS_el_dz"]   = np.array(FS_el_dz)
   event_dictionary["FS_el_chg"]  = np.array(FS_el_chg)
+  event_dictionary["FS_el_mass"] = np.array(FS_el_mass)
   event_dictionary["FS_tau_pt"]  = np.array(FS_tau_pt)
   event_dictionary["FS_tau_eta"] = np.array(FS_tau_eta)
   event_dictionary["FS_tau_phi"] = np.array(FS_tau_phi)
   event_dictionary["FS_tau_dxy"] = np.array(FS_tau_dxy)
   event_dictionary["FS_tau_dz"]  = np.array(FS_tau_dz)
   event_dictionary["FS_tau_chg"] = np.array(FS_tau_chg)
+  event_dictionary["FS_tau_mass"] = np.array(FS_tau_mass)
   event_dictionary["FS_tau_DM"] = np.array(FS_tau_DM)
   event_dictionary["FS_mt"]      = np.array(FS_mt)
   event_dictionary["FS_nbJet"] = np.array(FS_nbJet)
@@ -175,8 +185,11 @@ def make_etau_region(event_dictionary, new_branch_name, FS_pair_sign, pass_el_is
     passMT     = (calculate_mt(elPt, elPhi, MET_pt, MET_phi) < mt_value)
 
     passBTag = True
+    bveto = 0
     for value in btag:
-      if (value > 0): passBTag = False
+      if (value > 0):
+        bveto += value
+        if bveto > 1: passBTag = False
 
     if ( (np.sign(signed_pdgId) == FS_pair_sign) and 
          (pass_el_iso == pass_el_iso_req) and (pass_DeepTau == pass_DeepTau_req) and 

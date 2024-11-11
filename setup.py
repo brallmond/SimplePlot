@@ -15,7 +15,7 @@ class setup_handler:
     self.parser.add_argument('--final_state',  dest='final_state', default="mutau",     action='store')
     self.parser.add_argument('--jet_mode',     dest='jet_mode',    default="Inclusive", action='store')
     self.parser.add_argument('--era',          dest='era',         default="2022 EFG",  action='store')
-    self.parser.add_argument('--use_NLO',      dest='use_NLO',     default=True,       action='store_true')
+    self.parser.add_argument('--use_NLO',      dest='use_NLO',     default=True,        action='store')
     self.parser.add_argument('--plot_dir',     dest='plot_dir',    default="plots",     action='store')
     self.parser.add_argument('--DeepTau',      dest='DeepTau_version', default="2p5",   action='store')
     self.parser.add_argument('--hide_plots',   dest='hide_plots',  default=False,       action='store_true')
@@ -100,12 +100,16 @@ class setup_handler:
   
   def set_file_map(self, testing, use_NLO, era):
     file_map = testing_file_map if testing else full_file_map
+    NLOsamples = [s for s in file_map if s.endswith("NLO") and (s.startswith("DY") or s.startswith("WJets"))]
+    LOsamples = [s for s in file_map if not s.endswith("NLO") and (s.startswith("DY") or s.startswith("WJets"))]
     if (use_NLO == True):
-      file_map.pop("DYInc")
-      file_map.pop("WJetsInc")
+      #file_map.pop("DYInc")
+      #file_map.pop("WJetsInc")
+      for s in LOsamples: file_map.pop(s)
     else: 
-      file_map.pop("DYIncNLO")
-      file_map.pop("WJetsIncNLO")
+      #file_map.pop("DYIncNLO")
+      #file_map.pop("WJetsIncNLO")
+      for s in NLOsamples: file_map.pop(s)
     file_map = update_data_filemap(era, file_map)
     return file_map
 
@@ -155,7 +159,7 @@ def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_
   jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_25GeV)"
-  #jet_vetomaps = " & (JetMapVeto_EE_15GeV)"
+  jet_vetomaps = " & (JetMapVeto_EE_15GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_TauEE)"
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_TauEE) & (JetMapVeto_TauHotCold)"
   #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_TauEE) & (JetMapVeto_TauHotCold)"
@@ -193,6 +197,11 @@ def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_
   elif final_state_mode == "etau":
     good_events += " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
     if disable_triggers: good_events = good_events.replace(" & (Trigger_etau)", "")
+
+  elif final_state_mode == "emu":
+    good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
+    #good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
+    if disable_triggers: good_events = good_events.replace(" & (Trigger_emu)", "")
 
   # non-HTT FS modes
   elif final_state_mode == "mutau_TnP": # remove HTT_SRevent

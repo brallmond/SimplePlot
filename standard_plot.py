@@ -193,7 +193,7 @@ if __name__ == "__main__":
   title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
  
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  CUSTOM_VARS = True
+  CUSTOM_VARS = False
   if CUSTOM_VARS == True:
     vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
     if (final_state_mode == "ditau"):

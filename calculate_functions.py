@@ -88,6 +88,14 @@ def calculate_mt(lep_pt, lep_phi, MET_pt, MET_phi):
   '''
   return mt
 
+#Calculating transverse mass in 2 object system (alternate definition for emu)
+def calculate_mt_emu(m1, m2, pt1, pt2, phi1, phi2):
+  et1 = np.sqrt(m1**2 + pt1**2)
+  et2 = np.sqrt(m2**2 + pt2**2)
+  delta_phi = phi1 - phi2
+  mt_emu = np.sqrt(2 * et1 * et2 * (1 - np.cos(delta_phi)))
+    
+  return mt_emu
 
 def ROOT_mt(lep_pt, lep_eta, lep_phi, lep_mass, MET_pt, MET_phi): #import ROOT to use this function
   # this is the non-collider-physics definition of "transverse mass"

@@ -95,6 +95,7 @@ label_dictionary = {
   "FS_el_dxy"  : r'Electron $D_{xy}$',
   "FS_el_dz"   : r'Electron $D_{z}$',
   "FS_el_chg"  : r'Electron Charge',
+  "FS_el_mass" : r'Electron Mass [GeV]',
   "FS_dphi_etau" : r'$\Delta\phi_{e\tau}$',
   "FS_deta_etau" : r'$\Delta\eta_{e\tau}$',
 
@@ -254,19 +255,20 @@ binning_dictionary = {
   },
 
   "etau" : {
-    "FS_el_pt"   : np.linspace(0, 120, 40+1),
+    "FS_el_pt"   : np.linspace(20, 100, 50+1),
     "FS_el_eta"  : np.linspace(-3, 3, 30+1),
     "FS_el_phi"  : np.linspace(-3.2, 3.2, 32+1),
     "FS_el_iso"  : np.linspace(0, 1, 25+1),
     "FS_el_dxy"  : np.linspace(0, 0.05, 50+1),
     "FS_el_dz"   : np.linspace(0, 0.25, 50+1),
     "FS_el_chg"  : np.linspace(-2, 2, 5+1),
+    "FS_el_mass" : np.linspace(-0.00002, 0.00002, 30+1),
 
-    "FS_tau_pt"  : np.linspace(0, 180, 36+1),
+    "FS_tau_pt"  : np.linspace(20, 100, 50+1),
     "FS_tau_eta" : np.linspace(-3, 3, 30+1),
     "FS_tau_phi" : np.linspace(-3.2, 3.2, 32+1),
-    "FS_tau_dxy"  : np.linspace(0, 0.025, 25+1), #np.linspace(0, 0.20, 50+1),
-    "FS_tau_dz"   : np.linspace(0, 0.05, 25+1),  #np.linspace(0, 0.25, 50+1),
+    "FS_tau_dxy" : np.linspace(0, 0.025, 25+1), #np.linspace(0, 0.20, 50+1),
+    "FS_tau_dz"  : np.linspace(0, 0.05, 25+1),  #np.linspace(0, 0.25, 50+1),
     "FS_tau_chg" : np.linspace(-2, 2, 5+1),
     "FS_tau_DM"  : np.linspace(0, 3, 4+1), #0, 19, 20+1
     "FS_tau_mass" : np.linspace(0, 3, 30+1),
@@ -322,6 +324,23 @@ binning_dictionary = {
     "FS_m2_chg"  : np.linspace(-2, 2, 5+1),
     "FS_m_vis_tight" : np.linspace(70, 110, 80+1),
   },
+  "emu" : {
+    "FS_el_pt"   : np.linspace(0, 120, 40+1),
+    "FS_el_eta"  : np.linspace(-3, 3, 30+1),
+    "FS_el_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_el_iso"  : np.linspace(0, 1, 25+1),
+    "FS_el_dxy"  : np.linspace(0, 0.05, 50+1),
+    "FS_el_dz"   : np.linspace(0, 0.25, 50+1),
+    "FS_el_chg"  : np.linspace(-2, 2, 5+1),
+
+    "FS_mu_pt"   : np.linspace(0, 120, 40+1),
+    "FS_mu_eta"  : np.linspace(-3, 3, 30+1),
+    "FS_mu_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_mu_iso"  : np.linspace(0, 1, 25+1),
+    "FS_mu_dxy"  : np.linspace(0, 0.025, 50+1),
+    "FS_mu_dz"   : np.linspace(0, 0.25, 50+1),
+    "FS_mu_chg"  : np.linspace(-2, 2, 5+1),
+  },  
 
   "common" : {
     # calculated on the fly

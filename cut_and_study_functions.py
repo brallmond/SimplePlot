@@ -10,10 +10,11 @@ from cut_ditau_functions  import make_ditau_cut
 from cut_mutau_functions  import make_mutau_cut
 from cut_etau_functions   import make_etau_cut
 from cut_dimuon_functions import make_dimuon_cut, manual_dimuon_lepton_veto
+from cut_emu_functions    import make_emu_cut
  
-from FF_functions         import make_ditau_SR_cut, make_mutau_SR_cut, make_etau_SR_cut
-from FF_functions         import make_ditau_AR_cut, make_mutau_AR_cut, make_etau_AR_cut
-from FF_functions         import add_FF_weights
+from FF_functions         import make_ditau_SR_cut, make_mutau_SR_cut, make_etau_SR_cut, make_emu_SR_cut
+from FF_functions         import make_ditau_AR_cut, make_mutau_AR_cut, make_etau_AR_cut, make_emu_AR_cut
+from FF_functions         import add_FF_weights, apply_FF_weight_from_branch
 
 from file_functions       import load_and_store_NWEvents, customize_DY
 from plotting_functions   import final_state_vars, clean_jet_vars
@@ -374,6 +375,12 @@ def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, t
     if (useMiniIso == True):
       event_dictionary = make_dimuon_cut(event_dictionary, useMiniIso==True)
       event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
+  elif final_state_mode == "emu":
+    event_dictionary = make_emu_SR_cut(event_dictionary)
+    event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
+    if (event_dictionary == None): return event_dictionary
+    event_dictionary = make_emu_cut(event_dictionary)
+    event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   else:
     print(f"No cuts to apply for {final_state_mode} final state.")
   return event_dictionary
@@ -446,6 +453,9 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
       keep_fakes = True
     #if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("ditau" in final_state_mode)):
     if ( (("DY" in process) or ("QCD" in process)) and (final_state_mode=="ditau")):
+      keep_fakes = True
+    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("emu" in final_state_mode)):
+      # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
     #print("KEEPING ALL FAKES!") #DEBUG
     process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
@@ -548,6 +558,9 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_
       keep_fakes = True
     if (("DY" in process) and (final_state_mode=="ditau")):
       keep_fakes = True
+    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and (final_state_mode=="emu")):
+      # when FF method is finished/improved no longer need to keep TT and WJ fakes
+      keep_fakes = True
     process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
     process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
@@ -568,6 +581,11 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
       event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+    if (final_state_mode == "emu"):
+      event_dictionary = make_emu_AR_cut(event_dictionary, iso_region_el=True, iso_region_mu=True)
+      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
+      event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
+      event_dictionary = make_emu_cut(event_dictionary)
     protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
     event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
     # weights associated with jet_mode key (testing suffix automatically removed)
