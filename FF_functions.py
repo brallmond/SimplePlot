@@ -362,6 +362,7 @@ def apply_FF_weight_from_branch(event_dictionary, final_state_mode, process):
     
     return event_dictionary   
 
+#Changes made to include FF_weight from branch
 from producers import produce_FF_weight
 def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   # could be improved by reducing name size and simplifying below operations
