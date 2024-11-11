@@ -150,7 +150,12 @@ def calculate_dR(eta1, phi1, eta2, phi2):
 
 def phi_mpi_pi(delta_phi):
   '''return phi between a range of negative pi and pi'''
-  return 2 * np.pi - delta_phi if delta_phi > np.pi else 2 * np.pi + delta_phi if delta_phi < -1*np.pi else delta_phi
+  if (delta_phi > np.pi):
+    return delta_phi - np.pi
+  elif (delta_phi < -np.pi):
+    return delta_phi + np.pi
+  else: # do nothing
+    return delta_phi
 
 
 def yields_for_CSV(histogram_axis, desired_order=[]):
