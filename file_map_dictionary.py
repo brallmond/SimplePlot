@@ -62,23 +62,23 @@ def update_data_filemap(luminosity_key, file_map):
   return file_map 
 
 testing_file_map = {
-  "DataTau"  : "Data/Tau_Run*G*",
-  "DataMuon" : "Data/Muon_Run*G*",
-  "DataElectron" : "Data/EGamma*G*",
+  #"DataTau"  : "Data/Tau_Run*G*",
+  #"DataMuon" : "Data/Muon_Run*G*",
+  #"DataElectron" : "Data/EGamma*G*",
   "DataEMu"  : "Data/MuonEG_Run*G*",
 
   "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
   "DYIncNLO" : "DY_NLO/DYJetsToLL_M-50_HTauTau*",
 
-  "TTTo2L2Nu"       : "TT/TTTo2L2Nu_HTauTau_2022postEE_step2_part10*",
-  "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
-  "TTToSemiLeptonic"  : "TT/TTToSemiLeptonic*",
+  # "TTTo2L2Nu"       : "TT/TTTo2L2Nu_HTauTau_2022postEE_step2_part10*",
+  # "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
+  # "TTToSemiLeptonic"  : "TT/TTToSemiLeptonic*",
 
-  "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
-  "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
+  # "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
+  # "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
 
-  "VBF_TauTau"   : "Signal/VBF*",
-  "ggH_TauTau"   : "Signal/ggH*",
+  # "VBF_TauTau"   : "Signal/VBF*",
+  # "ggH_TauTau"   : "Signal/ggH*",
 }
 
 
@@ -154,6 +154,12 @@ full_file_map = {
   #"QCD_HT-1500to2000" : "QCD/QCD_HT1500to2000_HTauTau*",
   #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
 
-  "VBF_TauTau"   : "Signal/VBF*",
-  "ggH_TauTau"   : "Signal/ggH*",
+  #"VBF_TauTau"   : "Signal/VBF_TauTau_UnFiltered*",
+  #"ggH_TauTau"   : "Signal/ggH_TauTau_UnFiltered*",
+  #"VBF_TauTau"   : "Signal/VBF_TauTau_Filtered*",
+  #"ggH_TauTau"   : "Signal/ggH_TauTau_Filtered*",
+  "VBF_TauTau"   : "Signal/VBF_TauTau*",
+  "ggH_TauTau"   : "Signal/ggH_TauTau*",
+  #"VBF_TauTau"   : "Signal/VBF_TauTau_HTauTau_2022preEE*",
+  #"ggH_TauTau"   : "Signal/ggH_TauTau_HTauTau_2022preEE*",
 }
