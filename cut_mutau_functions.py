@@ -11,7 +11,8 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
   '''
   nEvents_precut = len(event_dictionary["Lepton_pt"])
   unpack_mutau = ["Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
-                  "Muon_dxy", "Muon_dz", "Muon_charge", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_mass", "Tau_decayMode",
+                  "Muon_dxy", "Muon_dz", "Muon_charge", "Muon_mass",
+                  "Tau_dxy", "Tau_dz", "Tau_charge", "Lepton_mass", "Tau_decayMode",
                   "PuppiMET_pt", "PuppiMET_phi", "HTT_m_vis",
                   "Lepton_tauIdx", "Lepton_muIdx", "l1_indices", "l2_indices", 
                   #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe"
@@ -21,14 +22,16 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
   unpack_mutau = add_trigger_branches(unpack_mutau, final_state_mode="mutau")
   unpack_mutau = (event_dictionary.get(key) for key in unpack_mutau)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_mutau] # "*" unpacks a tuple
-  FS_mu_pt, FS_mu_eta, FS_mu_phi, FS_mu_iso, FS_mu_dxy, FS_mu_dz, FS_mu_chg = [], [], [], [], [], [], []
+  FS_mu_pt, FS_mu_eta, FS_mu_phi, FS_mu_iso, FS_mu_dxy, FS_mu_dz, FS_mu_chg, FS_mu_mass = [], [], [], [], [], [], [], []
   FS_tau_pt, FS_tau_eta, FS_tau_phi, FS_tau_dxy, FS_tau_dz, FS_tau_chg, FS_tau_mass, FS_tau_DM = [], [], [], [], [], [], [], []
   pass_cuts, FS_mt, FS_nbJet, FS_acoplan, FS_LeadTkPtOverTau = [], [], [], [], []
+  FS_dphi_mutau, FS_deta_mutau = [], []
   #FS_tau_PNet_v_jet, FS_tau_PNet_v_mu, FS_tau_PNet_v_e = [], [], []
   # goes after l1_idx, l2_idx,
       #PNetvJet, PNetvMu, PNetvE,\
   for i, lep_pt, lep_eta, lep_phi, lep_iso,\
-      mu_dxy, mu_dz, mu_chg, tau_dxy, tau_dz, tau_chg, tau_mass, tau_decayMode,\
+      mu_dxy, mu_dz, mu_chg, mu_mass,\
+      tau_dxy, tau_dz, tau_chg, tau_mass, tau_decayMode,\
       MET_pt, MET_phi, mvis, tau_idx, mu_idx,\
       l1_idx, l2_idx, btag, tau_LeadTkPtOverTauPt,\
       vJet, vMu, vEle, trg24mu, trg27mu, crosstrg in zip(*to_check):
@@ -40,40 +43,46 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
     tauFSLoc     = l2_idx
     tauBranchLoc = tau_idx[l2_idx]
 
-    muPtVal    = lep_pt[muFSLoc] 
-    muEtaVal   = lep_eta[muFSLoc]
-    muPhiVal   = lep_phi[muFSLoc]
-    muIsoVal   = lep_iso[muFSLoc]
-    muDxyVal   = abs(mu_dxy[muBranchLoc])
-    muDzVal    = abs(mu_dz[muBranchLoc])
-    muChgVal   = mu_chg[muBranchLoc]
+    muPt    = lep_pt[muFSLoc] 
+    muEta   = lep_eta[muFSLoc]
+    muPhi   = lep_phi[muFSLoc]
+    muIso   = lep_iso[muFSLoc]
+    muDxy   = abs(mu_dxy[muBranchLoc])
+    muDz    = abs(mu_dz[muBranchLoc])
+    muChg   = mu_chg[muBranchLoc]
+    muMass  = mu_mass[muBranchLoc]
 
-    tauPtVal   = lep_pt[tauFSLoc] 
-    tauEtaVal  = lep_eta[tauFSLoc]
-    tauPhiVal  = lep_phi[tauFSLoc]
-    tauDxyVal  = abs(tau_dxy[tauBranchLoc])
-    tauDzVal   = abs(tau_dz[tauBranchLoc])
-    tauChgVal  = tau_chg[tauBranchLoc]
-    tauMassVal = tau_mass[tauBranchLoc]
+    tauPt   = lep_pt[tauFSLoc] 
+    tauEta  = lep_eta[tauFSLoc]
+    tauPhi  = lep_phi[tauFSLoc]
+    tauDxy  = abs(tau_dxy[tauBranchLoc])
+    tauDz   = abs(tau_dz[tauBranchLoc])
+    tauChg  = tau_chg[tauBranchLoc]
+    tauMass = tau_mass[l2_idx]
 
-    mtVal      = calculate_mt(muPtVal, muPhiVal, MET_pt, MET_phi)
-    acoplanVal = calculate_acoplan(muPhiVal, tauPhiVal)
+    mt      = calculate_mt(muPt, muPhi, MET_pt, MET_phi)
+    acoplan = calculate_acoplan(muPhi, tauPhi)
 
-    #tauPNetvJetVal = PNetvJet[tauBranchLoc]
-    #tauPNetvMuVal  = PNetvMu[tauBranchLoc]
-    #tauPNetvEVal   = PNetvE[tauBranchLoc]
+    dphi_mutau = muPhi - tauPhi
+    deta_mutau = muEta - tauEta
 
-    passTauPtAndEta  = ((tauPtVal > 30.0) and (abs(tauEtaVal) < 2.5))
-    pass25MuPt   = ((trg24mu) and (muPtVal > 25.0) and (abs(muEtaVal) < 2.4))
-    pass28MuPt   = ((trg27mu) and (muPtVal > 28.0) and (abs(muEtaVal) < 2.4))
+    #tauPNetvJet = PNetvJet[tauBranchLoc]
+    #tauPNetvMu  = PNetvMu[tauBranchLoc]
+    #tauPNetvE   = PNetvE[tauBranchLoc]
+
+    passTauPtAndEta  = ((tauPt > 30.0) and (abs(tauEta) < 2.5))
+    pass25MuPt   = ((trg24mu) and (muPt > 25.0) and (abs(muEta) < 2.4))
+    pass28MuPt   = ((trg27mu) and (muPt > 28.0) and (abs(muEta) < 2.4))
     # HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1
-    passMuPtCrossTrigger = ((crosstrg) and ((21.0 < muPtVal < 25.0) and (abs(muEtaVal) < 2.1))
-                                       and ((tauPtVal > 32.0)       and (abs(tauEtaVal) < 2.1)) ) 
+    passMuPtCrossTrigger = ((crosstrg) and ((21.0 < muPt < 25.0) and (abs(muEta) < 2.1))
+                                       and ((tauPt > 32.0)       and (abs(tauEta) < 2.1)) ) 
     #passMuPtCrossTrigger = False # dummy to turn off crosstrg
 
     # Tight v Muon, VVVLoose v Ele
     passTauDTLep  = ((vMu[tauBranchLoc] >= 4) and (vEle[tauBranchLoc] >= 2))
 
+    single_DM_encoder = {0: 0, 1: 1, 10:2, 11:3}
+    encoded_tau_decayMode = single_DM_encoder[tau_decayMode[tauBranchLoc]]
     #restrictTauDM = (tau_decayMode[tauBranchLoc] == 0)
     restrictTauDM = True
 
@@ -85,12 +94,12 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
     subtau_req = True 
     if (tau_pt_cut == "None"): pass # do nothing
     else:
-      subtau_req = (cut_map[tau_pt_cut][0] <= tauPtVal <= cut_map[tau_pt_cut][1])
+      subtau_req = (cut_map[tau_pt_cut][0] <= tauPt <= cut_map[tau_pt_cut][1])
 
     pass_bTag = True
     nbJet = 0
     for value in btag:
-      if (value > 0): 
+      if (value > 1): 
         pass_bTag = False
         nbJet += 1
 
@@ -100,30 +109,33 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
     #     and restrictTauDM and passZmassWindow):
     #     #and restrictTauDM and passZmassWindow and passLeadTkRatio):
       pass_cuts.append(i)
-      FS_mu_pt.append(muPtVal)
-      FS_mu_eta.append(muEtaVal)
-      FS_mu_phi.append(muPhiVal)
-      FS_mu_iso.append(muIsoVal)
-      FS_mu_dxy.append(muDxyVal)
-      FS_mu_dz.append(muDzVal)
-      FS_mu_chg.append(muChgVal)
+      FS_mu_pt.append(muPt)
+      FS_mu_eta.append(muEta)
+      FS_mu_phi.append(muPhi)
+      FS_mu_iso.append(muIso)
+      FS_mu_dxy.append(muDxy)
+      FS_mu_dz.append(muDz)
+      FS_mu_chg.append(muChg)
+      FS_mu_mass.append(muMass)
 
-      FS_tau_pt.append(tauPtVal)
-      FS_tau_eta.append(tauEtaVal)
-      FS_tau_phi.append(tauPhiVal)
-      FS_tau_dxy.append(tauDxyVal)
-      FS_tau_dz.append(tauDzVal)
-      FS_tau_chg.append(tauChgVal)
-      FS_tau_mass.append(tauMassVal)
-      FS_tau_DM.append(tau_decayMode[tauBranchLoc])
+      FS_tau_pt.append(tauPt)
+      FS_tau_eta.append(tauEta)
+      FS_tau_phi.append(tauPhi)
+      FS_tau_dxy.append(tauDxy)
+      FS_tau_dz.append(tauDz)
+      FS_tau_chg.append(tauChg)
+      FS_tau_mass.append(tauMass)
+      FS_tau_DM.append(encoded_tau_decayMode)
 
-      #FS_tau_PNet_v_jet.append(tauPNetvJetVal)
-      #FS_tau_PNet_v_mu.append(tauPNetvMuVal)
-      #FS_tau_PNet_v_e.append(tauPNetvEVal)
+      #FS_tau_PNet_v_jet.append(tauPNetvJet)
+      #FS_tau_PNet_v_mu.append(tauPNetvMu)
+      #FS_tau_PNet_v_e.append(tauPNetvE)
 
-      FS_mt.append(mtVal)
+      FS_mt.append(mt)
       FS_nbJet.append(nbJet)
-      FS_acoplan.append(acoplanVal)
+      FS_acoplan.append(acoplan)
+      FS_dphi_mutau.append(dphi_mutau)
+      FS_deta_mutau.append(deta_mutau)
 
       FS_LeadTkPtOverTau.append(leadTkPtOverTau)
 
@@ -135,6 +147,7 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
   event_dictionary["FS_mu_dxy"] = np.array(FS_mu_dxy)
   event_dictionary["FS_mu_dz"]  = np.array(FS_mu_dz)
   event_dictionary["FS_mu_chg"] = np.array(FS_mu_chg)
+  event_dictionary["FS_mu_mass"] = np.array(FS_mu_mass)
   event_dictionary["FS_tau_pt"]  = np.array(FS_tau_pt)
   event_dictionary["FS_tau_eta"] = np.array(FS_tau_eta)
   event_dictionary["FS_tau_phi"] = np.array(FS_tau_phi)
@@ -146,6 +159,8 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
   event_dictionary["FS_mt"]    = np.array(FS_mt)
   event_dictionary["FS_nbJet"] = np.array(FS_nbJet)
   event_dictionary["FS_acoplan"] = np.array(FS_acoplan)
+  event_dictionary["FS_dphi_mutau"] = np.array(FS_dphi_mutau)
+  event_dictionary["FS_deta_mutau"] = np.array(FS_deta_mutau)
   event_dictionary["FS_LeadTkPtOverTau"] = np.array(FS_LeadTkPtOverTau)
   #event_dictionary["FS_tau_rawPNetVSjet"] = np.array(FS_tau_PNet_v_jet)
   #event_dictionary["FS_tau_rawPNetVSmu"]  = np.array(FS_tau_PNet_v_mu)
@@ -178,9 +193,9 @@ def make_mutau_region(event_dictionary, new_branch_name, FS_pair_sign, pass_mu_i
     tau_branchIdx = tau_idx[l1_idx] + tau_idx[l2_idx] + 1
     pass_DeepTau  = (vJet[tau_branchIdx] >= DeepTau_value)
 
-    muPtVal    = lep_pt[mu_lep_idx]
-    muPhiVal   = lep_phi[mu_lep_idx]
-    passMT     = (calculate_mt(muPtVal, muPhiVal, MET_pt, MET_phi) < mt_value)
+    muPt    = lep_pt[mu_lep_idx]
+    muPhi   = lep_phi[mu_lep_idx]
+    passMT     = (calculate_mt(muPt, muPhi, MET_pt, MET_phi) < mt_value)
 
     passBTag = True
     for value in btag:
