@@ -57,7 +57,7 @@ MC_dictionary = {
   # above are dummy dictionaries for grouped subprocesses #
   # below are real dictionaries for subprocesses          #
   #########################################################
-
+  #start 2022 postEE signal
   "ggH_TauTau" : {"XSec": XSec["ggH_TauTau"], "NWEvents": 19289464.362, 
            "label": "ggH", "color": color_dictionary["ggH"],
            "plot_scaling" : 100},
@@ -65,6 +65,19 @@ MC_dictionary = {
   "VBF_TauTau" : {"XSec": XSec["VBF_TauTau"], "NWEvents": 2402853.147599998, 
            "label": "VBF", "color": color_dictionary["VBF"],
            "plot_scaling" : 500},
+
+  #end 2022postEE signal
+
+  #start 2022 preEE signal
+  # "ggH_TauTau" : {"XSec": XSec["ggH_TauTau"], "NWEvents": 19289464.362, 
+  #          "label": "ggH", "color": color_dictionary["ggH"],
+  #          "plot_scaling" : (0.3869*100)}, 
+
+  # "VBF_TauTau" : {"XSec": XSec["VBF_TauTau"], "NWEvents": 2402853.147599998, 
+  #          "label": "VBF", "color": color_dictionary["VBF"],
+  #          "plot_scaling" : (0.4216*100)},
+
+  #end 2022preEE signal
 
   #TODO: This is for 2022 pre EE dimuon! Somehow store this info and make it switchable!
   #"DYInc" : {"XSec": XSec["DYJetsToLL_M-50"], "NWEvents": 1925298812420.0,
