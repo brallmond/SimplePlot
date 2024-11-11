@@ -1,7 +1,6 @@
 
 from file_map_dictionary   import testing_file_map, full_file_map, update_data_filemap
 from luminosity_dictionary import luminosities_with_normtag as luminosities
-
 from utility_functions       import make_directory, print_setup_info
 
 class setup_handler:
@@ -65,7 +64,9 @@ class setup_handler:
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
     #home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
     #home_dir = "/Users/nailaislam/htt/new_samples/Run3FSSplitSamples/"
-    home_dir = "/Users/nailaislam/htt/new_samples/Hlep/"
+    #home_dir = "/Users/nailaislam/htt/new_samples/Hlep/"
+    home_dir = "/Users/nailaislam/htt/new_samples/Hlep/2022postEE/"
+    #home_dir = "/Users/nailaislam/htt/new_samples/Hlep/preEE/"
     #active_dir = "/V12_PFRel_"+era_modifier_2022+"_nominal/"
     #active_dir += final_state_mode
     home_dir += final_state_mode
@@ -84,6 +85,7 @@ class setup_handler:
       file_map.pop("WJetsIncNLO")
     file_map = update_data_filemap(era, file_map)
     return file_map
+
 
 
 def set_good_events(final_state_mode, AR_region=False, disable_triggers=False, useMiniIso=False):
@@ -113,21 +115,27 @@ def set_good_events(final_state_mode, AR_region=False, disable_triggers=False, u
   # apply FS cut separately so it can be used with reject_duplicate_events
   # STANDARD!
   good_events =  "(METfilters) & (LeptonVeto==0)"
-  jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
+  #Suggestion from Dennis to remove JetMapVeto_HotCold also confirmed from Braden's results 
+  #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_25GeV) & (JetMapVeto_HotCold_25GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV)"
   #jet_vetomaps = " & (JetMapVeto_EE_25GeV)"
-  #jet_vetomaps = " & (JetMapVeto_EE_15GeV)"
+  jet_vetomaps = " & (JetMapVeto_EE_15GeV)" #use this 
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_TauEE)"
   #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_TauEE) & (JetMapVeto_TauHotCold)"
   #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_TauEE) & (JetMapVeto_TauHotCold)"
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
-  HTT_preselect_events = "& (HTT_SRevent)"
+
+  #excluding this for the emu final state as this was getting rid of the muon with pT<15 GeV 
+  #also the other cuts included in this is already applied in the plotter
+  #we decided to keep this as we currently dont have scale factors for muons with pT<15 GeV
+  HTT_preselect_events = " & (HTT_SRevent)"
   good_events += jet_vetomaps
   if AR_region: return good_events # give output with MET filters, lepton veto, and veto maps
 
-  #good_events += HTT_preselect_events
+  good_events += HTT_preselect_events
+
   # UNDER STUDY!
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) "\
   #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) & "\
@@ -159,7 +167,6 @@ def set_good_events(final_state_mode, AR_region=False, disable_triggers=False, u
 
   elif final_state_mode == "emu":
     good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
-    #good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
     if disable_triggers: good_events = good_events.replace(" & (Trigger_emu)", "")
 
   # non-HTT FS modes
