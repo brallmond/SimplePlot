@@ -15,9 +15,10 @@ def make_emu_cut(event_dictionary):
   unpack_emu = ["Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
                 "Electron_dxy", "Electron_dz", "Electron_charge", 
                 "Muon_dxy", "Muon_dz", "Muon_charge", 
+                "HTT_PZeta_using_PUPPI_MET", "HTT_mT_l1l2met_using_PUPPI_MET",
                 "PuppiMET_pt", "PuppiMET_phi",
                 "Lepton_elIdx", "Lepton_muIdx", "l1_indices", "l2_indices", 
-                "CleanJet_btagWP", "HTT_PZeta_using_PUPPI_MET", "HTT_mT_l1l2met_using_PUPPI_MET"
+                "CleanJet_btagWP", 
                  ]
   
   unpack_emu = add_trigger_branches(unpack_emu, final_state_mode="emu")
@@ -26,15 +27,17 @@ def make_emu_cut(event_dictionary):
   
   FS_mu_pt, FS_mu_eta, FS_mu_phi,FS_mu_iso , FS_mu_dxy, FS_mu_dz, FS_mu_chg = [], [], [], [], [], [], []
   FS_el_pt, FS_el_eta, FS_el_phi, FS_el_iso, FS_el_dxy, FS_el_dz, FS_el_chg = [], [], [], [], [], [], []
-  pass_cuts,  FS_nbJet, FS_PZeta, FS_mt = [], [], [], []
+  FS_PZeta, FS_mt_l1l2 = [], []
+  pass_cuts,  FS_nbJet, = [], []
   #FS_tau_PNet_v_jet, FS_tau_PNet_v_mu, FS_tau_PNet_v_e = [], [], []
   # goes after l1_idx, l2_idx,
       #PNetvJet, PNetvMu, PNetvE,\
   for i, lep_pt, lep_eta, lep_phi, lep_iso,\
       el_dxy, el_dz, el_chg, mu_dxy, mu_dz, mu_chg,\
+      pzeta, mtVal,\
       MET_pt, MET_phi, el_idx, mu_idx,\
       l1_idx, l2_idx, btag,\
-      crosstrg_1, crosstrg_2, pzeta, mtVal in zip(*to_check):
+      crosstrg_1, crosstrg_2 in zip(*to_check):
     
     # some handling to figure out which FS index applies to what lepton
     # note for the DeepTauID we use the tau branch index directly instead of the lepton branch
@@ -83,10 +86,11 @@ def make_emu_cut(event_dictionary):
     for value in btag:
       if (value > 0): 
         pass_bTag = False
-        nbJet += 1     
+        nbJet += 1
 
-    #if ((passCrossTrigger_1 or passCrossTrigger_2) and passPZeta and passMT):
+    #if (passCrossTrigger_1 or passCrossTrigger_2):
     if ((passCrossTrigger_1 or passCrossTrigger_2) and passPZeta):
+    #if ((passCrossTrigger_1 or passCrossTrigger_2)):
     #if (passCrossTrigger_2 and passPZeta):
 
       pass_cuts.append(i)
@@ -105,8 +109,8 @@ def make_emu_cut(event_dictionary):
       FS_mu_dz.append(muDzVal)
       FS_mu_chg.append(muChgVal)
       FS_nbJet.append(nbJet)
-      #FS_PZeta.append(pzeta)
-      #FS_mt.append(mtVal)
+      FS_PZeta.append(pzeta)
+      FS_mt_l1l2.append(mtVal)
 
   event_dictionary["pass_cuts"]      = np.array(pass_cuts)
   event_dictionary["FS_el_pt"]       = np.array(FS_el_pt)
@@ -124,8 +128,8 @@ def make_emu_cut(event_dictionary):
   event_dictionary["FS_mu_dz"]       = np.array(FS_mu_dz)
   event_dictionary["FS_mu_chg"]      = np.array(FS_mu_chg)
   event_dictionary["FS_nbJet"]       = np.array(FS_nbJet)
-  #event_dictionary["FS_PZeta"]       = np.array(FS_PZeta)
-  #event_dictionary["FS_mt"]          = np.array(FS_mt)
+  event_dictionary["FS_PZeta"]       = np.array(FS_PZeta)
+  event_dictionary["FS_mt_l1l2"]     = np.array(FS_mt_l1l2)
 
   nEvents_postcut = len(np.array(pass_cuts))
   print(f"nEvents before and after emu cuts = {nEvents_precut}, {nEvents_postcut}")
@@ -175,3 +179,4 @@ def make_emu_region(event_dictionary, new_branch_name, FS_pair_sign,
 
   event_dictionary[new_branch_name] = np.array(pass_cuts)
   return event_dictionary
+
