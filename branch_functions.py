@@ -16,13 +16,13 @@ def set_branches(final_state_mode, DeepTau_version, process="None"):
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
     #"HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
     #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
-    "FFweight", "StitchWeight_WJets_NLO",
+    "StitchWeight_WJets_NLO",
   ]
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
   if final_state_mode != "dimuon": branches = add_DeepTau_branches(branches, DeepTau_version)
   branches = add_trigger_branches(branches, final_state_mode)
-
+  if ("Data" in process): branches.append("FFweight")
   if ("DY" in process): branches = add_Zpt_branches(branches)
   return branches
 
@@ -47,7 +47,7 @@ def add_final_state_branches(branches_, final_state_mode):
                 "Lepton_tauIdx", "Lepton_muIdx",
                 "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
 
-    "etau"   : ["Electron_dxy", "Electron_dz", "Electron_charge", 
+    "etau"   : ["Electron_dxy", "Electron_dz", "Electron_charge", "Electron_mass", 
                 "Tau_mass", "Tau_dxy", "Tau_dz", "Tau_charge", 
                 "Lepton_tauIdx", "Lepton_elIdx",
                 "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],

@@ -327,11 +327,12 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
     else: 
       m_vis_idx = int(m_vis // 10) # hard-coding mvis bins of 10 GeV, starting at 0 and ending at 300 ( // is modulo division )
     f_QCD     = FF_mvis_weights[final_state_mode][jet_mode]["QCD"][m_vis_idx] if not closure else 1
-    user_func = user_line if final_state_mode in ["ditau", "etau"] else user_exp
-    FF_QCD    = user_func(tau_pt, *QCD_fitvals) * 1.1 # OS / SS bias
+    user_func_QCD = user_exp if final_state_mode=="mutau" else user_line
+    user_func_WJ = user_exp
+    FF_QCD    = user_func_QCD(tau_pt, *QCD_fitvals) * 1.1 # OS / SS bias
     if (final_state_mode != "ditau"): # else pass
       f_WJ       = FF_mvis_weights[final_state_mode][jet_mode]["WJ"][m_vis_idx] if not closure else 1
-      FF_WJ      = user_func(tau_pt, *WJ_fitvals)
+      FF_WJ      = user_func_WJ(tau_pt, *WJ_fitvals)
     else: pass
     if (semilep_mode == "Full"):
       FF_weight = f_QCD * FF_QCD
@@ -345,7 +346,7 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
       print("non-positive FF weights!")
       print("FF_weight: ", FF_weight)
       print("tau_pt: ", tau_pt)
-      print("value from fit: ", user_func(lep_pt[l1_idx], *QCD_fitvals))
+      print("value from fit: ", user_func_QCD(lep_pt[l1_idx], *QCD_fitvals))
       print("m_vis, m_vis_idx: ", m_vis, m_vis_idx)
     FF_weights.append(FF_weight)
   event_dictionary["FF_weight"] = np.array(FF_weights)

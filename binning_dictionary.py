@@ -91,6 +91,7 @@ label_dictionary = {
   "FS_el_dxy"  : r'Electron $D_{xy}$',
   "FS_el_dz"   : r'Electron $D_{z}$',
   "FS_el_chg"  : r'Electron Charge',
+  "FS_el_mass" : r'Electron Mass [GeV]',
 
   "FS_tau_pt"  : r'Tau $p_T$ [GeV]',
   "FS_tau_eta" : r'Tau $\eta$',
@@ -249,6 +250,7 @@ binning_dictionary = {
     "FS_el_dxy"  : np.linspace(0, 0.05, 50+1),
     "FS_el_dz"   : np.linspace(0, 0.25, 50+1),
     "FS_el_chg"  : np.linspace(-2, 2, 5+1),
+    "FS_el_mass" : np.linspace(-0.00002, 0.00002, 30+1),
 
     "FS_tau_pt"  : np.linspace(20, 100, 50+1),
     "FS_tau_eta" : np.linspace(-3, 3, 30+1),

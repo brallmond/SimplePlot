@@ -59,8 +59,8 @@ MC_dictionary = {
   # below are real dictionaries for subprocesses          #
   #########################################################
 
-  "ggH"      : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 100*0.3869}, # Filtered SF
-  "VBF"      : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 100*0.4216}, # Filtered SF
+  "ggH_TauTau" : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 100*0.3869}, # Filtered SF
+  "VBF_TauTau" : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 100*0.4216}, # Filtered SF
   # TODO : address this type of thing at some point to remove need to duplicate code..
   "ggH_old"  : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 1},
   "ggH_new"  : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 1},

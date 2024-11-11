@@ -193,7 +193,7 @@ if __name__ == "__main__":
   title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
  
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  CUSTOM_VARS = True
+  CUSTOM_VARS = False
   if CUSTOM_VARS == True:
     vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx", "FastMTT_mass",
                     "HTT_H_pt_using_PUPPI_MET",

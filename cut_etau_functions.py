@@ -9,7 +9,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
   '''
   nEvents_precut = len(event_dictionary["Lepton_pt"])
   unpack_etau = ["Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
-                 "Electron_dxy", "Electron_dz", "Electron_charge", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_decayMode",
+                 "Electron_dxy", "Electron_dz", "Electron_charge", "Electron_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_mass", "Tau_decayMode",
                  "PuppiMET_pt", "PuppiMET_phi", 
                  "Lepton_tauIdx", "Lepton_elIdx", "l1_indices", "l2_indices",
                  #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe"
@@ -20,10 +20,10 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
   unpack_etau = (event_dictionary.get(key) for key in unpack_etau)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_etau]
   pass_cuts, FS_mt, FS_nbJet = [], [], []
-  FS_el_pt, FS_el_eta, FS_el_phi, FS_el_iso, FS_el_dxy, FS_el_dz, FS_el_chg = [], [], [], [], [], [], []
-  FS_tau_pt, FS_tau_eta, FS_tau_phi, FS_tau_dxy, FS_tau_dz, FS_tau_chg, FS_tau_DM = [], [], [], [], [], [], []
+  FS_el_pt, FS_el_eta, FS_el_phi, FS_el_iso, FS_el_dxy, FS_el_dz, FS_el_chg, FS_el_mass = [], [], [], [], [], [], [], []
+  FS_tau_pt, FS_tau_eta, FS_tau_phi, FS_tau_dxy, FS_tau_dz, FS_tau_chg, FS_tau_mass, FS_tau_DM = [], [], [], [], [], [], [], []
   for i, lep_pt, lep_eta, lep_phi, lep_iso,\
-      el_dxy, el_dz, el_chg, tau_dxy, tau_dz, tau_chg, tau_decayMode,\
+      el_dxy, el_dz, el_chg, el_mass, tau_dxy, tau_dz, tau_chg, tau_mass, tau_decayMode,\
       MET_pt, MET_phi, tau_idx, el_idx,\
       l1_idx, l2_idx, btag,\
       vJet, vMu, vEle, trg30el, trg32el, trg35el, crosstrg in zip(*to_check):
@@ -42,12 +42,14 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
     elDxyVal   = abs(el_dxy[elBranchLoc])
     elDzVal    = el_dz[elBranchLoc]
     elChgVal   = el_chg[elBranchLoc]
+    elMassVal  = el_mass[elBranchLoc]
     tauPtVal   = lep_pt[tauFSLoc] 
     tauEtaVal  = lep_eta[tauFSLoc]
     tauPhiVal  = lep_phi[tauFSLoc]
     tauDxyVal  = abs(tau_dxy[tauBranchLoc])
     tauDzVal   = tau_dz[tauBranchLoc]
     tauChgVal  = tau_chg[tauBranchLoc]
+    tauMassVal = tau_mass[tauBranchLoc]
     mtVal      = calculate_mt(elPtVal, elPhiVal, MET_pt, MET_phi)
 
     passTauPtAndEta  = ((tauPtVal > 30.0) and (abs(tauEtaVal) < 2.5))
@@ -89,6 +91,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
       FS_el_dxy.append(elDxyVal)
       FS_el_dz.append(elDzVal)
       FS_el_chg.append(elChgVal)
+      FS_el_mass.append(elMassVal)
 
       FS_tau_pt.append(tauPtVal)
       FS_tau_eta.append(tauEtaVal)
@@ -96,6 +99,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
       FS_tau_dxy.append(tauDxyVal)
       FS_tau_dz.append(tauDzVal)
       FS_tau_chg.append(tauChgVal)
+      FS_tau_mass.append(tauMassVal)
       FS_tau_DM.append(tau_decayMode[tauBranchLoc])
 
       FS_mt.append(mtVal)
@@ -109,12 +113,14 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
   event_dictionary["FS_el_dxy"]  = np.array(FS_el_dxy)
   event_dictionary["FS_el_dz"]   = np.array(FS_el_dz)
   event_dictionary["FS_el_chg"]  = np.array(FS_el_chg)
+  event_dictionary["FS_el_mass"] = np.array(FS_el_mass)
   event_dictionary["FS_tau_pt"]  = np.array(FS_tau_pt)
   event_dictionary["FS_tau_eta"] = np.array(FS_tau_eta)
   event_dictionary["FS_tau_phi"] = np.array(FS_tau_phi)
   event_dictionary["FS_tau_dxy"] = np.array(FS_tau_dxy)
   event_dictionary["FS_tau_dz"]  = np.array(FS_tau_dz)
   event_dictionary["FS_tau_chg"] = np.array(FS_tau_chg)
+  event_dictionary["FS_tau_mass"] = np.array(FS_tau_mass)
   event_dictionary["FS_tau_DM"] = np.array(FS_tau_DM)
   event_dictionary["FS_mt"]      = np.array(FS_mt)
   event_dictionary["FS_nbJet"] = np.array(FS_nbJet)
