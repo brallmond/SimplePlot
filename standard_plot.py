@@ -195,31 +195,31 @@ if __name__ == "__main__":
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
   CUSTOM_VARS = True
   if CUSTOM_VARS == True:
-    vars_to_plot = ["HTT_m_vis", "FS_t1_pt", "FS_t2_pt", "FS_trig_idx", "FastMTT_mass",
-                    "HTT_H_pt_using_PUPPI_MET",
-                    "nCleanJetGT30",
-                    #"HTT_DiJet_MassInv_fromHighestMjj",
-                    #"HTT_DiJet_MassInv_fromLeadingJets",
-                    #"HTT_DiJet_dEta_fromHighestMjj",
-                    #"HTT_DiJet_dEta_fromLeadingJets",
-                    #"HTT_DiJet_j1index",
-                    #"HTT_DiJet_j2index",
-                    #"FS_mjj",
-                    #"FS_detajj",
-                    #"FS_j1index",
-                    #"FS_j2index",
-                    #"FS_dijet_pair_calc",
-                    #"FS_dijet_pair_HTT",
-                   ]
-  plots_unrolled = True
+    vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
+    if (final_state_mode == "ditau"):
+      vars_to_plot = ["HTT_m_vis", 
+                    "FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_DM", "FS_t1_mass",
+                    "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_DM", "FS_t2_mass",
+                    "FS_dphi_t1t2", "FS_deta_t1t2",
+                    "PuppiMET_pt", "HTT_H_pt_using_PUPPI_MET",
+                    "nCleanJetGT30"]
+    if (final_state_mode == "mutau"):
+      vars_to_plot = ["HTT_m_vis", 
+                    "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_mass", "FS_tau_DM",
+                    "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", 
+                    "FS_dphi_mutau", "FS_deta_mutau",
+                    "PuppiMET_pt", "HTT_H_pt_using_PUPPI_MET",
+                    "FS_mt", "nCleanJetGT30"]
+  plots_unrolled = False
   if (plots_unrolled == True):
     rolled_vars = ["FastMTT_mass"]
     H_pT_bins = [0, 45, 80, 120, 200, 350, 450]
     unrolled_vars = {
       "HTT_H_pt_using_PUPPI_MET" : [0, 45, 80, 120, 200, 350, 450],
       "nCleanJetGT30"            : [0, 1, 2, 3, 4],
-      #"leading_jet"          : [0j, 30, 60, 120, 200, 350],
     }
+    if ("1j" in jet_mode):
+      unrolled_vars["CleanJetGT30_pt_1"] = [30, 60, 120, 200, 350]
 
     for unrolled_var, unrolled_bins in unrolled_vars.items():
       unrolled_bins_data       = make_masks_per_bin(data_dictionary, unrolled_var, unrolled_bins)
@@ -243,11 +243,11 @@ if __name__ == "__main__":
           plot_data(   stack_n_ax[ith_bin], xbins, h_data_ur,        lumi, True, blind, blind_range)
           plot_MC(     stack_n_ax[ith_bin], xbins, h_backgrounds_ur, lumi, True)
           plot_signal( stack_n_ax[ith_bin], xbins, h_signals_ur,     lumi, True)
-  
+
           make_ratio_plot(ratio_n_ax[ith_bin], xbins, 
                           h_data_ur["Data"]["BinnedEvents"], "Data", np.ones(np.shape(h_data_ur)),
                           h_summed_backgrounds_ur["Bkgd"]["BinnedEvents"], "Data", np.ones(np.shape(h_summed_backgrounds_ur)))
-  
+
           spruce_up_unrolled_plot(fig_unroll, stack_n_ax, ratio_n_ax, label_dictionary[rolled_var], title+" Unrolled", 
                                   final_state_mode, jet_mode, tau_pt_cut, set_x_log=False, set_y_log=True)
           text = ""
@@ -257,11 +257,16 @@ if __name__ == "__main__":
           elif (unrolled_var == "nCleanJetGT30"):
             nJet = f"{unrolled_bins[ith_bin]}"
             text = f"nJet = {nJet}" if ith_bin != (len(unrolled_bins)-1) else f"nJet ≥ {nJet}"
+          elif (unrolled_var == "CleanJetGT30_pt_1"):
+            try:               
+              text = f"{unrolled_bins[ith_bin]} ≤ j1_pT < {unrolled_bins[ith_bin+1]}"
+              if (ith_bin == 0): text = f"0j category"
+            except IndexError: text = f"j1_pT > {unrolled_bins[ith_bin]}"
           else:
             print("haven't styled that variable yet, no text added")
           add_text(stack_n_ax[ith_bin], text, loc=[0.05, 0.90])
 
-        plt.savefig(plot_dir + "/" + "unrolled_" + str(rolled_var) + ".png")
+        plt.savefig(plot_dir + "/" + "unrolled_TauPtCategory_" + tau_pt_cut + "_" + str(rolled_var) + ".png")
  
 
   for var in vars_to_plot:
