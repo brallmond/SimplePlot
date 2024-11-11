@@ -14,7 +14,7 @@ from cut_emu_functions   import make_emu_cut
  
 from FF_functions         import make_ditau_SR_cut, make_mutau_SR_cut, make_etau_SR_cut, make_emu_SR_cut
 from FF_functions         import make_ditau_AR_cut, make_mutau_AR_cut, make_etau_AR_cut, make_emu_AR_cut
-from FF_functions         import add_FF_weights
+from FF_functions         import add_FF_weights, apply_FF_weight_from_branch
 
 from file_functions       import load_and_store_NWEvents, customize_DY
 from plotting_functions   import final_state_vars, clean_jet_vars
@@ -457,8 +457,8 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
       customize_DY(process, final_state_mode)
       #append_Zpt_weight(process_events)
     keep_fakes = False
-    keep_fakes = True # TODO : fix this block
-    '''
+    #keep_fakes = True # TODO : fix this block
+    #'''
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("mutau" in final_state_mode)):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
@@ -468,7 +468,9 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("ditau" in final_state_mode)):
     #if ( (("DY" in process) or ("QCD" in process)) and (final_state_mode=="ditau")):
       keep_fakes = True
-    '''
+    if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("emu" in final_state_mode)):
+      keep_fakes = True
+    #'''
     #Uncomment for etau and mutau and ditau
     #process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
     #process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
@@ -596,11 +598,16 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_
       event_dictionary = make_emu_AR_cut(event_dictionary, iso_region_el=True, iso_region_mu=True)
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=True)
+      event_dictionary = make_emu_cut(event_dictionary)
+      #event_dictionary = apply_FF_weight_from_branch(event_dictionary, final_state_mode, process)
     protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
     event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
     # weights associated with jet_mode key (testing suffix automatically removed)
-    event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode)
+    #if (final_state_mode == "emu"):
+    if True:
+      event_dictionary = apply_FF_weight_from_branch(event_dictionary, final_state_mode, process)
+    else:
+      event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode)
   else:
     print(f"{final_state_mode} : {jet_mode} not possible. Continuing without AR or FF method applied.")
   return event_dictionary
