@@ -281,31 +281,6 @@ binning_dictionary = {
     "FS_tau_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
   },
 
-  "mutau_TnP" : {
-    "FS_mu_pt"   : np.linspace(0, 120, 40+1),
-    "FS_mu_eta"  : np.linspace(-3, 3, 30+1),
-    "FS_mu_phi"  : np.linspace(-3.2, 3.2, 32+1),
-    "FS_mu_iso"  : np.linspace(0, 1, 25+1),
-    "FS_mu_dxy"  : np.linspace(0, 0.025, 50+1),
-    "FS_mu_dz"   : np.linspace(0, 0.25, 50+1),
-    "FS_mu_chg"  : np.linspace(-2, 2, 5+1),
-
-    "FS_tau_pt"  : np.linspace(0, 180, 36+1),
-    "FS_tau_eta" : np.linspace(-3, 3, 30+1),
-    "FS_tau_phi" : np.linspace(-3.2, 3.2, 32+1),
-    "FS_tau_dxy" : np.linspace(0, 0.20, 50+1),
-    "FS_tau_dz"  : np.linspace(0, 0.25, 50+1),
-    "FS_tau_chg" : np.linspace(-2, 2, 5+1),
-    "FS_tau_DM"  : np.linspace(0, 19, 20+1),
-
-    "FS_tau_rawPNetVSjet" : np.linspace(0, 1, 50+1),
-    "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
-    "FS_tau_rawPNetVSe"   : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]),
-
-    "pass_tag"   : np.linspace(0, 2, 2+1),
-    "pass_probe"   : np.linspace(0, 2, 2+1),
-  },
-
   "dimuon" : {
     "FS_m1_pt"   : np.linspace(0, 300, 60+1),
     "FS_m1_eta"  : np.linspace(-2.5, 2.5, 99+1),

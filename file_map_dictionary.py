@@ -6,14 +6,12 @@ dataset_dictionary = {"ditau" : "DataTau",
                       "mutau" : "DataMuon", 
                       "etau"  : "DataElectron", 
                       "emu"   : "DataEMu",
-                      "mutau_TnP" : "DataMuon", 
                       "dimuon"    : "DataMuon",}
 
 reject_dataset_dictionary = {"ditau" : ["DataMuon", "DataElectron", "DataEMu"],
                              "mutau" : ["DataTau",  "DataElectron", "DataEMu"],
                              "etau"  : ["DataMuon", "DataTau",      "DataEMu"],
                              "emu"   : ["DataMuon", "DataElectron", "DataTau"],
-                             "mutau_TnP" : ["DataTau",  "DataElectron", "DataEMu"],
                              "dimuon"    : ["DataTau",  "DataElectron", "DataEMu"], }
 
 def set_dataset_info(final_state_mode):

@@ -203,11 +203,6 @@ def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_
     #good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
     if disable_triggers: good_events = good_events.replace(" & (Trigger_emu)", "")
 
-  # non-HTT FS modes
-  elif final_state_mode == "mutau_TnP": # remove HTT_SRevent
-    good_events = "(METfilters) & (LeptonVeto==0) & (abs(HTT_pdgId)==13*15)"
-    good_events += jet_vetomaps
-
   elif final_state_mode == "dimuon":
     # lepton veto must be applied manually for this final state
     if (useMiniIso == False):

@@ -21,7 +21,7 @@ def set_AR_region(final_state_mode):
   AR_region_dimuon = common_selection + " & (abs(HTT_pdgId)==13*13) & (HLT_IsoMu24)"
 
   AR_region_dictionary = {"ditau" : AR_region_ditau, "mutau" : AR_region_mutau, "etau" : AR_region_etau, "emu" : AR_region_emu,
-                          "mutau_TnP" : AR_region_mutau, "dimuon" : AR_region_dimuon}
+                          "dimuon" : AR_region_dimuon}
   AR_region = AR_region_dictionary[final_state_mode]
   return AR_region
 

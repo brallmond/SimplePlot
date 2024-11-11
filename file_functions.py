@@ -174,7 +174,6 @@ def customize_DY(process, final_state_mode):
                  "mutau" : r"$Z{\rightarrow}{\tau_{\mu}}{\tau_h}$",
                  "etau"  : r"$Z{\rightarrow}{\tau_e}{\tau_h}$",
                  "emu"   : r"$Z{\rightarrow}{\tau_e}{\tau_{\mu}}$",
-                 "mutau_TnP" : r"$Z{\rightarrow}{\mu}{\tau_h}$",
                  "dimuon": r"$Z{\rightarrow}{\mu}{\mu}$"}
   MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]
   MC_dictionary["DYGenNLO"]["label"] = label_text[final_state_mode]

@@ -64,7 +64,7 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
         # is added to jet fakes, which i think is fine
         lep_fake = True
         event_flavor.append("L")
-    elif ((final_state_mode == "mutau") or (final_state_mode == "etau") or (final_state_mode == "mutau_TnP")):
+    elif ((final_state_mode == "mutau") or (final_state_mode == "etau")):
       t1_flav = tau_flav[tau_idx[l1_idx] + tau_idx[l2_idx] + 1] # update with NanoAODv12 samples
       if (t1_flav == 5):
         genuine = True
@@ -341,9 +341,6 @@ def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, t
   '''
   # setting inclusive in the jet_mode includes all jet branches in protected branches
   # this is okay because in the current ordering (FS cut then jet cut), no jet branches are ever created yet.
-  #if (final_state_mode == "mutau_TnP"):
-  #  protected_branches = set_protected_branches(final_state_mode="mutau_TnP", jet_mode="Inclusive")
-  #else:
   protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="Inclusive")
   skip_DeepTau = False
   if final_state_mode == "ditau":

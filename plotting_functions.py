@@ -158,7 +158,6 @@ def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mo
                         "mutau"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
                         "etau"   : ["FS_el_eta", "FS_el_phi", "FS_tau_eta", "FS_tau_phi"],
                         "emu"    : ["FS_el_eta", "FS_el_phi", "FS_mu_eta", "FS_mu_phi"],
-                        "mutau_TnP"  : ["FS_mu_eta", "FS_mu_phi", "FS_tau_eta", "FS_tau_phi"],
                         "dimuon" : ["FS_m1_eta", "FS_m1_phi", "FS_m2_eta", "FS_m2_phi"]}
   eta_phi_by_FS = eta_phi_by_FS_dict[final_state_mode]
   make_two_dimensional_plot(process_dictionary[process_name]["PlotEvents"], final_state_mode,
@@ -310,11 +309,6 @@ def setup_single_plot():
   return ax
 
 
-def setup_TnP_plot():
-  fig, ax = plt.subplots()
-  return ax
-
-
 def setup_unrolled_plot(n_ax):
   gridspec_kw = {'height_ratios': [3, 1], 'hspace': 0.09, 'wspace': 0} # used to be 4:1
   fig, (upper_n_ax, lower_n_ax) = plt.subplots(ncols=n_ax, nrows=2, sharex='col', sharey='row', figsize=(16, 6),
@@ -335,7 +329,6 @@ def add_CMS_preliminary(axis):
 final_state_str = {
     "ditau"  : r"${\tau_h}{\tau_h}$",
     "mutau"  : r"${\tau_{\mu}}{\tau_h}$",
-    "mutau_TnP"  : r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$",
     "etau"   : r"${\tau_e}{\tau_h}$",
     "dimuon" : r"${\mu}{\mu}$",
     "emu"    : r"${e}{\mu}$",
@@ -482,18 +475,6 @@ def spruce_up_unrolled_plot(fig, histogram_axes, ratio_axes, variable_name, titl
   leg = fig.legend(handles, labels, loc="upper center", frameon=False, ncol=len(labels),
                    labelspacing=0.35, handlelength=0.8, handleheight=0.8, handletextpad=0.4)
  
-
-def spruce_up_TnP_plot(axis, variable_name, title):
-  add_CMS_preliminary(axis)
-  axis.set_title(title, loc='right', y=0.98)
-  axis.set_ylabel("Efficiency (Probe/Tag)")
-  axis.set_ylim([0.0, 1.1])
-  axis.minorticks_on()
-  axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
-  axis.set_xlabel(variable_name) # shared axis label
-  axis.grid(True)
-
-
 
 def spruce_up_legend(histogram_axis, final_state_mode):
   # this post has good advice about moving the legend off the plot
