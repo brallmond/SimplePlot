@@ -72,6 +72,9 @@ label_dictionary = {
   "FS_mt"      : r'Transverse Mass',
   "FS_nbJet"   : r'Number of b-tagged Jets',
   "FS_acoplan" : r'Acoplanarity',
+  "FS_mt_l1l2" : r'Transverse Mass for l1l2',
+  "FS_PZeta"   : r'PZeta',
+  
 
   "MET_pt"          : r'MET [GeV]',
   "PuppiMET_pt"     : r'PUPPI MET [GeV]',
@@ -91,6 +94,7 @@ label_dictionary = {
   "HTT_H_pt_using_PUPPI_MET"         : r'Higgs $p_T$ [GeV]',
   "HTT_dR"      : r'$\Delta$R',
   "HTT_m_vis-KSUbinning" : r'$m_{vis}$ [GeV]',
+  "HTT_mT_l1l2met_using_PUPPI_MET" : r'HTT_mT_l1l2met_using_PUPPI_MET[GeV]',
   "HTT_m_vis-SFbinning"  : r'$m_{vis}$ [GeV]',
   "HTT_pT_l1l2" : r'$p_T^{ll}$',
   "FastMTT_mT"   : r'Fast MTT Transverse Mass [GeV]',
@@ -239,6 +243,8 @@ binning_dictionary = {
     "FS_mu_dxy"  : np.linspace(0, 0.025, 50+1),
     "FS_mu_dz"   : np.linspace(0, 0.25, 50+1),
     "FS_mu_chg"  : np.linspace(-2, 2, 5+1), #What is m_vis_tightfor muon in dimuon
+    "FS_mt_l1l2" : np.linspace(0, 300, 30+1),
+    "FS_PZeta"   : np.linspace(-100, 100, 30+1),
   },  
 
   "common" : {
@@ -273,6 +279,7 @@ binning_dictionary = {
     "HTT_dR"                : np.linspace(0, 6, 60+1),
     "HTT_m_vis-KSUbinning"  : np.linspace(0, 300, 30+1),
     "HTT_m_vis-SFbinning"   : np.linspace(0, 200, 40+1),
+    "HTT_mT_l1l2met_using_PUPPI_MET": np.linspace(0, 300, 30+1),
     "HTT_pT_l1l2" : np.linspace(0, 150, 30+1),
     "FastMTT_mT"   : np.linspace(0, 400, 40+1),
     "FastMTT_mass" : np.linspace(0, 400, 20+1),
