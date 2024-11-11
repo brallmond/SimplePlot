@@ -22,7 +22,7 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
   '''
   nEvents_precut = len(event_dictionary["Lepton_pt"])
   unpack_ditau = ["Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_tauIdx", 
-                  "Tau_dxy", "Tau_dz", "Tau_decayMode", "Tau_charge", "Tau_mass", "l1_indices", "l2_indices",
+                  "Tau_dxy", "Tau_dz", "Tau_decayMode", "Tau_charge", "Lepton_mass", "l1_indices", "l2_indices",
                   "PuppiMET_pt", "PuppiMET_phi", "HTT_m_vis",
                   "nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass",
                   "Tau_flightLengthSig", "Tau_flightLengthX", "Tau_flightLengthY", "Tau_flightLengthZ", 
@@ -40,7 +40,7 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
   #FS_t2_PNet_v_jet, FS_t2_PNet_v_mu, FS_t2_PNet_v_e = [], [], []
   FS_t1_DeepTau_v_jet, FS_t1_DeepTau_v_mu, FS_t1_DeepTau_v_e = [], [], []
   FS_t2_DeepTau_v_jet, FS_t2_DeepTau_v_mu, FS_t2_DeepTau_v_e = [], [], []
-  FS_trig_idx = []
+  FS_trig_idx, pair_decayMode = [], []
   FS_mt_t1t2, FS_mt_t1_MET, FS_mt_t2_MET, FS_mt_TOT, FS_dphi_t1t2, FS_deta_t1t2 = [], [], [], [], [], []
   FS_t1_FLsig, FS_t1_FLX, FS_t1_FLY, FS_t1_FLZ, FS_t1_FLmag = [], [], [], [], []
   FS_t1_ipLsig, FS_t1_ip3d, FS_t1_tk_lambda, FS_t1_tk_qoverp = [], [], [], []
@@ -99,8 +99,16 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
     t2passDT   = (vMu[t2_br_idx] >= 1 and vEle[t2_br_idx] >= 2)
     #t1passDT   = (t1passDT and (vJet[t1_br_idx] >= 6))
     #t2passDT   = (t2passDT and (vJet[t2_br_idx] >= 6))
+    single_DM_encoder = {0: 0, 1: 1, 10:2, 11:3}
     t1_decayMode = tau_decayMode[t1_br_idx]
     t2_decayMode = tau_decayMode[t2_br_idx]
+    encoded_t1_decayMode = single_DM_encoder[t1_decayMode]
+    encoded_t2_decayMode = single_DM_encoder[t2_decayMode]
+    pair_DM_encoder = { 0: 0,  100: 1,  1000: 2,  1100: 3, # 16 unique DM pairs from t1_DM*100 + t2_DM
+                        1: 4,  101: 5,  1001: 6,  1101: 7,
+                       10: 8,  110: 9,  1010: 10, 1110: 11,
+                       11: 12, 111: 13, 1011: 14, 1111: 15 }
+    encoded_pair_decayMode = pair_DM_encoder[t1_decayMode*100 + t2_decayMode]
     #good_tau_decayMode = ((t1_decayMode == 11) and (t2_decayMode == 11))
     #good_tau_decayMode = ((t1_decayMode == 0) and (t2_decayMode == 0))
     good_tau_decayMode = True
@@ -108,8 +116,10 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
     t1_chg = tau_chg[t1_br_idx]
     t2_chg = tau_chg[t2_br_idx]
 
-    t1_mass = tau_mass[t1_br_idx]
-    t2_mass = tau_mass[t2_br_idx]
+    #t1_mass = tau_mass[t1_br_idx]
+    #t2_mass = tau_mass[t2_br_idx]
+    t1_mass = tau_mass[l1_idx]
+    t2_mass = tau_mass[l2_idx]
 
     # there is almost certainly a better way to do this...
     t1_FLsig = tau_FLsig[t1_br_idx]
@@ -144,7 +154,8 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
     mt_TOT    = np.sqrt(mt_t1t2 + mt_t1_MET + mt_t2_MET)
 
     dphi_t1t2 = phi_mpi_pi(t1_phi - t2_phi)
-    deta_t1t2 = abs(t1_eta - t2_eta)
+    dphi_t1t2 = t1_phi - t2_phi
+    deta_t1t2 = t1_eta - t2_eta
 
     mvis_req = (mvis > 50) # remove disagreement at low mvis values
     deta_t1t2_req = (deta_t1t2 < 1.5) # try 2 also
@@ -162,7 +173,7 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
       FS_t1_dxy.append(abs(tau_dxy[tau_idx[l1_idx]]))
       FS_t1_dz.append(abs(tau_dz[tau_idx[l1_idx]]))
       FS_t1_chg.append(t1_chg)
-      FS_t1_DM.append(t1_decayMode)
+      FS_t1_DM.append(encoded_t1_decayMode)
       FS_t1_mass.append(t1_mass)
       #FS_t1_PNet_v_jet.append(PNetvJet[tau_idx[l1_idx]])
       #FS_t1_PNet_v_mu.append(PNetvMu[tau_idx[l1_idx]])
@@ -176,7 +187,7 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
       FS_t2_dxy.append(abs(tau_dxy[tau_idx[l2_idx]]))
       FS_t2_dz.append(abs(tau_dz[tau_idx[l2_idx]]))
       FS_t2_chg.append(t2_chg)
-      FS_t2_DM.append(t2_decayMode)
+      FS_t2_DM.append(encoded_t2_decayMode)
       FS_t2_mass.append(t2_mass)
       #FS_t2_PNet_v_jet.append(PNetvJet[tau_idx[l2_idx]])
       #FS_t2_PNet_v_mu.append(PNetvMu[tau_idx[l2_idx]])
@@ -211,6 +222,7 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
       FS_t2_ip3d.append(t2_ip3d)
       FS_t2_tk_lambda.append(t2_tk_lambda)
       FS_t2_tk_qoverp.append(t2_tk_qoverp)
+      pair_decayMode.append(encoded_pair_decayMode)
 
   event_dictionary["pass_cuts"] = np.array(pass_cuts)
   event_dictionary["FS_t1_pt"]  = np.array(FS_t1_pt)
@@ -266,6 +278,7 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
   event_dictionary["FS_t2_ip3d"]         = np.array(FS_t2_ip3d)
   event_dictionary["FS_t2_tk_lambda"]    = np.array(FS_t2_tk_lambda)
   event_dictionary["FS_t2_tk_qoverp"]    = np.array(FS_t2_tk_qoverp)
+  event_dictionary["FS_pair_DM"]  = np.array(pair_decayMode)
 
   nEvents_postcut = len(np.array(pass_cuts))
   print(f"nEvents before and after ditau cuts = {nEvents_precut}, {nEvents_postcut}")

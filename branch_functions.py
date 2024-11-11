@@ -1,7 +1,8 @@
 def set_branches(final_state_mode, DeepTau_version, process="None"):
   common_branches = [
     "run", "luminosityBlock", "event", "Generator_weight", "NWEvents", "XSecMCweight",
-    "TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull", "Weight_DY_Zpt_LO", "Weight_DY_Zpt_NLO", "PUweight", "Weight_TTbar_NNLO",
+    "TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull", 
+    "Weight_DY_Zpt_LO", "Weight_DY_Zpt_NLO", "PUweight", "Weight_TTbar_NNLO",
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass",
@@ -31,23 +32,18 @@ def add_final_state_branches(branches_, final_state_mode):
   Helper function to add only relevant branches to loaded branches based on final state.
   '''
   final_state_branches = {
-    "ditau"  : ["Lepton_tauIdx", "Tau_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "PuppiMET_pt", "PuppiMET_phi",
+    "ditau"  : ["Lepton_tauIdx", "Lepton_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "PuppiMET_pt", "PuppiMET_phi",
                 "Tau_flightLengthSig", "Tau_flightLengthX", "Tau_flightLengthY", "Tau_flightLengthZ", 
                 "Tau_ipLengthSig", "Tau_ip3d", "Tau_track_lambda", "Tau_track_qoverp",
                ],
 
-    "mutau"  : ["Muon_dxy", "Muon_dz", "Muon_charge",
-                "Tau_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_leadTkPtOverTauPt",
-                "Lepton_tauIdx", "Lepton_muIdx",
-                "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
-
-    "mutau_TnP"  : ["Muon_dxy", "Muon_dz", "Muon_charge",
-                "Tau_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_leadTkPtOverTauPt",
+    "mutau"  : ["Muon_dxy", "Muon_dz", "Muon_charge", "Muon_mass",
+                "Lepton_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_leadTkPtOverTauPt",
                 "Lepton_tauIdx", "Lepton_muIdx",
                 "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
 
     "etau"   : ["Electron_dxy", "Electron_dz", "Electron_charge", 
-                "Tau_mass", "Tau_dxy", "Tau_dz", "Tau_charge", 
+                "Lepton_mass", "Tau_dxy", "Tau_dz", "Tau_charge", 
                 "Lepton_tauIdx", "Lepton_elIdx",
                 "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
 

@@ -183,7 +183,7 @@ def plot_raw(histogram_axis, xbins, input_vals, luminosity,
 def blind_region(input_array, allbins, blind_range):
   # zero-out anything in the blind range
   output_array = input_array
-  blind_idx = np.where((allbins > blind_range[0]) & (allbins < blind_range[1])) # get indices greater/less than range
+  blind_idx = np.where((allbins >= blind_range[0]) & (allbins <= blind_range[1])) # get indices greater/less than range
   output_array[blind_idx] = 0
   return output_array
   
@@ -404,6 +404,18 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
     ypos  = -0.35
     for i,nlabel in enumerate(trig_labels):
       add_text(ratio_plot_axis, nlabel, loc=[xpos+xstep*i, ypos], rotation=35, ha="center", va="center")
+  if ("Decay Mode" in variable_name) and ("Pair" not in variable_name):
+    flat_map = ["","0","","1","","10","","11",""]
+    flat_map = [0, 1, 10, 11]
+    ratio_plot_axis.set_xticks(np.arange(len(flat_map)), labels=flat_map, fontsize=10, ha="center")
+  if "Tau Pair Decay Mode" in variable_name:
+    pair_DM_decoder = { 0: 0,   1:  100, 2:  1000, 3:  1100, # 16 unique DM pairs from t1_DM*100 + t2_DM
+                        4: 1,   5:  101, 6:  1001, 7:  1101,
+                        8: 10,  9:  110, 10: 1010, 11: 1110,
+                       12: 11,  13: 111, 14: 1011, 15: 1111 }
+    flat_map = [0, 100, 1000, 1100, 1, 101, 1001, 1101, 10, 110, 1010, 1110, 11, 111, 1011, 1111]
+    ratio_plot_axis.set_xticks(np.arange(len(flat_map)), labels=flat_map, rotation=45, ha="left", fontsize=8)
+
   ratio_plot_axis.set_ylabel("Obs. / Exp.")
   ratio_plot_axis.axhline(y=1, color='grey', linestyle='--')
   ratio_plot_axis.minorticks_on()
@@ -823,7 +835,7 @@ final_state_vars = {
                 #"FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
                 "FS_t1_DeepTauVSjet", "FS_t1_DeepTauVSmu", "FS_t1_DeepTauVSe", 
                 "FS_t2_DeepTauVSjet", "FS_t2_DeepTauVSmu", "FS_t2_DeepTauVSe", 
-                "FS_trig_idx",
+                "FS_trig_idx", "FS_pair_DM",
                 "FS_mt_t1t2", "FS_mt_t1_MET", "FS_mt_t2_MET", "FS_mt_TOT", "FS_dphi_t1t2", "FS_deta_t1t2",
                 "FS_t1_FLsig", "FS_t1_FLX", "FS_t1_FLY", "FS_t1_FLZ", "FS_t1_FLmag",
                 "FS_t1_ipLsig", "FS_t1_ip3d", "FS_t1_tk_lambda", "FS_t1_tk_qoverp",
@@ -831,21 +843,18 @@ final_state_vars = {
                 "FS_t2_ipLsig", "FS_t2_ip3d", "FS_t2_tk_lambda", "FS_t2_tk_qoverp",
                ],
 
-    "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
+    "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg", "FS_mu_mass",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_mass", "FS_tau_DM",
                 "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet", "FS_acoplan",
                 "FS_LeadTkPtOverTau",
                 #"FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
+                "FS_dphi_mutau", "FS_deta_mutau",
                ],
-
-    "mutau_TnP"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
-                    "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_mass", "FS_tau_DM",
-                    "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet", "FS_acoplan", "pass_tag", "pass_probe"
-                   ],
 
     "etau"   : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_DM",
                 "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet",
+                "FS_dphi_etau", "FS_deta_etau",
                ],
 
     "dimuon" : ["FS_m1_pt", "FS_m1_eta", "FS_m1_phi", "FS_m1_iso", "FS_m1_dxy", "FS_m1_dz",
