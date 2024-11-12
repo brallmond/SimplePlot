@@ -126,8 +126,8 @@ if __name__ == "__main__":
                                                 #bypass = [0.0262364,-1.88738e-05, 1, 0] # old, hacky
                                                 bypass = [0.0790, 0.000444, 1, 0] # DRsr/ar iso eras EFG Inc RedX=27 # 30min
                                                 )
-
       # TODO : extendable to jet cuts (something I've meant to do for some time)
+      '''
       if "DY" in process:
         event_flavor_arr = event_dictionary["event_flavor"]
         pass_gen_flav, pass_lep_flav, pass_jet_flav = [], [], []
@@ -156,16 +156,19 @@ if __name__ == "__main__":
         background_jet_deepcopy = apply_cut(background_jet_deepcopy, "pass_flavor_cut", protected_branches)
         if background_jet_deepcopy == None: continue
 
-        combined_process_dictionary = append_to_combined_processes("DYGen", background_gen_deepcopy, vars_to_plot, 
+        combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYGen"), background_gen_deepcopy, vars_to_plot,
                                                                    combined_process_dictionary, one_file_at_a_time)
-        combined_process_dictionary = append_to_combined_processes("DYLep", background_lep_deepcopy, vars_to_plot, 
+        combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYLep"), background_lep_deepcopy, vars_to_plot,
                                                                    combined_process_dictionary, one_file_at_a_time)
-        combined_process_dictionary = append_to_combined_processes("DYJet", background_jet_deepcopy, vars_to_plot, 
+        combined_process_dictionary = append_to_combined_processes(process.replace("DY","DYJet"), background_jet_deepcopy, vars_to_plot,
                                                                    combined_process_dictionary, one_file_at_a_time)
         
       else:
         combined_process_dictionary = append_to_combined_processes(process, event_dictionary, vars_to_plot, 
                                                                    combined_process_dictionary, one_file_at_a_time)
+      '''
+      combined_process_dictionary = append_to_combined_processes(process, event_dictionary, vars_to_plot, 
+                                                               combined_process_dictionary, one_file_at_a_time)
 
     # after loop, sort big dictionary into three smaller ones
     data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
