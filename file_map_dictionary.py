@@ -2,17 +2,18 @@
 # This file contains mappings of process names (shared with XSec.py) to wildcards for related samples.
 # The :testing" file maps are subsets of full filelists for faster processing times.
 
-dataset_dictionary = {"ditau" : "DataTau", 
-                      "mutau" : "DataMuon", 
-                      "etau"  : "DataElectron", 
-                      "emu"   : "DataEMu",
-                      "dimuon"    : "DataMuon",}
+dataset_dictionary = {"ditau"  : "DataTau", 
+                      "mutau"  : "DataMuon", 
+                      "etau"   : "DataElectron", 
+                      "emu"    : "DataEMu",
+                      "dimuon" : "DataMuon",}
 
-reject_dataset_dictionary = {"ditau" : ["DataMuon", "DataElectron", "DataEMu"],
-                             "mutau" : ["DataTau",  "DataElectron", "DataEMu"],
-                             "etau"  : ["DataMuon", "DataTau",      "DataEMu"],
-                             "emu"   : ["DataMuon", "DataElectron", "DataTau"],
-                             "dimuon"    : ["DataTau",  "DataElectron", "DataEMu"], }
+reject_dataset_dictionary = {"ditau"  : ["DataMuon", "DataElectron", "DataEMu"],
+                             "mutau"  : ["DataTau",  "DataElectron", "DataEMu"],
+                             "etau"   : ["DataMuon", "DataTau",      "DataEMu"],
+                             "emu"    : ["DataMuon", "DataElectron", "DataTau"],
+                             "dimuon" : ["DataTau",  "DataElectron", "DataEMu"], }
+
 
 def set_dataset_info(final_state_mode):
   use_dataset     = dataset_dictionary[final_state_mode]
@@ -65,61 +66,55 @@ def update_data_filemap(luminosity_key, file_map):
     file_map["DataTau"]      = "Data/Tau_Run2023*"
     file_map["DataMuon"]     = "Data/Muon_Run2023*"
     file_map["DataElectron"] = "Data/EGamma_Run2023*"
-    file_map["DataEMu"] = "Data/MuonEG_Run2023*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2023*"
   if luminosity_key == "2023 D":
     file_map["DataTau"]      = "Data/Tau_Run2023*"
     file_map["DataMuon"]     = "Data/Muon_Run2023*"
     file_map["DataElectron"] = "Data/EGamma_Run2023*"
-    file_map["DataEMu"] = "Data/MuonEG_Run2023*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2023*"
   return file_map 
 
+
 testing_file_map = {
-  "DataTau"  : "Data/Tau_Run*G*",
-  "DataMuon" : "Data/Muon_Run*G*",
+  "DataTau"      : "Data/Tau_Run*G*",
+  "DataMuon"     : "Data/Muon_Run*G*",
   "DataElectron" : "Data/EGamma*G*",
-  "DataEMu"  : "Data/MuonEG_Run*G*",
+  "DataEMu"      : "Data/MuonEG_Run*G*",
 
-  "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
-
-  "DYInc"    : "DY/DYJetsToLL_M-50_LO_HTauTau*",
-  "DYIncNLO" : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
-
-  "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
-  "WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
-
-  "VBF_TauTau"   : "Signal/VBF_TauTau_HTauTau*",
-  "ggH_TauTau"   : "Signal/ggH_TauTau_HTauTau_*",
-}
-
-
-full_file_map = {
-
-  "DataTau"  : "Data/Tau_Run*",
-  "DataMuon" : "Data/Muon_Run*",
-  "DataElectron" : "Data/EGamma_Run*",
-  "DataEMu"  : "Data/MuonEG_Run*",
-
-  #"DYInc" : "DY/DYJetsToLL_M-50_LO_HTauTau*",
-  #"DYInc" : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
-
-  "DYJetsToLL_M-50_1J" : "DY/DY1JetsToLL_M-50_LO*",
-  "DYJetsToLL_M-50_2J" : "DY/DY2JetsToLL_M-50_LO*",
-  "DYJetsToLL_M-50_3J" : "DY/DY3JetsToLL_M-50_LO*",
-  "DYJetsToLL_M-50_4J" : "DY/DY4JetsToLL_M-50_LO*",
-
-  #"DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
-  #"DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
-  #"DYJetsToLL_M-50_2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
-
-  #"DYIncNLO" : "DY/DYJetsToLL_M-50_NLO_HTauTau*",
   "DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
   "DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
   "DYJetsToLL_M-50_2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
 
+  "VBF_TauTau" : "Signal/VBF_TauTau_Filtered*",
+  "ggH_TauTau" : "Signal/ggH_TauTau_Filtered*",
+}
+
+
+# DY and WJ samples must end with LO or NLO
+# not the entry itself, but the filemapping
+# "entry" : "file/mapping*"
+full_file_map = {
+  # Data
+  "DataTau"      : "Data/Tau_Run*",
+  "DataMuon"     : "Data/Muon_Run*",
+  "DataElectron" : "Data/EGamma_Run*",
+  "DataEMu"      : "Data/MuonEG_Run*",
+
+  # Signal
+  "ggH_TauTau" : "Signal/ggH_TauTau_Filtered*",
+  "VBF_TauTau" : "Signal/VBF_TauTau_Filtered*",
+
+  # DY
+  "DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
+  "DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
+  "DYJetsToLL_M-50_2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
+
+  # TT
   "TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
   "TTToSemiLeptonic"  : "TT/TTToSemiLeptonic*",
 
+  # ST
   "ST_s-channel_Tbar"  : "ST/ST_s-channel_antitop*",
   "ST_t-channel_Tbar"  : "ST/ST_t-channel_antitop*",
   "ST_TbarWplus_2L2Nu" : "ST/ST_TbarWplus_2L2Nu*",
@@ -131,60 +126,28 @@ full_file_map = {
   "ST_TWminus_4Q"      : "ST/ST_TWminus_4Q*",
   "ST_TWminus_LNu2Q"   : "ST/ST_TWminus_LNu2Q*",
 
-  #"WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
-  #"WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
-  #"WJetsIncNLO" : "WJ/WJetsToLNu_HTauTau*",
-
-  "WJetsInc"    : "WJ/WJetsToLNu_LO_HTauTau*",
-  "WJetsToLNu_1J" : "WJ/W1JetsToLNu_LO_HTauTau*",
-  "WJetsToLNu_2J" : "WJ/W2JetsToLNu_LO_HTauTau*",
-  "WJetsToLNu_3J" : "WJ/W3JetsToLNu_LO_HTauTau*",
-  "WJetsToLNu_4J" : "WJ/W4JetsToLNu_LO_HTauTau*",
-
-  "WJetsIncNLO"      : "WJ/WJetsToLNu_HTauTau*",
+  # WJ
   "WJetsToLNu_0JNLO" : "WJ/W0JetsToLNu_HTauTau*",
   "WJetsToLNu_1JNLO" : "WJ/W1JetsToLNu_HTauTau*",
   "WJetsToLNu_2JNLO" : "WJ/W2JetsToLNu_HTauTau*",
 
-  #"WW"        : "VV/WW*", # WW Inc. available but untested
+  # VV (WW non Higgs, WZ, ZZ) all have VV Inc samples available, but are not used
   "WWTo2L2Nu" : "VV/WWTo2L2Nu*",
   "WWTo4Q"    : "VV/WWTo4Q*",
   "WWToLNu2Q" : "VV/WWToLNu2Q*",
 
-  #"WZ"        : "VV/WZ*", # WZ Inc. available but untested
   "WZTo3LNu"  : "VV/WZTo3LNu*",
   "WZTo2L2Q"  : "VV/WZTo2L2Q*",
   "WZToLNu2Q" : "VV/WZToLNu2Q*",
 
-  #"ZZ"        : "VV/ZZ*", # ZZ Inc. available but untested
   "ZZTo2L2Nu" : "VV/ZZTo2L2Nu*",
   "ZZTo2L2Q"  : "VV/ZZTo2L2Q*", 
   "ZZTo2Nu2Q" : "VV/ZZTo2Nu2Q*",
   "ZZTo4L"    : "VV/ZZTo4L*", 
 
-  #H WW
-  #"VBF_WW"       : "WW/VBF_WW*",
-  #"ggH_WW"       : "WW/ggH_WW*",
-  #"ttH_nonbb_WW" : "WW/ttH_nonbb*",
+  # WW (Higgs WW, an SM Higgs background to our analysis)
+  "VBF_WW"       : "WW/VBF_WW*",
+  "ggH_WW"       : "WW/ggH_WW*",
+  "ttH_nonbb_WW" : "WW/ttH_nonbb*",
 
-  # Do Not Use
-  #"QCD_HT-70to100"    : "QCD/QCD_HT70to100_HTauTau*",
-  #"QCD_HT-100to200"   : "QCD/QCD_HT100to200_HTauTau*",
-  #"QCD_HT-200to400"   : "QCD/QCD_HT200to400_HTauTau*",
-  #"QCD_HT-400to600"   : "QCD/QCD_HT400to600_HTauTau*",
-  #"QCD_HT-600to800"   : "QCD/QCD_HT600to800_HTauTau*",
-  #"QCD_HT-800to1000"  : "QCD/QCD_HT800to1000_HTauTau*",
-  #"QCD_HT-1000to1200" : "QCD/QCD_HT1000to1200_HTauTau*",
-  #"QCD_HT-1200to1500" : "QCD/QCD_HT1200to1500_HTauTau*",
-  #"QCD_HT-1500to2000" : "QCD/QCD_HT1500to2000_HTauTau*",
-  #"QCD_HT-2000"       : "QCD/QCD_HT2000toInf_HTauTau*",
-
-  #"VBF"   : "Signal/VBF*private*",
-  #"VBF"   : "Signal/VBF*",
-  #"ggH"   : "Signal/ggH*",
-
-  #"VBF_TauTau" : "Signal/VBF_TauTau_UnFiltered*",
-  #"ggH_TauTau" : "Signal/ggH_TauTau_UnFiltered*",
-  "VBF_TauTau" : "Signal/VBF_TauTau_Filtered*",
-  "ggH_TauTau" : "Signal/ggH_TauTau_Filtered*",
 }
