@@ -12,7 +12,7 @@ import gc
 
 
 def set_AR_region(final_state_mode, era):
-  common_selection = set_good_events(final_state_mode, era, AR_region=True)
+  common_selection = set_good_events(final_state_mode, era, non_SR_region=True)
   #AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
   AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau | Trigger_ditauplusjet | Trigger_VBFditau)"
   AR_region_mutau  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
