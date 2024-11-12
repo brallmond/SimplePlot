@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
   print_setup_info(setup)
   # used for printing, might be different from what is called per process
-  good_events  = set_good_events(final_state_mode) 
+  good_events  = set_good_events(final_state_mode, era) 
   print_processing_info(good_events, "dummy value", "dummy value", log_file)
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting

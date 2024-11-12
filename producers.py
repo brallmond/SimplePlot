@@ -11,8 +11,8 @@ import numpy as np
 import gc
 
 
-def set_AR_region(final_state_mode):
-  common_selection = set_good_events(final_state_mode, AR_region=True)
+def set_AR_region(final_state_mode, era):
+  common_selection = set_good_events(final_state_mode, era, AR_region=True)
   #AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
   AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau | Trigger_ditauplusjet | Trigger_VBFditau)"
   AR_region_mutau  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
@@ -28,7 +28,7 @@ def set_AR_region(final_state_mode):
 
 def produce_FF_weight(setup, jet_mode, semilep_mode):
     # kinda weird, but okay
-    testing, final_state_mode, _, _, _, tau_pt_cut = setup.state_info
+    testing, final_state_mode, _, era, lumi, tau_pt_cut = setup.state_info # don't reset jet_mode
     using_directory, _, log_file, _, file_map, one_file_at_a_time = setup.file_info
     _, _, DeepTau_version, _, _, _, _ = setup.misc_info
     if one_file_at_a_time: import glob
@@ -36,7 +36,7 @@ def produce_FF_weight(setup, jet_mode, semilep_mode):
     fakesLabel = "myQCD"
     jet_mode = jet_mode.removesuffix("_testing")
     dataset, _ = set_dataset_info(final_state_mode)
-    AR_region    = set_AR_region(final_state_mode) # same role as "set_good_events"
+    AR_region    = set_AR_region(final_state_mode, era) # same role as "set_good_events"
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
     branches     = set_branches(final_state_mode, DeepTau_version, process=dataset)
 

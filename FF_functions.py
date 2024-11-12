@@ -375,15 +375,18 @@ from producers import produce_FF_weight
 def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   # TODO could be improved by reducing variable name size and simplifying below operations
   JetFakes_dictionary = {}
-  _, final_state_mode, jet_mode, _, _, _ = setup.state_info # TODO this needs to come from somewhere else
+  _, final_state_mode, jet_mode, era, _, _ = setup.state_info # TODO this needs to come from somewhere else
   _, _, _, do_JetFakes, _, _, _ = setup.misc_info
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
+  #if (final_state_mode == "emu") and (do_JetFakes==True):
+  #if (jet_mode == "Inclusive") and (do_JetFakes==True):
   if (jet_mode != "Inclusive") and (do_JetFakes==True):
     JetFakes_dictionary = produce_FF_weight(setup, jet_mode, semilep_mode)
-  if (final_state_mode == "emu") and (do_JetFakes==True):
+    return JetFakes_dictionary
+  elif (final_state_mode == "emu") and (do_JetFakes==True):
     JetFakes_dictionary = apply_FF_weight_from_branch(event_dictionary,final_state_mode,process)
-  if (jet_mode == "Inclusive") and (do_JetFakes==True):
-    fakesLabel = fakesLabel
+    return JetFakes_dictionary
+  elif (jet_mode == "Inclusive") and (do_JetFakes==True):
     temp_JetFakes_dictionary = {}
     JetFakes_dictionary[fakesLabel] = {}
     JetFakes_dictionary[fakesLabel]["PlotEvents"] = {}
@@ -403,6 +406,8 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
         else:
           JetFakes_dictionary[fakesLabel]["PlotEvents"][var]  = np.concatenate((JetFakes_dictionary[fakesLabel]["PlotEvents"][var],
                                                   temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["PlotEvents"][var]))
+  else:
+    print("Not programmed to handle that case. Crashing now")
   return JetFakes_dictionary
 
 if __name__ == "__main__":

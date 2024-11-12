@@ -53,7 +53,7 @@ if __name__ == "__main__":
   semilep_mode = "QCD" #"QCD" or "WJ"
   #for region in ["AR", "DRsr", "DRar", "SR_aiso", "AR_aiso", "DRsr_aiso", "DRar_aiso"]:
   for region in ["AR", "DRsr", "DRar"]:
-    good_events  = set_good_events(final_state_mode, AR_region=("AR" in region.upper()), DR_region=("DR" in region))
+    good_events  = set_good_events(final_state_mode, era, AR_region=("AR" in region.upper()), DR_region=("DR" in region))
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
 

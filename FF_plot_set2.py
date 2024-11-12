@@ -169,7 +169,7 @@ if __name__ == "__main__":
   pseudo_AR = "DRar" # need the events from here to make the QCD estimate
   # DRsr DRar is closure check 
   for region in [pseudo_SR, pseudo_AR]:
-    good_events  = set_good_events(final_state_mode, AR_region=("AR" in region.upper()), DR_region=("DR" in region))
+    good_events  = set_good_events(final_state_mode, era, AR_region=("AR" in region.upper()), DR_region=("DR" in region))
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
 

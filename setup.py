@@ -35,8 +35,8 @@ class setup_handler:
     testing          = args.testing     # False by default, do full dataset unless otherwise specified
     final_state_mode = args.final_state # default mutau [possible values ditau, mutau, etau, dimuon]
     jet_mode         = args.jet_mode    # default Inclusive [possible values 0j, 1j, 2j, GTE1j, GTE2j]
-    era              = args.era
-    tau_pt_cut       = args.tau_pt_cut
+    era              = args.era         # default 2022 EFG [possible values see luminosity dictionary]
+    tau_pt_cut       = args.tau_pt_cut  # default None [possible values "Low", "Mid", "High"]
     if testing: era = "2022 G"     # testing overrides era inputs
     lumi = luminosities[era]
 
@@ -55,7 +55,6 @@ class setup_handler:
     # file info
     infile_directory = self.set_infile_directory(era, final_state_mode)
     # for single process comparisons only
-    #plot_dir_name = "FS_plots/" + args.one_process.split("HTauTau")[0] + args.plot_dir + "_" + "postEE" + final_state_mode + "_" + jet_mode
     plot_dir_name = "FS_plots/" + args.plot_dir + "_" + final_state_mode + "_" + tau_pt_cut + "TauPtCategory_" + jet_mode
     plot_dir_name = make_directory(plot_dir_name, testing)
     logfile       = open('outputfile.log', 'w') # could be improved, not super important right now
@@ -89,12 +88,11 @@ class setup_handler:
     #eos_dir           = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/"
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
     home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
-    #active_dir = "/new_V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
     active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
     #active_dir = "/Hlep_2023preBPIX/"
     active_dir += final_state_mode
-    full_dir = home_dir + active_dir # add lxplus redirector if on eos
-    #full_dir = "/Volumes/IDrive/HTauTau_Data/mutau_postEE_Hlep_comparison/Hlep/" # SSD hack
+    full_dir = home_dir + active_dir
+    #full_dir = "/Volumes/IDrive/HTauTau_Data/" # SSD hack
     return full_dir
 
   
@@ -114,7 +112,7 @@ class setup_handler:
     return file_map
 
 
-def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_triggers=False, useMiniIso=False):
+def set_good_events(final_state_mode, era, AR_region=False, DR_region=False, disable_triggers=False, useMiniIso=False):
   '''
   Return a string defining a 'good_events' flag used by uproot to preskim input events
   to only those passing these simple requirements. 'good_events' changes based on
@@ -147,38 +145,22 @@ def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_
   #            and TauPassVsJet and (self.leptons[finalpair[1]].pt > 15)) 
   #     # All SR requirements besides opposite sign
   
-  # apply FS cut separately so it can be used with reject_duplicate_events
-  # STANDARD!
   good_events =  "(METfilters) & (LeptonVeto==0)"
-  jet_vetomaps = "" # deactivated for 2023
-  #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
-  #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV)"
-  #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV) & (JetMapVeto_TauEE)" # only for postEE, KSU
-  #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV) & (JetMapVeto_TauEEBPix)" # only for postEE, HLep
-  #jet_vetomaps = " & (JetMapVeto_EE_25GeV) & (JetMapVeto_HotCold_25GeV)"
-  jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV)"
-  #jet_vetomaps = " & (JetMapVeto_EE_30GeV)"
-  #jet_vetomaps = " & (JetMapVeto_EE_25GeV)"
-  jet_vetomaps = " & (JetMapVeto_EE_15GeV)"
-  #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_TauEE)"
-  #jet_vetomaps = " & (JetMapVeto_EE_30GeV) & (JetMapVeto_TauEE) & (JetMapVeto_TauHotCold)"
-  #jet_vetomaps = " & (JetMapVeto_EE_15GeV) & (JetMapVeto_TauEE) & (JetMapVeto_TauHotCold)"
-  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_30GeV) & (JetMapVeto_HotCold_30GeV)"
+  jet_vetomaps = ""
+  if ("2023" in era):
+    jet_vetomaps += " & (JetMapVeto_TauEEBPix)"
+  #if ("2022" in era) and (("E" in era) or ("F" in era) or ("G" in era)):
+  if ("2022" in era) and any(affected_era in era for affected_era in ["E", "F", "G"]):
+    jet_vetomaps += " & (JetMapVeto_EE_15GeV)"
+  if (final_state_mode == "mutau"):
+    jet_vetomaps += " & (JetMapVeto_TauMuon)"
+ 
   good_events += jet_vetomaps
   if (AR_region or DR_region): return good_events # give output with MET filters, lepton veto, and veto maps
 
   HTT_preselect_events = " & (HTT_SRevent)"
   good_events += HTT_preselect_events
-  # UNDER STUDY!
-  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) "\
-  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) & "\
-  #              "(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE) & (JetMapVeto_TauMuon)"
-  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0) & (JetMapVeto_EE_15GeV) & (JetMapVeto_HotCold_15GeV) & "\
-  #              "(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE) & (JetMapVeto_TauMuon)"
-  #              "(JetMapVeto_TauHotCold) & (JetMapVeto_TauEE)"
-                #"(JetMapVeto_TauMuon)"
 
-  #good_events = "(HTT_SRevent) & (METfilters) & (LeptonVeto==0)"
   if final_state_mode == "ditau":
     triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\
                | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60\
@@ -200,7 +182,6 @@ def set_good_events(final_state_mode, AR_region=False, DR_region=False, disable_
 
   elif final_state_mode == "emu":
     good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
-    #good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
     if disable_triggers: good_events = good_events.replace(" & (Trigger_emu)", "")
 
   elif final_state_mode == "dimuon":
@@ -224,7 +205,7 @@ if __name__ == "__main__":
   from plotting_functions  import set_vars_to_plot
   from file_map_dictionary import set_dataset_info
 
-  good_events  = set_good_events(final_state_mode)
+  good_events  = set_good_events(final_state_mode, era)
   branches     = set_branches(final_state_mode, DeepTau_version)
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
   dataset, reject_datasets = set_dataset_info(final_state_mode)

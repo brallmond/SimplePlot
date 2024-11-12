@@ -106,7 +106,7 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
     combined_processes[process] = { 
       "PlotEvents": {},
       "Cuts": {},
-      "FFweight": cut_events["FFweight"]
+      #"FFweight": cut_events["FFweight"]
     }
     if ("FF_weight" in cut_events.keys()):
       combined_processes[process]["FF_weight"] = cut_events["FF_weight"]
