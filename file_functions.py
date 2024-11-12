@@ -146,20 +146,8 @@ def load_and_store_NWEvents(process, event_dictionary):
   Read the NWEvents value for a sample and store it in the MC_dictionary,
   overriding the hardcoded values from V11 samples. Delete the NWEvents branch after.
   '''
-  #MC_dictionary[process]["NWEvents"] = event_dictionary["NWEvents"][0] # old style
   MC_dictionary[process]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
   #MC_dictionary[process]["XSecMCweight"]  = 1 # DEBUG
-  HACK = False # should only be true for KSU notriggermatching samples
-  if (HACK == True):
-    if "VBF" in process:
-      print("HARDCODING VBF NWEVENTS AND XSECMCWEIGHT")
-      ##MC_dictionary[process]["XSecMCweight"] = 0.002829568
-      MC_dictionary[process]["XSecMCweight"] = 0.0016263 # from "nominal" preEE sample # hack for pre Hlep
-    if "ggH" in process:
-      print("HARDCODING ggH NWEVENTS AND XSECMCWEIGHT")
-      MC_dictionary[process]["XSecMCweight"] = 0.0027819 # from "nominal" preEE sample # hack for pre Hlep
-  #print("XSecMCweight", process, MC_dictionary[process]["XSecMCweight"]) # DEBUG
-  #event_dictionary.pop("NWEvents")
   event_dictionary.pop("XSecMCweight")
 
 
