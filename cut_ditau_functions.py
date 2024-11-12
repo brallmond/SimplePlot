@@ -407,14 +407,6 @@ def make_ditau_region(event_dictionary, new_branch_name, FS_pair_sign,
     pass_DeepTau_t1 = (vJet[tau_idx[l1_idx]] >= DeepTau_t1_value)
     pass_DeepTau_t2 = (vJet[tau_idx[l2_idx]] >= DeepTau_t2_value)
 
-    print("**************Skibidi***************")
-    print(DeepTau_t1_value)
-    print(DeepTau_t2_value)
-    print(vJet[tau_idx[l1_idx]])
-    print(vJet[tau_idx[l2_idx]])
-    print(pass_DeepTau_t1)
-    print(pass_DeepTau_t2)
-
     if ( (np.sign(signed_pdgId) == FS_pair_sign) and 
          (pass_DeepTau_t1_minimum) and (pass_DeepTau_t2_minimum) and
          (pass_DeepTau_t1 == pass_DeepTau_t1_req) and (pass_DeepTau_t2 == pass_DeepTau_t2_req) ):
