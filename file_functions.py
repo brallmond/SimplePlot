@@ -84,17 +84,17 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
     process = process+"_alt"
   if "Data" not in process:
     combined_processes[process] = {
-      "PlotEvents": {}, 
-      "Cuts": {},
-      "Generator_weight":  cut_events["Generator_weight"],
-      "Weight_TTbar_NNLO": cut_events["Weight_TTbar_NNLO"],
-      "Weight_DY_Zpt":     cut_events["Weight_DY_Zpt_LO"],
-      "TauSFweight": cut_events["TauSFweight"],
-      "MuSFweight":  cut_events["MuSFweight"],
-      "ElSFweight":  cut_events["ElSFweight"],
-      "BTagSFfull":  cut_events["BTagSFfull"],
-      "PUweight"  :  cut_events["PUweight"],
-      "SF_weight": np.ones(cut_events["Generator_weight"].shape)
+      "PlotEvents"        : {}, 
+      "Cuts"              : {},
+      "Generator_weight"  : cut_events["Generator_weight"],
+      "Weight_TTbar_NNLO" : cut_events["Weight_TTbar_NNLO"],
+      "Weight_DY_Zpt"     : cut_events["Weight_DY_Zpt_LO"],
+      "TauSFweight"       : cut_events["TauSFweight"],
+      "MuSFweight"        : cut_events["MuSFweight"],
+      "ElSFweight"        : cut_events["ElSFweight"],
+      "BTagSFfull"        : cut_events["BTagSFfull"],
+      "PUweight"          : cut_events["PUweight"],
+      "SF_weight"         : np.ones(cut_events["Generator_weight"].shape)
     }
     if   ("DY" in process) and ("NLO" not in process): 
       print("using LO DY ZpT")
@@ -106,7 +106,7 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
     combined_processes[process] = { 
       "PlotEvents": {},
       "Cuts": {},
-      #"FFweight": cut_events["FFweight"]
+      "FFweight": cut_events["FFweight"]
     }
     if ("FF_weight" in cut_events.keys()):
       combined_processes[process]["FF_weight"] = cut_events["FF_weight"]
