@@ -856,7 +856,7 @@ final_state_vars = {
 
     "emu"    : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg",
                 "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg",
-                "FS_nbJet", 
+                "FS_nbJet", "FS_PZeta",
                ],
 }
 
