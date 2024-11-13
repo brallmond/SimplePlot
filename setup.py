@@ -87,11 +87,13 @@ class setup_handler:
     #lxplus_redirector = "root://cms-xrd-global.cern.ch//"
     #eos_dir           = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/"
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
-    home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
-    active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
+    #home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
+    home_dir = "/Users/nailaislam/htt/new_samples/Hlep/2022postEE/"
+    #active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
     #active_dir = "/Hlep_2023preBPIX/"
-    active_dir += final_state_mode
-    full_dir = home_dir + active_dir
+    #active_dir += final_state_mode
+    home_dir += final_state_mode
+    full_dir = home_dir
     #full_dir = "/Volumes/IDrive/HTauTau_Data/" # SSD hack
     return full_dir
 

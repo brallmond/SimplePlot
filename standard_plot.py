@@ -177,7 +177,7 @@ if __name__ == "__main__":
   fakesLabel = "myQCD" # can change to JetFakes if you propagate to the plotting stuff
   FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
 
-  if (final_state_mode != "dimuon") and (do_JetFakes == True):
+  if (final_state_mode != "dimuon") and (do_JetFakes == "True"):
     background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
     #background_dictionary[fakesLabel] = FF_dictionary[fakesLabel] # manually include QCD as background
 

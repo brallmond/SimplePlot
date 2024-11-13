@@ -455,8 +455,9 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
     #print("KEEPING ALL FAKES!") #DEBUG
-    process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
-    process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
+    if (final_state_mode != "emu"):
+      process_events = append_flavor_indices(process_events, final_state_mode, keep_fakes=keep_fakes)
+      process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
 
   FS_cut_events = apply_final_state_cut(process_events, final_state_mode, DeepTau_version, tau_pt_cut, useMiniIso=useMiniIso)
@@ -586,7 +587,10 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_
     protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
     event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
     # weights associated with jet_mode key (testing suffix automatically removed)
-    event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode)
+    if True:
+      event_dictionary = apply_FF_weight_from_branch(event_dictionary, final_state_mode, process)
+    else:
+      event_dictionary   = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode)
   else:
     print(f"{final_state_mode} : {jet_mode} not possible. Continuing without AR or FF method applied.")
   return event_dictionary

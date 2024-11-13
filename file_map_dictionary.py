@@ -116,6 +116,7 @@ full_file_map = {
   "DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
   "DYJetsToLL_M-50_2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
 
+  #"TTTo2L2Nu"         : "TT/TTTo2L2Nu_HTauTau_2022postEE_Hlep_part7*",
   "TTTo2L2Nu"         : "TT/TTTo2L2Nu*",
   "TTToFullyHadronic" : "TT/TTToFullyHadronic*",
   "TTToSemiLeptonic"  : "TT/TTToSemiLeptonic*",
