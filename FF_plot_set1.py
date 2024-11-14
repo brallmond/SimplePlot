@@ -26,9 +26,9 @@ from plotting_functions    import get_midpoints, make_eta_phi_plot
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals, get_summed_backgrounds
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import setup_single_plot, spruce_up_single_plot
-from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart, plot_raw
+from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart, make_two_dimensional_plot
 
-from binning_dictionary import label_dictionary
+from binning_dictionary import label_dictionary, binning_dictionary
 
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print
@@ -52,9 +52,9 @@ if __name__ == "__main__":
   do_QCD = False
   semilep_mode = "QCD" #"QCD" or "WJ"
   #for region in ["AR", "DRsr", "DRar", "SR_aiso", "AR_aiso", "DRsr_aiso", "DRar_aiso"]:
-  #for region in ["AR", "DRsr", "DRar"]:
-  for region in ["SR_aiso"]:
-    non_SR_region = ("AR" in region) or ("DR" in region) or ("aiso" in region)
+  for region in ["AR"]:
+  #for region in ["combined_OS", "combined_SS"]:
+    non_SR_region = ("AR" in region) or ("DR" in region) or ("aiso" in region) or ("combined" in region)
     good_events  = set_good_events(final_state_mode, era, non_SR_region)
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
@@ -89,7 +89,6 @@ if __name__ == "__main__":
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
       event_dictionary   = apply_jet_cut(event_dictionary, jet_mode)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
-
 
       skip_DeepTau = True
       if (final_state_mode == "ditau"):
@@ -226,6 +225,24 @@ if __name__ == "__main__":
 
       plt.savefig(plot_dir + "/" + str(var) + "_" + semilep_mode + "_" + region + ".png")
 
+    plots_2D = True
+    if (plots_2D == True):
+      varY = "FS_t2_phi"
+      if (jet_mode == "Inclusive"):
+        list_varX = ["FS_t2_eta"]
+        list_binX = binning_dictionary[final_state_mode][list_varX[0]]
+      elif (jet_mode == "1j"):
+        list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET", "CleanJetGT30_pt_1"]
+        list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1), np.linspace(0, 600, 12+1)]
+      list_of_processes = ["DataTau"]
+      for varX, binX in zip(list_varX, list_binX):
+        for single_process in list_of_processes:
+          secondary_dict = signal_dictionary if ("ggH" in single_process) or ("VBF" in single_process) else background_dictionary
+          use_dict = data_dictionary if "Data" in single_process else secondary_dict
+          make_two_dimensional_plot(use_dict[single_process]["PlotEvents"], final_state_mode,
+                                    varX, varY, add_to_title=single_process)
+          plt.savefig("ditau_2D_plot/" + process + "_" + varX + "_" + varY + ".png")
+      
       '''
       if (var == "HTT_m_vis-KSUbinning"): 
         make_pie_chart(h_data, h_backgrounds)
