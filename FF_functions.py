@@ -19,6 +19,11 @@ def FF_control_flow(final_state_mode, semilep_mode, region, event_dictionary, De
     if (region == "AR_aiso"):   event_dictionary   = make_ditau_AR_aiso_cut(event_dictionary, DeepTau_version)
     if (region == "DRsr_aiso"): event_dictionary   = make_ditau_DRsr_aiso_cut(event_dictionary, DeepTau_version)
     if (region == "DRar_aiso"): event_dictionary   = make_ditau_DRar_aiso_cut(event_dictionary, DeepTau_version)
+    if (region == "combined_OS") or (region == "combined_SS"):
+      if "OS" in region:   sign = -1
+      elif "SS" in region: sign = 1
+      else: print("you need to specify OS or SS (or extend this function)")
+      event_dictionary = make_ditau_combined_cut(event_dictionary, DeepTau_version, sign)
 
   if (final_state_mode == "mutau"):
     if (region == "SR"):      event_dictionary = make_mutau_SR_cut(event_dictionary, DeepTau_version)
@@ -117,6 +122,16 @@ def make_ditau_DRsr_aiso_cut(event_dictionary, DeepTau_version):
 
 def make_ditau_DRar_aiso_cut(event_dictionary, DeepTau_version):
   return make_ditau_DRar_cut(event_dictionary, DeepTau_version, iso_region=False)
+
+def make_ditau_combined_cut(event_dictionary, DeepTau_version, sign):
+  # use to combine all regions for a given sign pair
+  signstr = "OS" if sign==-1 else "SS"
+  name = "pass_combined_"+signstr+"_cuts" 
+  event_dictionary = make_ditau_region(event_dictionary, name, FS_pair_sign=sign,
+                       pass_DeepTau_t1_req="None", DeepTau_t1_value=0,
+                       pass_DeepTau_t2_req="None", DeepTau_t2_value=0,
+                       DeepTau_version="2p5")
+  return event_dictionary
 
 
 mutau_DeepTauVsJet_WP = 5
