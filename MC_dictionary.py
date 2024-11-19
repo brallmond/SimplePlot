@@ -16,21 +16,20 @@ from XSec import XSecRun3 as XSec
 # https://root.cern.ch/doc/master/classTColor.html
 
 color_dictionary = {
-  "ggH": "#0000ff", # kBlue
-  "VBF": "#ff0000", # kRed
-  "DY" : "#ffcc66", # DY yellow # kOrange - 4
+  "ggH"   : "#0000ff", # kBlue
+  "VBF"   : "#ff0000", # kRed
+  "DY"    : "#ffcc66", # DY yellow # kOrange - 4
   "DYGen" : "#ffcc66", # above
-  "DYLep" : "#3399cc", # # kAzure +5
-  "DYJet" : "#66cc66", # # kGreen -6
-  "TT" : "#9999cc", # light purple, kBlue - 8 
-  #"ST" : "#660099", # dark purple
-  "ST": "#8cb4dc", # their dark purple, from RGB 140 180 220 
-  "WJ" : "#e44e4e", # dark red
-  "VV" : "#de8c6a", # sandy red, from RGB 222 140 106
-  "HWW" : "#de8cff", # bluer than VV, probably comes out purplish
-  #"VV" : "#808080", # grey
-  "QCD": "#ffccff", # pink kMagenta -10
+  "DYLep" : "#3399cc", # kAzure +5
+  "DYJet" : "#66cc66", # kGreen -6
+  "TT"    : "#9999cc", # light purple, kBlue - 8 
+  "ST"    : "#8cb4dc", # their dark purple, from RGB 140 180 220 # 660099 alt dark purple
+  "WJ"    : "#e44e4e", # dark red
+  "VV"    : "#de8c6a", # sandy red, from RGB 222 140 106 # 808080 grey
+  "HWW"   : "#de8cff", # bluer than VV, probably comes out purplish
+  "QCD"   : "#ffccff", # pink kMagenta -10
 }
+
 label_dictionary = {
  "ggH" : "ggH",
  "VBF" : "VBF",
@@ -61,41 +60,37 @@ MC_dictionary = {
 
   "ggH_TauTau" : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 100*0.3869}, # Filtered SF
   "VBF_TauTau" : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 100*0.4216}, # Filtered SF
-  # TODO : address this type of thing at some point to remove need to duplicate code..
-  "ggH_old"  : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 1},
-  "ggH_new"  : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 1},
-  "VBF_old"  : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 1},
-  "VBF_new"  : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 1},
 
-  "DYInc"    : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654}, # k-factor to NNLO
-  "DY10to50" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DYInc"              : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654}, # k-factor to NNLO
+  "DY10to50"           : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
   "DYJetsToLL_M-50_1J" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
   "DYJetsToLL_M-50_2J" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
   "DYJetsToLL_M-50_3J" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
   "DYJetsToLL_M-50_4J" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
 
+  # TODO: cleanup this file
+  # - properly split the DY contributions without so many copies (similarly for WJ)
   # copies of DYInc with different colors and labels
-  "DYGen"    : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1.12},
-  "DYLep"    : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1.12},
-  "DYJet"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1.12},
-  "DYGen10to50"    : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1.12},
-  "DYLep10to50"    : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1.12},
-  "DYJet10to50"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1.12},
+  "DYGen"          : {"label": "DYGen", "color": color_dictionary["DYGen"], "plot_scaling" : 1.12},
+  "DYLep"          : {"label": "DYLep", "color": color_dictionary["DYLep"], "plot_scaling" : 1.12},
+  "DYJet"          : {"label": "DYJet", "color": color_dictionary["DYJet"], "plot_scaling" : 1.12},
+  "DYGen10to50"    : {"label": "DYGen10to50", "color": color_dictionary["DYGen"], "plot_scaling" : 1.12},
+  "DYLep10to50"    : {"label": "DYLep10to50", "color": color_dictionary["DYLep"], "plot_scaling" : 1.12},
+  "DYJet10to50"    : {"label": "DYJet10to50", "color": color_dictionary["DYJet"], "plot_scaling" : 1.12},
 
-
-  "DYIncNLO"    : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712}, # k-factor to NNLO
-  "DY10to50NLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
+  "DYIncNLO"              : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712}, # k-factor to NNLO
+  "DY10to50NLO"           : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 1},
   "DYJetsToLL_M-50_0JNLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
   "DYJetsToLL_M-50_1JNLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
   "DYJetsToLL_M-50_2JNLO" : {"label": "DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
 
   # copies of DYIncNLO with different colors and labels
-  "DYGenNLO" : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1},
-  "DYLepNLO" : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1},
-  "DYJetNLO" : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1},
-  "DYGen10to50NLO"    : {"label": r"$Z{\rightarrow}{\tau_\mu}{\tau_h}$", "color": color_dictionary["DYGen"], "plot_scaling" : 1},
-  "DYLep10to50NLO"    : {"label": r"$Z{\rightarrow}ll, l{\rightarrow}{\tau_h}$", "color": color_dictionary["DYLep"], "plot_scaling" : 1},
-  "DYJet10to50NLO"    : {"label": r"$DY, j{\rightarrow}{\tau_h}$", "color": color_dictionary["DYJet"], "plot_scaling" : 1},
+  "DYGenNLO"          : {"label": "DYGenNLO", "color": color_dictionary["DYGen"], "plot_scaling" : 1},
+  "DYLepNLO"          : {"label": "DYLepNLO", "color": color_dictionary["DYLep"], "plot_scaling" : 1},
+  "DYJetNLO"          : {"label": "DYJetNLO", "color": color_dictionary["DYJet"], "plot_scaling" : 1},
+  "DYGen10to50NLO"    : {"label": "DYGen10to50NLO", "color": color_dictionary["DYGen"], "plot_scaling" : 1},
+  "DYLep10to50NLO"    : {"label": "DYLep10to50NLO", "color": color_dictionary["DYLep"], "plot_scaling" : 1},
+  "DYJet10to50NLO"    : {"label": "DYJet10to50NLO", "color": color_dictionary["DYJet"], "plot_scaling" : 1},
 
   "DY0JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
   "DY1JNLO"    : {"label": r"DY", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
@@ -133,6 +128,7 @@ MC_dictionary = {
   "WJetsToLNu_1JNLO"   : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
   "WJetsToLNu_2JNLO"   : {"label": "WJ", "color": color_dictionary["WJ"], "plot_scaling" : 1},
 
+  # VV (WW non Higgs, WZ, ZZ) all have VV Inc samples available, but are not used
   "WWTo2L2Nu"          : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
   "WWTo4Q"             : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
   "WWToLNu2Q"          : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
@@ -146,21 +142,11 @@ MC_dictionary = {
   "ZZTo2Nu2Q"          : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
   "ZZTo4L"             : {"label": "VV", "color": color_dictionary["VV"], "plot_scaling" : 1},
 
+  # WW (Higgs WW, an SM Higgs background to our analysis)
   "ggH_WW"             : {"label": "HWW", "color": color_dictionary["HWW"], "plot_scaling" : 1},
   "VBF_WW"             : {"label": "HWW", "color": color_dictionary["HWW"], "plot_scaling" : 1},
   "ttH_nonbb_WW"       : {"label": "HWW", "color": color_dictionary["HWW"], "plot_scaling" : 1},
 
   # XSecMCweight is defined here for JetFakes process because it isn't set autmatically elsewhere
   "myQCD"              : {"label": "Jet Fakes", "color": color_dictionary["QCD"], "plot_scaling" : 1, "XSecMCweight" : 1},
-
-  "QCD_HT-70to100"     : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
-  "QCD_HT-100to200"    : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
-  "QCD_HT-200to400"    : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
-  "QCD_HT-400to600"    : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
-  "QCD_HT-600to800"    : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
-  "QCD_HT-800to1000"   : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
-  "QCD_HT-1000to1200"  : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
-  "QCD_HT-1200to1500"  : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
-  "QCD_HT-1500to2000"  : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
-  "QCD_HT-2000"        : {"label": "MC QCD", "color": color_dictionary["QCD"], "plot_scaling" : 1},
 }

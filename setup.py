@@ -103,12 +103,8 @@ class setup_handler:
     NLOsamples = [s for s in file_map if s.endswith("NLO") and (s.startswith("DY") or s.startswith("WJets"))]
     LOsamples = [s for s in file_map if not s.endswith("NLO") and (s.startswith("DY") or s.startswith("WJets"))]
     if (use_NLO == True):
-      #file_map.pop("DYInc")
-      #file_map.pop("WJetsInc")
       for s in LOsamples: file_map.pop(s)
     else: 
-      #file_map.pop("DYIncNLO")
-      #file_map.pop("WJetsIncNLO")
       for s in NLOsamples: file_map.pop(s)
     file_map = update_data_filemap(era, file_map)
     return file_map
