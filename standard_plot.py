@@ -174,12 +174,12 @@ if __name__ == "__main__":
   # after loop, sort big dictionary into three smaller ones
   data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
-  fakesLabel = "myQCD" # can change to JetFakes if you propagate to the plotting stuff
+  fakesLabel = "JetFakes"
   FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
 
   if (final_state_mode != "dimuon") and (do_JetFakes == True):
-    background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
-    #background_dictionary[fakesLabel] = FF_dictionary[fakesLabel] # manually include QCD as background
+    #background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
+    background_dictionary[fakesLabel] = FF_dictionary[fakesLabel] # manually include QCD as background
 
   log_print("Processing finished!", log_file, time=True)
   ## end processing loop, begin plotting
@@ -193,7 +193,7 @@ if __name__ == "__main__":
   title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
  
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  CUSTOM_VARS = False
+  CUSTOM_VARS = True
   if CUSTOM_VARS == True:
     vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
     if (final_state_mode == "ditau"):
@@ -277,7 +277,8 @@ if __name__ == "__main__":
     #hist_ax = setup_single_plot() # part of removing data
 
     h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
-    h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
+    h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi,
+                                           presentation_mode)
     h_summed_backgrounds = get_summed_backgrounds(h_backgrounds)
     h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi) 
 
@@ -285,7 +286,7 @@ if __name__ == "__main__":
     blind, blind_range = False, []
     if (var == "HTT_m_vis") or (var == "FastMTT_mass"):
       blind = True
-      blind_range = [80, 120] if var=="HTT_m_vis" else [110, 150] # TODO: make this a greedy range in the function
+      blind_range = [80, 120] if var=="HTT_m_vis" else [110, 150]
     plot_data(   hist_ax, xbins, h_data,        lumi, presentation_mode, blind, blind_range)
     plot_MC(     hist_ax, xbins, h_backgrounds, lumi, presentation_mode)
     plot_signal( hist_ax, xbins, h_signals,     lumi, presentation_mode)

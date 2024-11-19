@@ -396,7 +396,7 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   #if (final_state_mode == "emu") and (do_JetFakes==True):
   #if (jet_mode == "Inclusive") and (do_JetFakes==True):
   if (jet_mode != "Inclusive") and (do_JetFakes==True):
-    JetFakes_dictionary = produce_FF_weight(setup, jet_mode, semilep_mode)
+    JetFakes_dictionary = produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode)
     return JetFakes_dictionary
   elif (final_state_mode == "emu") and (do_JetFakes==True):
     JetFakes_dictionary = apply_FF_weight_from_branch(event_dictionary,final_state_mode,process)
@@ -408,7 +408,7 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
     JetFakes_dictionary[fakesLabel]["FF_weight"]  = {} 
     jetCategories = ["0j", "1j", "GTE2j"] if final_state_mode == "ditau" else ["0j", "GTE1j"]
     for internal_jet_mode in jetCategories:
-      temp_JetFakes_dictionary[internal_jet_mode] = produce_FF_weight(setup, internal_jet_mode, semilep_mode)
+      temp_JetFakes_dictionary[internal_jet_mode] = produce_FF_weight(setup, fakesLabel, internal_jet_mode, semilep_mode)
       if ("0j" in internal_jet_mode):
         JetFakes_dictionary[fakesLabel]["FF_weight"]  = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]
       else:
@@ -428,5 +428,6 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
 if __name__ == "__main__":
   from setup import setup_handler
   setup = setup_handler()
-  FF_dictionary = produce_FF_weight(setup, setup.state_info.jet_mode)
+  fakesLabel = "test"
+  FF_dictionary = produce_FF_weight(setup, fakesLabel, setup.state_info.jet_mode)
   print(FF_dictionary)

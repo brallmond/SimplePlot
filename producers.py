@@ -26,14 +26,13 @@ def set_AR_region(final_state_mode, era):
   return AR_region
 
 
-def produce_FF_weight(setup, jet_mode, semilep_mode):
+def produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode):
     # kinda weird, but okay
     testing, final_state_mode, _, era, lumi, tau_pt_cut = setup.state_info # don't reset jet_mode
     using_directory, _, log_file, _, file_map, one_file_at_a_time = setup.file_info
     _, _, DeepTau_version, _, _, _, _ = setup.misc_info
     if one_file_at_a_time: import glob
 
-    fakesLabel = "myQCD"
     jet_mode = jet_mode.removesuffix("_testing")
     dataset, _ = set_dataset_info(final_state_mode)
     AR_region    = set_AR_region(final_state_mode, era) # same role as "set_good_events"
