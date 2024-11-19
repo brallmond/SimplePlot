@@ -144,7 +144,7 @@ if __name__ == "__main__":
 
   do_QCD = do_JetFakes
   _, reject_datasets = set_dataset_info(final_state_mode)
-  good_events  = set_good_events(final_state_mode, era, AR_region=True) 
+  good_events  = set_good_events(final_state_mode, era, non_SR_region=True) # fractions always determined in DR
  
   store_region_data_dictionary = {}
   store_region_bkgd_dictionary = {}

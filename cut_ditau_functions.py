@@ -403,10 +403,20 @@ def make_ditau_region(event_dictionary, new_branch_name, FS_pair_sign,
   for i, tau_idx, l1_idx, l2_idx, signed_pdgId, vJet, _, _ in zip(*to_check):
 
     pass_DeepTau_t1_minimum = (vJet[tau_idx[l1_idx]] >= 1) # 1 is VVVLoose (AN 109, 2p1DeepTau), 2 is VVLoose
+    pass_DeepTau_t2_minimum = (vJet[tau_idx[l2_idx]] >= 1)
     pass_DeepTau_t1 = (vJet[tau_idx[l1_idx]] >= DeepTau_t1_value)
     pass_DeepTau_t2 = (vJet[tau_idx[l2_idx]] >= DeepTau_t2_value)
 
-    if ( (np.sign(signed_pdgId) == FS_pair_sign) and (pass_DeepTau_t1_minimum) and 
+    print("**************Skibidi***************")
+    print(DeepTau_t1_value)
+    print(DeepTau_t2_value)
+    print(vJet[tau_idx[l1_idx]])
+    print(vJet[tau_idx[l2_idx]])
+    print(pass_DeepTau_t1)
+    print(pass_DeepTau_t2)
+
+    if ( (np.sign(signed_pdgId) == FS_pair_sign) and 
+         (pass_DeepTau_t1_minimum) and (pass_DeepTau_t2_minimum) and
          (pass_DeepTau_t1 == pass_DeepTau_t1_req) and (pass_DeepTau_t2 == pass_DeepTau_t2_req) ):
       pass_cuts.append(i)
   
