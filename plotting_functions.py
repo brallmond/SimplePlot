@@ -16,7 +16,7 @@ from calculate_functions  import yields_for_CSV, calculate_underoverflow
 def make_pie_chart(data_hist, MC_dictionary, use_data=False, use_fakes=False):
       sums, labels, colors = [], [], []
       for process in MC_dictionary:
-        if ( (use_fakes == False) and (process=="QCD") ): pass
+        if (use_fakes == False) and (("Fakes" in process) or (process=="QCD")): pass
         else:
           sums.append(np.sum(MC_dictionary[process]["BinnedEvents"]))
           color, label, _ = set_MC_process_info(process, luminosity=-1)
@@ -222,15 +222,11 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, presentation_mo
   stack_top   = 0
   for MC_process in stack_dictionary:
     #print(MC_process) # DEBUG
-    if custom == True:
-      pass
-    else:
-      color, label, _ = set_MC_process_info(MC_process, luminosity)
+    if custom == True:  pass
+    else:               color, label, _ = set_MC_process_info(MC_process, luminosity)
     current_hist = stack_dictionary[MC_process]["BinnedEvents"]
     current_hist = np.append(current_hist, 0) # adding empty element to get around step="post" in stackplot
     stack_top   += current_hist
-    #if "QCD" not in MC_process:
-    #  total_error += stack_dictionary[MC_process]["BinnedErrors"]
     total_error += stack_dictionary[MC_process]["BinnedErrors"]
     label += "" if presentation_mode else f" [{np.sum(current_hist):>.0f}]"
     color_array.append(color)
@@ -273,8 +269,10 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   label = MC_dictionary[process]["label"]
   lumi_key = "" if "QCD" in process else [key for key in luminosities.items() if key[1] == luminosity][0][0]
   if scaling:
-    scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
+    if ("Fakes" in process) or (process=="myQCD"): scaling = 1
+    else: scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
     if process.startswith("WJets"): scaling = MC_dictionary[process]["plot_scaling"] # Removing XSecMCweight if Stitchweight used instead
+    # TODO: can i remove these lines? do i care if testing still works like that? 
     # hacky unscaling and rescaling so that "testing" still works
     if ("C" in lumi_key) or ("D" in lumi_key):
       scaling *= 1 / luminosities["2022 CD"]
@@ -287,7 +285,6 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
     else:
       print(f"unrecognized lumi_key: {lumi_key}")
     scaling *= luminosity
-    if process=="myQCD": scaling = 1
   if signal:
     #label += " x" + str(MC_dictionary[process]["plot_scaling"])
     label += " x100"
@@ -629,7 +626,7 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     if len(process_variable) == 0: continue
     if "Data" in process:
       process_weights = np.ones(np.shape(process_variable)) # weights of one for data
-    elif process == "myQCD":  
+    elif ("Fakes" in process) or (process == "myQCD"):
       process_weights = process_dictionary[process]["FF_weight"]
     else:
       process_weights = get_MC_weights(process_dictionary, process)
@@ -652,62 +649,83 @@ def get_binned_data(final_state, testing, data_dictionary, variable, xbins_, lum
   h_data_by_dataset = get_binned_process(final_state, testing, data_dictionary, variable, xbins_, lumi_, mask, mask_n)
   h_data = {}
   h_data["Data"] = {}
-  h_data["Data"]["BinnedEvents"], h_data["Data"]["BinnedErrors"] = accumulate_datasets(h_data_by_dataset)
+  first_key = list(h_data_by_dataset)[0]
+  h_data["Data"]["BinnedEvents"] = np.zeros(len(h_data_by_dataset[first_key]["BinnedEvents"]))
+  h_data["Data"]["BinnedErrors"] = np.zeros(len(h_data_by_dataset[first_key]["BinnedErrors"]))
+  for dataset in h_data_by_dataset:
+    h_data["Data"]["BinnedEvents"] += h_data_by_dataset[dataset]["BinnedEvents"]
+    h_data["Data"]["BinnedErrors"] += h_data_by_dataset[dataset]["BinnedErrors"] #still squared errors
   return h_data
 
 
-def accumulate_datasets(dataset_dictionary):
-  # Add datasets (Muon, Tau, EGamma, MuonEG) together
-  # No use case in 2022
-  # In 2023, VBFParking could be added to any relevant dataset
-  accumulated_values = 0
-  accumulated_errors = 0
-  for dataset in dataset_dictionary:
-    accumulated_values += dataset_dictionary[dataset]["BinnedEvents"]
-    accumulated_errors += dataset_dictionary[dataset]["BinnedErrors"] #still squared errors
-  return accumulated_values, accumulated_errors
-
-
-def get_binned_backgrounds(final_state, testing, background_dictionary, variable, xbins_, lumi_, mask=[], mask_n=999):
+def get_binned_backgrounds(final_state_mode, testing, background_dictionary, variable, xbins_, lumi_, 
+                           presentation_mode=False, mask=[], mask_n=999):
   '''
   Treat each MC process, then group the output by family into flat dictionaries.
-  Also, sum all backgrounds into h_summed_backgrounds to use in ratio plot.
+  Relies on all family names being mutually exclusive and no processes containing "Other" in their names :)
+
+  Add up separate MC histograms for processes belonging to the same family.
+  For example, with three given inputs of the same family, the output is the final line:
+    WWToLNu2Q = [0.0, 1.0, 5.5, 0.5]
+    WZTo2L2Nu = [0.0, 2.0, 7.5, 0.2]
+    ZZTo4L    = [0.0, 3.0, 4.5, 0.1]
+    --------------------------------
+    VV        = [0.0, 6.0, 17.5, 0.8]
+  Inputs without the specified 'parent_process_key' are ignored,
+  therefore, this function is called once for each parent process
   '''
-  h_MC_by_process = get_binned_process(final_state, testing, background_dictionary, variable, xbins_, lumi_, mask, mask_n)
+  skip_background_accumulation = False # DEBUG
+  h_MC_by_process = get_binned_process(final_state_mode, testing, background_dictionary, variable, xbins_, lumi_, mask, mask_n)
+  if (skip_background_accumulation): return h_MC_by_process
 
-  # add together subprocesses of each MC family
-  h_MC_by_family = {}
-  if "myQCD" in background_dictionary.keys(): # QCD is on bottom of stack since it is first called
-    h_MC_by_family["myQCD"] = {}
-    h_MC_by_family["myQCD"]["BinnedEvents"] = h_MC_by_process["myQCD"]["BinnedEvents"]
-    h_MC_by_family["myQCD"]["BinnedErrors"] = h_MC_by_process["myQCD"]["BinnedErrors"]
-    #all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"] # far left is bottom of stack
-    #all_MC_families  = ["TT", "ST", "WJ", "VV", "DYInc"] 
-    #all_MC_families  = ["TT", "ST", "WJ", "VV", "DYIncNLO"] 
-    #all_MC_families  = ["TT", "ST", "WJ", "VV", "DYJetNLO", "DYLepNLO", "DYGenNLO"]
-    all_MC_families  = ["TT", "ST", "WJ", "VV", "DY"]
+  if presentation_mode:
+    keep_separate = { # order of these processes determines initial stack order on plot
+      "ditau" : ["JetFakes", "Other", "DY"],
+      "mutau" : ["JetFakes", "Other", "DY"],
+      "etau"  : ["JetFakes", "Other", "DY"],
+      "emu"   : ["JetFakes", "TT", "Other", "DY"],
+    }
   else:
-    #all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJet", "DYLep", "DYGen"]
-    #all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYInc"]
-    #all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYIncNLO"]
-    #all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DYJetNLO", "DYLepNLO", "DYGenNLO"]
-    all_MC_families  = ["QCD", "TT", "ST", "WJ", "VV", "DY"]
-  # TODO: in "presentation mode" merge small backgrounds into "other" category
-  used_MC_families = []
-  for family in all_MC_families:
-    for process in h_MC_by_process:
-      if (("WW" in process) or ("WZ" in process) or ("ZZ" in process)) and ("VV" not in used_MC_families):
-        used_MC_families.append("VV")
-      elif (family in process) and (family not in used_MC_families):
-        used_MC_families.append(family)
+    default_families = ["JetFakes", "TT", "ST", "VV", "DY"] # Note no WJ by default !!
+    keep_separate = {"ditau" : default_families, "mutau" : default_families, 
+                     "etau"  : default_families, "emu"   : default_families}
+  MC_by_family = keep_separate[final_state_mode]
 
-  for family in used_MC_families:
-    h_MC_by_family[family] = {}
-    # lines are only split here for readability
-    h_MC_by_family[family]["BinnedEvents"], _ = accumulate_MC_subprocesses(family, h_MC_by_process)
-    _, h_MC_by_family[family]["BinnedErrors"] = accumulate_MC_subprocesses(family, h_MC_by_process)
+  # initialize empty family entries here
+  first_key = list(h_MC_by_process)[0]
+  h_MC_by_family = {}
+  for family_name in MC_by_family:
+    h_MC_by_family[family_name] = {}
+    h_MC_by_family[family_name]["BinnedEvents"] = np.zeros(len(h_MC_by_process[first_key]["BinnedEvents"]))
+    h_MC_by_family[family_name]["BinnedErrors"] = np.zeros(len(h_MC_by_process[first_key]["BinnedErrors"]))
+ 
+  background_is_processed = {}
+  for MC_process in h_MC_by_process:
+    background_is_processed[MC_process] = False
+    if ("Other" in MC_by_family): MC_by_family.remove("Other") # remove so it's not looped over as a family name
+    for family_name in MC_by_family:
+      if   (not background_is_processed[MC_process]) and (family_name in MC_process):
+        h_MC_by_family[family_name]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+        h_MC_by_family[family_name]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
+        background_is_processed[MC_process] = True
+      elif ( (not background_is_processed[MC_process]) 
+            and (np.any([diboson_tag in MC_process for diboson_tag in ["WW", "WZ", "ZZ"]]))
+            and (not presentation_mode) ): # special handling for VV when not in presentation mode
+        h_MC_by_family["VV"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+        h_MC_by_family["VV"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
+        background_is_processed[MC_process] = True
+      elif (not background_is_processed[MC_process]) and (not np.any([family_name in MC_process for family_name in MC_by_family])):
+        h_MC_by_family["Other"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+        h_MC_by_family["Other"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"] # TODO: add in quadrature
+        background_is_processed[MC_process] = True
+      else: pass
+        # background_is_processed[MC_process] == True OR 
+        # current family name doesn't match sample, but a later one does
+        # for example, MC_process = DY0JNLO , but it has to go through families JetFakes, TT, ST, VV before DY
+  for process_key, is_processed in background_is_processed.items():
+    if (not is_processed): print(f"Warning! {process_key} wasn't processed! It's not part of the plot!")
+
   return h_MC_by_family
-
 
 def get_summed_backgrounds(h_backgrounds):
   '''
@@ -729,62 +747,6 @@ def get_summed_backgrounds(h_backgrounds):
 def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_, lumi_, mask=[], mask_n=999):
   h_signals = get_binned_process(final_state, testing, signal_dictionary, variable, xbins_, lumi_, mask, mask_n)
   return h_signals
-
-
-def accumulate_MC_subprocesses(parent_process, process_dictionary):
-  '''
-  Add up separate MC histograms for processes belonging to the same family.
-  For example, with three given inputs of the same family, the output is the final line:
-    WWToLNu2Q = [0.0, 1.0, 5.5, 0.5]
-    WZTo2L2Nu = [0.0, 2.0, 7.5, 0.2]
-    ZZTo4L    = [0.0, 3.0, 4.5, 0.1]
-    --------------------------------
-    VV        = [0.0, 6.0, 17.5, 0.8]
-  Inputs not belonging to the specified 'parent_process' are ignored,
-  therefore, this function is called once for each parent process
-  '''
-  accumulated_values = 0
-  accumulated_errors = 0
-  for MC_process in process_dictionary:
-    skip_process = False
-    # TODO: this breaks for 10to50 and 0,1,2J samples, shouldn't this be togglable?
-    #if ("DY" in MC_process): skip_process = True # DYInc, DYGen, DYLep, DYJet are essentially preprocessed
-    if get_parent_process(MC_process, skip_process=skip_process) == parent_process:
-      accumulated_values += process_dictionary[MC_process]["BinnedEvents"]
-      accumulated_errors += process_dictionary[MC_process]["BinnedErrors"]
-  return accumulated_values, accumulated_errors
-
-
-def get_parent_process(MC_process, skip_process=False):
-  '''
-  Given some process, return a corresponding parent_process, effectively grouping
-  related processes (i.e. DYInclusive, DY1, DY2, DY3, and DY4 all belong to DY).
-  TODO: simplify this code, it is currently written in a brain-dead way
-  '''
-  parent_process = ""
-  # TODO
-  # pass through for no parent process
-  # this parent process is most helpful for VV, but for the rest...
-  # it would be useful to have a mode where no automatic combining takes place
-  #if   "JetFakes" in MC_process:  parent_process = "DYJetFakes" # DEBUG
-  #elif "LepFakes" in MC_process:  parent_process = "DYLepFakes" # DEBUG
-  #elif "Genuine"  in MC_process:  parent_process = "DY" # DEBUG
-  if skip_process: parent_process = MC_process
-  elif ("QCD" in MC_process) and (MC_process != "myQCD"): parent_process = "QCD"
-  elif "DY"    in MC_process:  parent_process = "DY"
-  elif "WJets" in MC_process:  parent_process = "WJ"
-  elif "TT"    in MC_process:  parent_process = "TT"
-  elif "ST"    in MC_process:  parent_process = "ST"
-  elif ("WW"   in MC_process or 
-        "WZ"   in MC_process or 
-        "ZZ"   in MC_process): parent_process = "VV"
-  else:
-    if (MC_process == "myQCD") or ("Fakes" in MC_process):
-      pass
-    else:
-      print(f"No matching parent process for {MC_process}, continuing as individual process...")
-      parent_process = MC_process
-  return parent_process
 
 
 def get_MC_weights(MC_dictionary, process):
