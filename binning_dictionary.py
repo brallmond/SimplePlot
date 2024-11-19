@@ -111,6 +111,7 @@ label_dictionary = {
   "FS_mt"      : r'Transverse Mass [GeV]',
   "FS_nbJet"   : r'Number of b-tagged Jets',
   "FS_acoplan" : r'Acoplanarity',
+  "FS_PZeta"   : r'PZeta',
 
   "MET_pt"          : r'MET [GeV]',
   "PuppiMET_pt"     : r'PUPPI MET [GeV]',
@@ -315,6 +316,7 @@ binning_dictionary = {
     "FS_mu_dxy"  : np.linspace(0, 0.025, 50+1),
     "FS_mu_dz"   : np.linspace(0, 0.25, 50+1),
     "FS_mu_chg"  : np.linspace(-2, 2, 5+1),
+    "FS_PZeta"   : np.linspace(-100, 100, 30+1),
   },  
 
   "common" : {

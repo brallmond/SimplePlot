@@ -86,11 +86,13 @@ class setup_handler:
     #lxplus_redirector = "root://cms-xrd-global.cern.ch//"
     #eos_dir           = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/"
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
-    home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
-    active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
+    #home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
+    home_dir = "/Users/nailaislam/htt/new_samples/Hlep/2022postEE/"
+    #active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
     #active_dir = "/Hlep_2023preBPIX/"
-    active_dir += final_state_mode
-    full_dir = home_dir + active_dir
+    #active_dir += final_state_mode
+    home_dir += final_state_mode
+    full_dir = home_dir
     #full_dir = "/Volumes/IDrive/HTauTau_Data/" # SSD hack
     return full_dir
 
@@ -152,8 +154,15 @@ def set_good_events(final_state_mode, era, non_SR_region=False, disable_triggers
   good_events += jet_vetomaps
   if (non_SR_region): return good_events # give output with MET filters, lepton veto, and veto maps
 
+  HTT_preselect_events_AR = " & (HTT_SSevent)" # If I use HTT_ARevent then all the events are being removed
   HTT_preselect_events = " & (HTT_SRevent)"
-  good_events += HTT_preselect_events
+
+  if (AR_region):
+    good_events += HTT_preselect_events_AR
+  elif (DR_region):
+    return good_events
+  else:
+    good_events += HTT_preselect_events
 
   if final_state_mode == "ditau":
     triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\

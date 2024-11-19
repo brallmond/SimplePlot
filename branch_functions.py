@@ -21,7 +21,7 @@ def set_branches(final_state_mode, DeepTau_version, process="None"):
   ]
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
-  if final_state_mode != "dimuon": branches = add_DeepTau_branches(branches, DeepTau_version)
+  if final_state_mode != ["emu","dimuon"]: branches = add_DeepTau_branches(branches, DeepTau_version)
   branches = add_trigger_branches(branches, final_state_mode)
   if ("Data" in process): branches.append("FFweight")
   if ("DY" in process): branches = add_Zpt_branches(branches)
