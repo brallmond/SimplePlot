@@ -10,7 +10,6 @@ class setup_handler:
     import argparse 
     self.parser = argparse.ArgumentParser(description='Make a standard Data/MC agreement plot.')
     # store_true : when the argument is supplied, store it's value as true
-    # for 'testing' below, the default value is false if the argument is not specified
     self.parser.add_argument('--testing',      dest='testing',     default=False,       action='store_true')
     self.parser.add_argument('--final_state',  dest='final_state', default="mutau",     action='store')
     self.parser.add_argument('--jet_mode',     dest='jet_mode',    default="Inclusive", action='store')
@@ -22,7 +21,7 @@ class setup_handler:
     self.parser.add_argument('--hide_yields',  dest='hide_yields', default=False,       action='store_true')
     self.parser.add_argument('--do_JetFakes',  dest='do_JetFakes', default=True,        action='store')
     self.parser.add_argument('--semilep_mode', dest='semilep_mode', default="Full",     action='store')
-    self.parser.add_argument('--presentation', dest='presentation_mode',  default=False, action='store')
+    self.parser.add_argument('--presentation', dest='presentation_mode', default=False, action='store_true')
     self.parser.add_argument('--oneatatime',   dest='oneAtATime',  default=False,       action='store_true')
     self.parser.add_argument('--tau_pt',       dest='tau_pt_cut',  default="None",      action='store')
 
@@ -145,9 +144,8 @@ def set_good_events(final_state_mode, era, non_SR_region=False, disable_triggers
   
   good_events =  "(METfilters) & (LeptonVeto==0)"
   jet_vetomaps = ""
-  if ("2023" in era):
-    jet_vetomaps += " & (JetMapVeto_TauEEBPix)"
-  #if ("2022" in era) and (("E" in era) or ("F" in era) or ("G" in era)):
+  if ("2023" in era) and any(affected_era in era for affected_era in ["D"]):
+    jet_vetomaps += " & (JetMapVeto_BPix_15GeV)"
   if ("2022" in era) and any(affected_era in era for affected_era in ["E", "F", "G"]):
     jet_vetomaps += " & (JetMapVeto_EE_15GeV)"
   if (final_state_mode == "mutau"):
