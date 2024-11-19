@@ -275,7 +275,7 @@ def make_emu_DRsr_cut(event_dictionary, iso_region_el=True, iso_region_mu=False)
 def make_emu_DRar_cut(event_dictionary, iso_region_el=True, iso_region_mu=False):
   name = "pass_DRar_cuts" if ((iso_region_el == True) and (iso_region_mu == False)) else "pass_DRar_aiso_cuts"
   event_dictionary = make_emu_region(event_dictionary, name, 
-                         FS_pair_sign=-1, pass_el_iso_req=iso_region_el, el_iso_value=[0.00,0.15],
+                         FS_pair_sign=1, pass_el_iso_req=iso_region_el, el_iso_value=[0.00,0.15],
                          pass_mu_iso_req=iso_region_mu, mu_iso_value=[0.00,0.15],
                          pass_BTag_req=True)
   print("passed DRar")
@@ -364,16 +364,6 @@ def apply_FF_weight_from_branch(event_dictionary, final_state_mode, process):
         print("Negative FF weights!")
         print("FF_weight: ", ff)
     event_dictionary["FF_weight"] = np.array(FF_weights)
-
-
-    # event_dictionary['AR'] = apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_mode, skip_DeepTau=True)
-    # # Ensure 'FFweight' branch exists in the event dictionary
-    # if 'FFweight' in event_dictionary:
-    #     # Apply FFweight directly to the AR events
-    #     event_dictionary['QCD'] = event_dictionary['AR'] * event_dictionary['FFweight']
-    # else:
-    #     raise KeyError("The event dictionary does not contain the 'FFweight' branch.")
-    
     return event_dictionary  
 
 from producers import produce_FF_weight
@@ -383,13 +373,11 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   _, final_state_mode, jet_mode, era, _, _ = setup.state_info # TODO this needs to come from somewhere else
   _, _, _, do_JetFakes, _, _, _ = setup.misc_info
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
-  #print ("In set_JetFakes_process in FF_functions: ", final_state_mode == "emu", jet_mode == "Inclusive", do_JetFakes == True)
   if (jet_mode != "Inclusive") and (do_JetFakes==True):
     JetFakes_dictionary = produce_FF_weight(setup, jet_mode, semilep_mode)
     return JetFakes_dictionary
   elif (final_state_mode == "emu") and (do_JetFakes== "True"):
     JetFakes_dictionary = produce_FF_weight(setup, jet_mode, semilep_mode)
-    #JetFakes_dictionary = apply_FF_weight_from_branch(event_dictionary,final_state_mode,process)
     return JetFakes_dictionary
   elif (jet_mode == "Inclusive") and (do_JetFakes==True):
      temp_JetFakes_dictionary = {}

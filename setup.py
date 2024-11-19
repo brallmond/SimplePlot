@@ -158,10 +158,17 @@ def set_good_events(final_state_mode, era, AR_region=False, DR_region=False, dis
     jet_vetomaps += " & (JetMapVeto_TauMuon)"
  
   good_events += jet_vetomaps
-  if (AR_region or DR_region): return good_events # give output with MET filters, lepton veto, and veto maps
+  #if (AR_region or DR_region): return good_events # give output with MET filters, lepton veto, and veto maps
 
+  HTT_preselect_events_AR = " & (HTT_SSevent)" # If I use HTT_ARevent then all the events are being removed
   HTT_preselect_events = " & (HTT_SRevent)"
-  good_events += HTT_preselect_events
+
+  if (AR_region):
+    good_events += HTT_preselect_events_AR
+  elif (DR_region):
+    return good_events
+  else:
+    good_events += HTT_preselect_events
 
   if final_state_mode == "ditau":
     triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\
