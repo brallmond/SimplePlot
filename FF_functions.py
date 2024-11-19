@@ -389,31 +389,31 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   _, _, _, do_JetFakes, _, _, _ = setup.misc_info
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
   if (jet_mode != "Inclusive") and (do_JetFakes==True):
-    JetFakes_dictionary = produce_FF_weight(setup, jet_mode, semilep_mode)
+    JetFakes_dictionary = produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode)
     return JetFakes_dictionary
   elif (final_state_mode == "emu") and (do_JetFakes== "True"):
     JetFakes_dictionary = produce_FF_weight(setup, jet_mode, semilep_mode)
     return JetFakes_dictionary
   elif (jet_mode == "Inclusive") and (do_JetFakes==True):
-     temp_JetFakes_dictionary = {}
-     JetFakes_dictionary[fakesLabel] = {}
-     JetFakes_dictionary[fakesLabel]["PlotEvents"] = {}
-     JetFakes_dictionary[fakesLabel]["FF_weight"]  = {} 
-     jetCategories = ["0j", "1j", "GTE2j"] if final_state_mode == "ditau" else ["0j", "GTE1j"]
-     for internal_jet_mode in jetCategories:
-       temp_JetFakes_dictionary[internal_jet_mode] = produce_FF_weight(setup, internal_jet_mode, semilep_mode)
-       if ("0j" in internal_jet_mode):
-         JetFakes_dictionary[fakesLabel]["FF_weight"]  = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]
-       else:
-         JetFakes_dictionary[fakesLabel]["FF_weight"]  = np.concatenate((JetFakes_dictionary[fakesLabel]["FF_weight"],
-                                           temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]))
-       for var in vars_to_plot:
-         if ("flav" in var) or ("Generator_weight" in var): continue
-         if ("0j" in internal_jet_mode): 
-           JetFakes_dictionary[fakesLabel]["PlotEvents"][var] = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["PlotEvents"][var]
-         else:
-           JetFakes_dictionary[fakesLabel]["PlotEvents"][var]  = np.concatenate((JetFakes_dictionary[fakesLabel]["PlotEvents"][var],
-                                                   temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["PlotEvents"][var]))
+    temp_JetFakes_dictionary = {}
+    JetFakes_dictionary[fakesLabel] = {}
+    JetFakes_dictionary[fakesLabel]["PlotEvents"] = {}
+    JetFakes_dictionary[fakesLabel]["FF_weight"]  = {} 
+    jetCategories = ["0j", "1j", "GTE2j"] if final_state_mode == "ditau" else ["0j", "GTE1j"]
+    for internal_jet_mode in jetCategories:
+      temp_JetFakes_dictionary[internal_jet_mode] = produce_FF_weight(setup, fakesLabel, internal_jet_mode, semilep_mode)
+      if ("0j" in internal_jet_mode):
+        JetFakes_dictionary[fakesLabel]["FF_weight"]  = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]
+      else:
+        JetFakes_dictionary[fakesLabel]["FF_weight"]  = np.concatenate((JetFakes_dictionary[fakesLabel]["FF_weight"],
+                                          temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]))
+      for var in vars_to_plot:
+        if ("flav" in var) or ("Generator_weight" in var): continue
+        if ("0j" in internal_jet_mode): 
+          JetFakes_dictionary[fakesLabel]["PlotEvents"][var] = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["PlotEvents"][var]
+        else:
+          JetFakes_dictionary[fakesLabel]["PlotEvents"][var]  = np.concatenate((JetFakes_dictionary[fakesLabel]["PlotEvents"][var],
+                                                  temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["PlotEvents"][var]))
   else:
     print("Not programmed to handle that case. Crashing now")
   return JetFakes_dictionary
@@ -421,5 +421,6 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
 if __name__ == "__main__":
   from setup import setup_handler
   setup = setup_handler()
-  FF_dictionary = produce_FF_weight(setup, setup.state_info.jet_mode)
+  fakesLabel = "test"
+  FF_dictionary = produce_FF_weight(setup, fakesLabel, setup.state_info.jet_mode)
   print(FF_dictionary)
