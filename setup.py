@@ -87,11 +87,13 @@ class setup_handler:
     #lxplus_redirector = "root://cms-xrd-global.cern.ch//"
     #eos_dir           = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/"
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
+    era_modifier_2023 = "preBPIX" if ("C" in era) else "postBPIX"
     home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
     #home_dir = "/Users/nailaislam/htt/new_samples/Hlep/2022postEE/"
     #home_dir = "/Volumes/IDrive/HTauTau_Data/" # SSD hack
-    active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
-    #active_dir = "/Hlep_2023preBPIX/"
+    active_dir_2022 = "/V12_"+era_modifier_2022+"_HLepRareV2_notriggermatching/"
+    active_dir_2023 = "/HLep_2023"+era_modifier_2023+"/"
+    active_dir      = active_dir_2022 if ("2022" in era) else active_dir_2023
     return home_dir + active_dir + final_state_mode # full directory path
 
   
@@ -198,7 +200,7 @@ if __name__ == "__main__":
   from file_map_dictionary import set_dataset_info
 
   good_events  = set_good_events(final_state_mode, era)
-  branches     = set_branches(final_state_mode, DeepTau_version)
+  branches     = set_branches(final_state_mode, era, DeepTau_version)
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
   dataset, reject_datasets = set_dataset_info(final_state_mode)
 
