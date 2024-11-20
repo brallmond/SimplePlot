@@ -857,17 +857,10 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   '''
   Helper function to keep plotting variables organized
   '''
-  #vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mT", "FastMTT_mass",
+  # common to all final states
   vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mass",
                   "PuppiMET_pt", "PuppiMET_phi", "PV_npvs",
-                  "HTT_H_pt_using_PUPPI_MET",
-                  #"Generator_weight",
-                  #"FastMTT_PUPPIMET_mT", "FastMTT_PUPPIMET_mass",
-                  #"HTT_DiJet_MassInv_fromHighestMjj", "HTT_DiJet_dEta_fromHighestMjj",
-                  #"HTT_DiJet_MassInv_fromLeadingJets", "HTT_DiJet_dEta_fromLeadingJets",
-                  #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
-                 ] 
-                  # common to all final states
+                 ]
   FS_vars_to_add = final_state_vars[final_state_mode]
   for var in FS_vars_to_add:
     vars_to_plot.append(var)
