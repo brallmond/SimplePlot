@@ -195,7 +195,6 @@ if __name__ == "__main__":
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
   CUSTOM_VARS = True
   if CUSTOM_VARS == True:
-    vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
     if (final_state_mode == "ditau"):
       vars_to_plot = ["HTT_m_vis", 
                     "FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_DM", "FS_t1_mass",
@@ -210,7 +209,7 @@ if __name__ == "__main__":
                     "FS_dphi_mutau", "FS_deta_mutau",
                     "PuppiMET_pt", "HTT_H_pt_using_PUPPI_MET",
                     "FS_mt", "nCleanJetGT30"]
-  plots_unrolled = False
+  plots_unrolled = True
   if (plots_unrolled == True):
     rolled_vars = ["FastMTT_mass"]
     H_pT_bins = [0, 45, 80, 120, 200, 350, 450]
@@ -232,12 +231,12 @@ if __name__ == "__main__":
   
         for ith_bin in range(len(unrolled_bins)):
           h_data_ur = get_binned_data(final_state_mode, testing, data_dictionary, rolled_var, xbins, lumi,
-                                        unrolled_bins_data, mask_n=ith_bin)
+                                        mask=unrolled_bins_data, mask_n=ith_bin)
           h_backgrounds_ur = get_binned_backgrounds(final_state_mode, testing, background_dictionary, rolled_var, xbins, lumi,
-                                        unrolled_bins_background, mask_n=ith_bin)
+                                        mask=unrolled_bins_background, mask_n=ith_bin)
           h_summed_backgrounds_ur = get_summed_backgrounds(h_backgrounds_ur)
           h_signals_ur = get_binned_signals(final_state_mode, testing, signal_dictionary, rolled_var, xbins, lumi,
-                                        unrolled_bins_signal, mask_n=ith_bin)
+                                        mask=unrolled_bins_signal, mask_n=ith_bin)
           blind, blind_range = False, []
           # remove yields for these plots by setting presentation_mode to True below
           plot_data(   stack_n_ax[ith_bin], xbins, h_data_ur,        lumi, True, blind, blind_range)
@@ -266,7 +265,7 @@ if __name__ == "__main__":
             print("haven't styled that variable yet, no text added")
           add_text(stack_n_ax[ith_bin], text, loc=[0.05, 0.90])
 
-        plt.savefig(plot_dir + "/" + "unrolled_TauPtCategory_" + tau_pt_cut + "_" + str(rolled_var) + ".png")
+        plt.savefig(plot_dir + "/" + "unrolled_TauPtCategory_" + tau_pt_cut + "_" + str(rolled_var) + "-" + str(unrolled_var) + ".png")
  
 
   for var in vars_to_plot:

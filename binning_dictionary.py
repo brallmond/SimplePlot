@@ -163,7 +163,7 @@ binning_dictionary = {
   "ditau" : {
     "FS_t1_pt"   : np.linspace(0, 180, 36+1),
     "FS_t1_eta"  : np.linspace(-3, 3, 30+1),
-    "FS_t1_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_t1_phi"  : np.linspace(-3.1416, 3.1416, 32+1),
     "FS_t1_DeepTauVSjet" : np.linspace(1, 9, 8+1),
     "FS_t1_DeepTauVSmu"  : np.linspace(1, 5, 4+1),
     "FS_t1_DeepTauVSe"   : np.linspace(1, 9, 8+1),
@@ -180,7 +180,7 @@ binning_dictionary = {
 
     "FS_t2_pt"   : np.linspace(0, 120, 24+1),
     "FS_t2_eta"  : np.linspace(-3, 3, 30+1),
-    "FS_t2_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_t2_phi"  : np.linspace(-3.1416, 3.1416, 32+1),
     "FS_t2_DeepTauVSjet" : np.linspace(1, 9, 8+1),
     "FS_t2_DeepTauVSmu"  : np.linspace(1, 5, 4+1),
     "FS_t2_DeepTauVSe"   : np.linspace(1, 9, 8+1),
@@ -202,8 +202,8 @@ binning_dictionary = {
     "FS_mt_t1_MET" : np.linspace(0, 150, 30+1),
     "FS_mt_t2_MET" : np.linspace(0, 150, 30+1),
     "FS_mt_TOT"    : np.linspace(0, 50, 50+1),
-    "FS_dphi_t1t2" : np.linspace(-6.5, 6.5, 32+1),
-    "FS_deta_t1t2" : np.linspace(-4, 4, 31+1),
+    "FS_dphi_t1t2" : np.linspace(0, 3.1416, 32+1),
+    "FS_deta_t1t2" : np.linspace(0, 4, 32+1),
 
     "FS_t1_FLsig"  : np.linspace(-5, 20, 50+1),
     "FS_t1_FLX"    : np.linspace(-0.01, 0.01, 20+1), # most entries are at zero.
@@ -229,7 +229,7 @@ binning_dictionary = {
   "mutau" : {
     "FS_mu_pt"   : np.linspace(0, 120, 40+1),
     "FS_mu_eta"  : np.linspace(-3, 3, 30+1),
-    "FS_mu_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_mu_phi"  : np.linspace(-3.1416, 3.1416, 32+1),
     "FS_mu_iso"  : np.linspace(0, 1, 25+1),
     "FS_mu_dxy"  : np.linspace(0, 0.025, 50+1),
     "FS_mu_dz"   : np.linspace(0, 0.05, 50+1), #np.linspace(0, 0.25, 50+1),
@@ -238,15 +238,15 @@ binning_dictionary = {
 
     "FS_tau_pt"  : np.linspace(0, 180, 36+1),
     "FS_tau_eta" : np.linspace(-3, 3, 30+1),
-    "FS_tau_phi" : np.linspace(-3.2, 3.2, 32+1),
+    "FS_tau_phi" : np.linspace(-3.1416, 3.1416, 32+1),
     "FS_tau_dxy"  : np.linspace(0, 0.025, 50+1), #np.linspace(0, 0.20, 50+1),
     "FS_tau_dz"   : np.linspace(0, 0.05, 50+1),  #np.linspace(0, 0.25, 50+1),
     "FS_tau_chg" : np.linspace(-2, 2, 5+1),
     "FS_tau_DM"  : np.linspace(0, 3, 4+1),
     "FS_tau_mass" : np.linspace(0, 3, 30+1),
 
-    "FS_dphi_mutau" : np.linspace(-6.5, 6.5, 32+1),
-    "FS_deta_mutau" : np.linspace(-4, 4, 31+1),
+    "FS_dphi_mutau" : np.linspace(0, 3.1416, 32+1),
+    "FS_deta_mutau" : np.linspace(0, 4, 32+1),
 
     "FS_tau_rawPNetVSjet" : np.linspace(0, 1, 50+1),
     "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
@@ -258,7 +258,7 @@ binning_dictionary = {
   "etau" : {
     "FS_el_pt"   : np.linspace(20, 100, 50+1),
     "FS_el_eta"  : np.linspace(-3, 3, 30+1),
-    "FS_el_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_el_phi"  : np.linspace(-3.1416, 3.1416, 32+1),
     "FS_el_iso"  : np.linspace(0, 1, 25+1),
     "FS_el_dxy"  : np.linspace(0, 0.05, 50+1),
     "FS_el_dz"   : np.linspace(0, 0.25, 50+1),
@@ -267,15 +267,15 @@ binning_dictionary = {
 
     "FS_tau_pt"  : np.linspace(20, 100, 50+1),
     "FS_tau_eta" : np.linspace(-3, 3, 30+1),
-    "FS_tau_phi" : np.linspace(-3.2, 3.2, 32+1),
+    "FS_tau_phi" : np.linspace(-3.1416, 3.1416, 32+1),
     "FS_tau_dxy" : np.linspace(0, 0.025, 25+1), #np.linspace(0, 0.20, 50+1),
     "FS_tau_dz"  : np.linspace(0, 0.05, 25+1),  #np.linspace(0, 0.25, 50+1),
     "FS_tau_chg" : np.linspace(-2, 2, 5+1),
     "FS_tau_DM"  : np.linspace(0, 3, 4+1), #0, 19, 20+1
     "FS_tau_mass" : np.linspace(0, 3, 30+1),
 
-    "FS_dphi_etau" : np.linspace(-6.5, 6.5, 32+1),
-    "FS_deta_etau" : np.linspace(-4, 4, 31+1),
+    "FS_dphi_etau" : np.linspace(0, 3.1416, 32+1),
+    "FS_deta_etau" : np.linspace(0, 4, 32+1),
 
     "FS_tau_rawPNetVSjet" : np.linspace(0, 1, 50+1),
     "FS_tau_rawPNetVSmu"  : np.array([0, 0.95, 0.96, 0.97, 0.98, 0.99, 1]), # plot logx
@@ -285,7 +285,7 @@ binning_dictionary = {
   "dimuon" : {
     "FS_m1_pt"   : np.linspace(0, 300, 60+1),
     "FS_m1_eta"  : np.linspace(-2.5, 2.5, 99+1),
-    "FS_m1_phi"  : np.linspace(-3.2, 3.2, 64+1),
+    "FS_m1_phi"  : np.linspace(-3.1416, 3.1416, 64+1),
     "FS_m1_iso"  : np.linspace(0, 1, 25+1),
     "FS_m1_dxy"  : np.linspace(0, 0.05, 50+1),
     "FS_m1_dz"   : np.linspace(0, 0.25, 50+1),
@@ -293,7 +293,7 @@ binning_dictionary = {
 
     "FS_m2_pt"   : np.linspace(0, 300, 60+1),
     "FS_m2_eta"  : np.linspace(-2.5, 2.5, 99+1),
-    "FS_m2_phi"  : np.linspace(-3.2, 3.2, 64+1),
+    "FS_m2_phi"  : np.linspace(-3.1416, 3.1416, 64+1),
     "FS_m2_iso"  : np.linspace(0, 1, 25+1),
     "FS_m2_dxy"  : np.linspace(0, 0.05, 50+1),
     "FS_m2_dz"   : np.linspace(0, 0.25, 50+1),
@@ -303,7 +303,7 @@ binning_dictionary = {
   "emu" : {
     "FS_el_pt"   : np.linspace(0, 120, 40+1),
     "FS_el_eta"  : np.linspace(-3, 3, 30+1),
-    "FS_el_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_el_phi"  : np.linspace(-3.1416, 3.1416, 32+1),
     "FS_el_iso"  : np.linspace(0, 1, 25+1),
     "FS_el_dxy"  : np.linspace(0, 0.05, 50+1),
     "FS_el_dz"   : np.linspace(0, 0.25, 50+1),
@@ -311,7 +311,7 @@ binning_dictionary = {
 
     "FS_mu_pt"   : np.linspace(0, 120, 40+1),
     "FS_mu_eta"  : np.linspace(-3, 3, 30+1),
-    "FS_mu_phi"  : np.linspace(-3.2, 3.2, 32+1),
+    "FS_mu_phi"  : np.linspace(-3.1416, 3.1416, 32+1),
     "FS_mu_iso"  : np.linspace(0, 1, 25+1),
     "FS_mu_dxy"  : np.linspace(0, 0.025, 50+1),
     "FS_mu_dz"   : np.linspace(0, 0.25, 50+1),
@@ -331,9 +331,9 @@ binning_dictionary = {
     "CleanJetGT30_eta_1" : np.linspace(-5, 5, 50+1),
     "CleanJetGT30_eta_2" : np.linspace(-5, 5, 50+1),
     "CleanJetGT30_eta_3" : np.linspace(-5, 5, 50+1),
-    "CleanJetGT30_phi_1" : np.linspace(-3.2, 3.2, 32+1),
-    "CleanJetGT30_phi_2" : np.linspace(-3.2, 3.2, 32+1),
-    "CleanJetGT30_phi_3" : np.linspace(-3.2, 3.2, 32+1),
+    "CleanJetGT30_phi_1" : np.linspace(-3.1416, 3.1416, 32+1),
+    "CleanJetGT30_phi_2" : np.linspace(-3.1416, 3.1416, 32+1),
+    "CleanJetGT30_phi_3" : np.linspace(-3.1416, 3.1416, 32+1),
     "FS_mjj"     : np.linspace(0, 1500, 30+1),
     "FS_detajj"  : np.linspace(0, 7, 31+1),
     "FS_j1index" : np.linspace(0, 10, 10+1),
@@ -343,9 +343,9 @@ binning_dictionary = {
 
     # from branches
     "MET_pt"      : np.linspace(0, 150, 30+1),
-    "MET_phi"     : np.linspace(-3.2, 3.2, 32+1),
+    "MET_phi"     : np.linspace(-3.1416, 3.1416, 32+1),
     "PuppiMET_pt" : np.linspace(0, 150, 50+1),
-    "PuppiMET_phi": np.linspace(-3.2, 3.2, 32+1),
+    "PuppiMET_phi": np.linspace(-3.1416, 3.1416, 32+1),
     "nCleanJet"   : np.linspace(0, 8, 8+1),
     "CleanJet_pt" : np.linspace(20, 200, 30+1),
     "CleanJet_eta": np.linspace(-5, 5, 50+1),

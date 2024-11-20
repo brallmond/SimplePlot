@@ -151,9 +151,9 @@ def calculate_dR(eta1, phi1, eta2, phi2):
 def phi_mpi_pi(delta_phi):
   '''return phi between a range of negative pi and pi'''
   if (delta_phi > np.pi):
-    return delta_phi - np.pi
+    return delta_phi - 2*np.pi
   elif (delta_phi < -np.pi):
-    return delta_phi + np.pi
+    return delta_phi + 2*np.pi
   else: # do nothing
     return delta_phi
 

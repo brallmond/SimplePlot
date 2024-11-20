@@ -54,8 +54,8 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
     tauMass = tau_mass[l2_idx]
     mt      = calculate_mt(elPt, elPhi, MET_pt, MET_phi)
 
-    dphi_etau = elPhi - tauPhi
-    deta_etau = elEta - elEta
+    dphi_etau = np.acos(np.cos(elPhi - tauPhi))
+    deta_etau = abs(elEta - tauEta)
 
     passTauPtAndEta  = ((tauPt > 30.0) and (abs(tauEta) < 2.5))
     pass31ElPt   = ((trg30el) and (elPt > 31.0) and (abs(elEta) < 2.5))
@@ -63,12 +63,12 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
     pass36ElPt   = ((trg35el) and (elPt > 36.0) and (abs(elEta) < 2.5))
     # upper bound on cross trigger will change if lower single electron trigger included
     # HLT_Ele24_eta2p1_WPTight_Gsf_LooseDeepTauPFTauHPS30_eta2p1_CrossL1
-    passElPtCrossTrigger = ((crosstrg) and ((25.0 < elPt < 33.0) and (abs(elEta) < 2.1))
+    passElPtCrossTrigger = ((crosstrg) and ((25.0 < elPt < 31.0) and (abs(elEta) < 2.1))
                                        and ((tauPt > 35.0)       and (abs(tauEta) < 2.1)) ) 
     #passElPtCrossTrigger = False # dummy to turn off crosstrg
 
     # Medium (5) v Jet, VLoose (1) v Muon, Tight (6) v Ele
-    passTauDTLep  = ((vMu[tauBranchLoc] >= 1) and (vEle[tauBranchLoc] >= 5))
+    passTauDTLep  = ((vMu[tauBranchLoc] >= 1) and (vEle[tauBranchLoc] >= 6))
 
     single_DM_encoder = {0: 0, 1: 1, 10:2, 11:3}
     encoded_tau_decayMode = single_DM_encoder[tau_decayMode[tauBranchLoc]]
@@ -99,7 +99,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
       FS_el_dxy.append(elDxy)
       FS_el_dz.append(elDz)
       FS_el_chg.append(elChg)
-      FS_el_mass.append(elMassVal)
+      FS_el_mass.append(elMass)
 
       FS_tau_pt.append(tauPt)
       FS_tau_eta.append(tauEta)

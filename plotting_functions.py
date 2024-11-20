@@ -271,7 +271,7 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   if scaling:
     if ("Fakes" in process) or (process=="myQCD"): scaling = 1
     else: scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
-    if process.startswith("WJets"): scaling = MC_dictionary[process]["plot_scaling"] # Removing XSecMCweight if Stitchweight used instead
+    #if process.startswith("WJets"): scaling = MC_dictionary[process]["plot_scaling"] # Removing XSecMCweight if Stitchweight used instead
     # TODO: can i remove these lines? do i care if testing still works like that? 
     # hacky unscaling and rescaling so that "testing" still works
     if ("C" in lumi_key) or ("D" in lumi_key):
@@ -613,7 +613,7 @@ def get_weight_stats(process_name, process_weights):
   print(stats.describe(process_weights))
   
 
-def get_binned_process(final_state, testing, process_dictionary, variable, xbins_, lumi_, mask=[], mask_n=999):
+def get_binned_process(final_state, testing, process_dictionary, variable, xbins_, lumi_, mask={}, mask_n=999):
   '''
   Standard loop to get only the plotted variable from a dictionary containing info and multiple variables.
   This is written to only get on process at a time. Other functions combine the processes when necessary.
@@ -645,7 +645,7 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
   return h_processes
 
 
-def get_binned_data(final_state, testing, data_dictionary, variable, xbins_, lumi_, mask=[], mask_n=999):
+def get_binned_data(final_state, testing, data_dictionary, variable, xbins_, lumi_, mask={}, mask_n=999):
   h_data_by_dataset = get_binned_process(final_state, testing, data_dictionary, variable, xbins_, lumi_, mask, mask_n)
   h_data = {}
   h_data["Data"] = {}
@@ -659,7 +659,7 @@ def get_binned_data(final_state, testing, data_dictionary, variable, xbins_, lum
 
 
 def get_binned_backgrounds(final_state_mode, testing, background_dictionary, variable, xbins_, lumi_, 
-                           presentation_mode=False, mask=[], mask_n=999):
+                           presentation_mode=False, mask={}, mask_n=999):
   '''
   Treat each MC process, then group the output by family into flat dictionaries.
   Relies on all family names being mutually exclusive and no processes containing "Other" in their names :)
@@ -678,6 +678,7 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
   h_MC_by_process = get_binned_process(final_state_mode, testing, background_dictionary, variable, xbins_, lumi_, mask, mask_n)
   if (skip_background_accumulation): return h_MC_by_process
 
+  # Note: Re-ordering of backgrounds in the stacked histogram can be done here by rearranging the processes in these lists
   if presentation_mode:
     keep_separate = { # order of these processes determines initial stack order on plot
       "ditau" : ["JetFakes", "Other", "DY"],
@@ -687,8 +688,9 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
     }
   else:
     default_families = ["JetFakes", "TT", "ST", "VV", "DY"] # Note no WJ by default !!
+    default_families_WJ = ["JetFakes", "TT", "ST", "VV", "WJ", "DY"]
     keep_separate = {"ditau" : default_families, "mutau" : default_families, 
-                     "etau"  : default_families, "emu"   : default_families}
+                     "etau"  : default_families_WJ, "emu"   : default_families}
   MC_by_family = keep_separate[final_state_mode]
 
   # initialize empty family entries here
@@ -714,10 +716,11 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
         h_MC_by_family["VV"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family["VV"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
         background_is_processed[MC_process] = True
-      elif (not background_is_processed[MC_process]) and (not np.any([family_name in MC_process for family_name in MC_by_family])):
-        h_MC_by_family["Other"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
-        h_MC_by_family["Other"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"] # TODO: add in quadrature
-        background_is_processed[MC_process] = True
+      # TODO: Need this below? Wasn't "Other" removed above?
+      #elif (not background_is_processed[MC_process]) and (not np.any([family_name in MC_process for family_name in MC_by_family])):
+      #  h_MC_by_family["Other"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+      #  h_MC_by_family["Other"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"] # TODO: add in quadrature
+      #  background_is_processed[MC_process] = True
       else: pass
         # background_is_processed[MC_process] == True OR 
         # current family name doesn't match sample, but a later one does
@@ -744,7 +747,7 @@ def get_summed_backgrounds(h_backgrounds):
   return h_summed_backgrounds
 
 
-def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_, lumi_, mask=[], mask_n=999):
+def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_, lumi_, mask={}, mask_n=999):
   h_signals = get_binned_process(final_state, testing, signal_dictionary, variable, xbins_, lumi_, mask, mask_n)
   return h_signals
 
@@ -763,8 +766,8 @@ def get_MC_weights(MC_dictionary, process):
 
   # Additional weights per individual sample
   additional = 1.
-  if "WJets" in process: 
-    additional = MC_dictionary[process]["StitchWeight_WJets_NLO"]
+  #if "WJets" in process: 
+  #  additional = MC_dictionary[process]["StitchWeight_WJets_NLO"]
   full_weights *= additional
 
   # use this to achieve no SF weights, or no Gen Weights
