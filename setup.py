@@ -39,6 +39,7 @@ class setup_handler:
     if testing: era = "2022 G"     # testing overrides era inputs
     lumi = luminosities[era]
 
+    # TODO: condense
     if (final_state_mode == "ditau"):
       possible_jet_modes = ["Inclusive", "0j", "1j", "GTE2j"]
       if (jet_mode not in possible_jet_modes):
@@ -86,15 +87,12 @@ class setup_handler:
     #lxplus_redirector = "root://cms-xrd-global.cern.ch//"
     #eos_dir           = "/eos/user/b/ballmond/NanoTauAnalysis/analysis/"
     era_modifier_2022 = "preEE" if (("C" in era) or ("D" in era)) else "postEE"
-    #home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
-    home_dir = "/Users/nailaislam/htt/new_samples/Hlep/2022postEE/"
-    #active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
+    home_dir = "/Users/ballmond/LocalDesktop/HiggsTauTau" # there's no place like home :)
+    #home_dir = "/Users/nailaislam/htt/new_samples/Hlep/2022postEE/"
+    #home_dir = "/Volumes/IDrive/HTauTau_Data/" # SSD hack
+    active_dir = "/V12_"+era_modifier_2022+"_HLepRare_notriggermatching/"
     #active_dir = "/Hlep_2023preBPIX/"
-    #active_dir += final_state_mode
-    home_dir += final_state_mode
-    full_dir = home_dir
-    #full_dir = "/Volumes/IDrive/HTauTau_Data/" # SSD hack
-    return full_dir
+    return home_dir + active_dir + final_state_mode # full directory path
 
   
   def set_file_map(self, testing, use_NLO, era):
@@ -153,16 +151,7 @@ def set_good_events(final_state_mode, era, non_SR_region=False, disable_triggers
  
   good_events += jet_vetomaps
   if (non_SR_region): return good_events # give output with MET filters, lepton veto, and veto maps
-
-  HTT_preselect_events_AR = " & (HTT_SSevent)" # If I use HTT_ARevent then all the events are being removed
-  HTT_preselect_events = " & (HTT_SRevent)"
-
-  if (AR_region):
-    good_events += HTT_preselect_events_AR
-  elif (DR_region):
-    return good_events
-  else:
-    good_events += HTT_preselect_events
+  good_events += " & (HTT_SRevent)" # preselected events from HTT ntuplizer
 
   if final_state_mode == "ditau":
     triggers = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\
