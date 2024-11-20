@@ -266,7 +266,6 @@ def make_emu_SR_cut(event_dictionary, iso_region_el=True, iso_region_mu=True):
                          FS_pair_sign=-1, pass_el_iso_req=iso_region_el, el_iso_value=[0.00,0.15],
                          pass_mu_iso_req=iso_region_mu, mu_iso_value=[0.00,0.15],
                          pass_BTag_req=True)
-  print("passed SR")
   return event_dictionary
 
 def make_emu_AR_cut(event_dictionary, iso_region_el=True, iso_region_mu=True):
@@ -275,7 +274,6 @@ def make_emu_AR_cut(event_dictionary, iso_region_el=True, iso_region_mu=True):
                          FS_pair_sign=1, pass_el_iso_req=iso_region_el, el_iso_value=[0.00,0.15],
                          pass_mu_iso_req=iso_region_mu, mu_iso_value=[0.00,0.15],
                          pass_BTag_req=True)
-  print("passed AR")
   return event_dictionary
 
 def make_emu_DRsr_cut(event_dictionary, iso_region_el=True, iso_region_mu=False):
@@ -284,7 +282,6 @@ def make_emu_DRsr_cut(event_dictionary, iso_region_el=True, iso_region_mu=False)
                          FS_pair_sign=-1, pass_el_iso_req=iso_region_el, el_iso_value=[0.00,0.15],
                          pass_mu_iso_req=iso_region_mu, mu_iso_value=[0.00,0.15],
                          pass_BTag_req=True)
-  print("passed DRsr")
   return event_dictionary
 
 def make_emu_DRar_cut(event_dictionary, iso_region_el=True, iso_region_mu=False):
@@ -293,7 +290,6 @@ def make_emu_DRar_cut(event_dictionary, iso_region_el=True, iso_region_mu=False)
                          FS_pair_sign=1, pass_el_iso_req=iso_region_el, el_iso_value=[0.00,0.15],
                          pass_mu_iso_req=iso_region_mu, mu_iso_value=[0.00,0.15],
                          pass_BTag_req=True)
-  print("passed DRar")
   return event_dictionary
 
 def make_emu_SR_aiso_cut(event_dictionary,):
@@ -367,7 +363,7 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
   event_dictionary["FF_weight"] = np.array(FF_weights)
   return event_dictionary
 
-def apply_FF_weight_from_branch(event_dictionary, final_state_mode, process):
+def add_FF_weight_from_branch(event_dictionary, final_state_mode, process):
   if ((final_state_mode == "emu" ) and ("Data" in process)):
     unpack_FF_vars = ["Lepton_pt", "HTT_m_vis", "FFweight"]
     unpack_FF_vars = (event_dictionary.get(key) for key in unpack_FF_vars)
@@ -391,8 +387,8 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   if (jet_mode != "Inclusive") and (do_JetFakes==True):
     JetFakes_dictionary = produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode)
     return JetFakes_dictionary
-  elif (final_state_mode == "emu") and (do_JetFakes== "True"):
-    JetFakes_dictionary = produce_FF_weight(setup, jet_mode, semilep_mode)
+  elif (final_state_mode == "emu") and (do_JetFakes == True):
+    JetFakes_dictionary = produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode)
     return JetFakes_dictionary
   elif (jet_mode == "Inclusive") and (do_JetFakes==True):
     temp_JetFakes_dictionary = {}
