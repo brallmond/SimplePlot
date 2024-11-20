@@ -15,7 +15,7 @@ def make_emu_cut(event_dictionary):
   unpack_emu = ["Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
                 "Electron_dxy", "Electron_dz", "Electron_charge", 
                 "Muon_dxy", "Muon_dz", "Muon_charge", 
-                "HTT_PZeta_using_PUPPI_MET", "HTT_mT_l1l2met_using_PUPPI_MET",
+                "HTT_DZeta", "HTT_mT_l1l2met",
                 "PuppiMET_pt", "PuppiMET_phi",
                 "Lepton_elIdx", "Lepton_muIdx", "l1_indices", "l2_indices", 
                 "CleanJet_btagWP", 
@@ -27,14 +27,14 @@ def make_emu_cut(event_dictionary):
   
   FS_mu_pt, FS_mu_eta, FS_mu_phi,FS_mu_iso , FS_mu_dxy, FS_mu_dz, FS_mu_chg = [], [], [], [], [], [], []
   FS_el_pt, FS_el_eta, FS_el_phi, FS_el_iso, FS_el_dxy, FS_el_dz, FS_el_chg = [], [], [], [], [], [], []
-  FS_PZeta, FS_mt_l1l2 = [], []
+  FS_DZeta, FS_mt_l1l2 = [], []
   pass_cuts,  FS_nbJet, = [], []
   #FS_tau_PNet_v_jet, FS_tau_PNet_v_mu, FS_tau_PNet_v_e = [], [], []
   # goes after l1_idx, l2_idx,
       #PNetvJet, PNetvMu, PNetvE,\
   for i, lep_pt, lep_eta, lep_phi, lep_iso,\
       el_dxy, el_dz, el_chg, mu_dxy, mu_dz, mu_chg,\
-      pzeta, mtVal,\
+      dzeta, mtVal,\
       MET_pt, MET_phi, el_idx, mu_idx,\
       l1_idx, l2_idx, btag,\
       crosstrg_1, crosstrg_2 in zip(*to_check):
@@ -78,7 +78,7 @@ def make_emu_cut(event_dictionary):
     passCrossTrigger_2 = ((crosstrg_2) and (muPtVal > 8.0) and (abs(muEtaVal) < 2.4) 
                                       and (elPtVal > 23.0) and (abs(elEtaVal) < 2.5))
     
-    passPZeta = (pzeta > -30)
+    passDZeta = (dzeta > -30)
     #passMT = (mtVal < 60)
 
     pass_bTag = True
@@ -88,7 +88,7 @@ def make_emu_cut(event_dictionary):
         pass_bTag = False
         nbJet += 1
 
-    if ((passCrossTrigger_1 or passCrossTrigger_2) and passPZeta):
+    if ((passCrossTrigger_1 or passCrossTrigger_2) and passDZeta):
 
       pass_cuts.append(i)
       FS_el_pt.append(elPtVal)
@@ -106,7 +106,7 @@ def make_emu_cut(event_dictionary):
       FS_mu_dz.append(muDzVal)
       FS_mu_chg.append(muChgVal)
       FS_nbJet.append(nbJet)
-      FS_PZeta.append(pzeta)
+      FS_DZeta.append(dzeta)
       #FS_mt_l1l2.append(mtVal)
 
   event_dictionary["pass_cuts"]      = np.array(pass_cuts)
@@ -125,7 +125,7 @@ def make_emu_cut(event_dictionary):
   event_dictionary["FS_mu_dz"]       = np.array(FS_mu_dz)
   event_dictionary["FS_mu_chg"]      = np.array(FS_mu_chg)
   event_dictionary["FS_nbJet"]       = np.array(FS_nbJet)
-  event_dictionary["FS_PZeta"]       = np.array(FS_PZeta)
+  event_dictionary["FS_DZeta"]       = np.array(FS_DZeta)
   #event_dictionary["FS_mt_l1l2"]     = np.array(FS_mt_l1l2)
 
   nEvents_postcut = len(np.array(pass_cuts))
@@ -141,13 +141,13 @@ def make_emu_region(event_dictionary, new_branch_name, FS_pair_sign,
   unpack_emu_vars = ["event", "Lepton_elIdx", "Lepton_muIdx", "Lepton_iso", 
                        "l1_indices", "l2_indices", "HTT_pdgId",
                        "Lepton_pt", "Lepton_phi", "PuppiMET_pt", "PuppiMET_phi",
-                       "CleanJet_btagWP", "HTT_PZeta_using_PUPPI_MET", "HTT_mT_l1l2met_using_PUPPI_MET"]
+                       "CleanJet_btagWP", "HTT_DZeta", "HTT_mT_l1l2met"]
   
   unpack_emu_vars = (event_dictionary.get(key) for key in unpack_emu_vars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_emu_vars]
   pass_cuts = []
   for i, event, el_idx, mu_idx, lep_iso, l1_idx, l2_idx, signed_pdgId,\
-      lep_pt, lep_phi, MET_pt, MET_phi, btag, pzeta, mt in zip(*to_check):
+      lep_pt, lep_phi, MET_pt, MET_phi, btag, dzeta, mt in zip(*to_check):
 
     mu_lep_idx = l1_idx if mu_idx[l1_idx] != -1 else l2_idx
     mu_iso     = lep_iso[mu_lep_idx]
@@ -158,7 +158,7 @@ def make_emu_region(event_dictionary, new_branch_name, FS_pair_sign,
     pass_el_iso = (el_iso_value[0]< el_iso < el_iso_value[1])
 
     #passMT     = (mt < 60)
-    passPZeta = (pzeta > -30)
+    passDZeta = (dzeta > -30)
 
     passBTag = True
     for value in btag:
@@ -166,12 +166,12 @@ def make_emu_region(event_dictionary, new_branch_name, FS_pair_sign,
 
       # if ( (np.sign(signed_pdgId) == FS_pair_sign) and 
       #     (pass_mu_iso == pass_mu_iso_req) and (pass_el_iso == pass_el_iso_req) and 
-      #     (passBTag == pass_BTag_req) and (passPZeta) and (passMT)):
+      #     (passBTag == pass_BTag_req) and (passDZeta) and (passMT)):
       #   pass_cuts.append(i)
     
     if ( (np.sign(signed_pdgId) == FS_pair_sign) and 
          (pass_mu_iso == pass_mu_iso_req) and (pass_el_iso == pass_el_iso_req) and 
-         (passBTag == pass_BTag_req) and (passPZeta)):
+         (passBTag == pass_BTag_req) and (passDZeta)):
       pass_cuts.append(i)
 
   event_dictionary[new_branch_name] = np.array(pass_cuts)
