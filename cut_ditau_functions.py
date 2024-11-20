@@ -153,9 +153,8 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
     mt_t2_MET = calculate_mt(t2_pt, t2_phi, MET_pt, MET_phi) 
     mt_TOT    = np.sqrt(mt_t1t2 + mt_t1_MET + mt_t2_MET)
 
-    dphi_t1t2 = phi_mpi_pi(t1_phi - t2_phi)
-    dphi_t1t2 = t1_phi - t2_phi
-    deta_t1t2 = t1_eta - t2_eta
+    dphi_t1t2 = np.acos(np.cos(t1_phi - t2_phi))
+    deta_t1t2 = abs(t1_eta - t2_eta)
 
     mvis_req = (mvis > 50) # remove disagreement at low mvis values
     deta_t1t2_req = (deta_t1t2 < 1.5) # try 2 also

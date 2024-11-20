@@ -63,8 +63,8 @@ def make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt
     mt      = calculate_mt(muPt, muPhi, MET_pt, MET_phi)
     acoplan = calculate_acoplan(muPhi, tauPhi)
 
-    dphi_mutau = muPhi - tauPhi
-    deta_mutau = muEta - tauEta
+    dphi_mutau = np.acos(np.cos(muPhi - tauPhi))
+    deta_mutau = abs(muEta - tauEta)
 
     #tauPNetvJet = PNetvJet[tauBranchLoc]
     #tauPNetvMu  = PNetvMu[tauBranchLoc]
