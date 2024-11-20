@@ -1,6 +1,15 @@
 # SimplePlot
 A repo collecting and combining simple plotting methods using python
 
+# Libraries
+This repo uses numpy, uproot, and matplotlib. It is recommended to use the following up to date versions (other
+combinations might work too, but these definitely do).
+numpy | 2.1.3
+matplotlib | 3.9.2
+uproot | 5.5.0
+
+To upgrade an existing version one can use `pip3 install numpy matplotlib uproot --upgrade`
+
 # Quickstart
 Probably you will want to use this on your local laptop, not lxplus, to plot things faster (< 5 min).
 To do that, there is one line to adjust, and an expected file structure to consider. 
