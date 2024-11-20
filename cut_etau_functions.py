@@ -71,7 +71,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
     passTauDTLep  = ((vMu[tauBranchLoc] >= 1) and (vEle[tauBranchLoc] >= 6))
 
     single_DM_encoder = {0: 0, 1: 1, 10:2, 11:3}
-    encoded_tau_decayMode = single_DM_encoder[tau_decayMode[tauBranchLoc]]
+    encoded_tau_decayMode = single_DM_encoder[int(tau_decayMode[tauBranchLoc])]
     #restrictTauDM = (tau_decayMode[tauBranchLoc] == 0)
     restrictTauDM = True
 
@@ -79,7 +79,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
     nbJet = 0
     bveto = 0
     for value in btag:
-      if (value > 0): 
+      if (value > 1): 
         bveto += value
         if bveto > 1: pass_bTag = False
         nbJet += 1

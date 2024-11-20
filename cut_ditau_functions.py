@@ -100,8 +100,8 @@ def make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
     #t1passDT   = (t1passDT and (vJet[t1_br_idx] >= 6))
     #t2passDT   = (t2passDT and (vJet[t2_br_idx] >= 6))
     single_DM_encoder = {0: 0, 1: 1, 10:2, 11:3}
-    t1_decayMode = tau_decayMode[t1_br_idx]
-    t2_decayMode = tau_decayMode[t2_br_idx]
+    t1_decayMode = int(tau_decayMode[t1_br_idx])
+    t2_decayMode = int(tau_decayMode[t2_br_idx])
     encoded_t1_decayMode = single_DM_encoder[t1_decayMode]
     encoded_t2_decayMode = single_DM_encoder[t2_decayMode]
     pair_DM_encoder = { 0: 0,  100: 1,  1000: 2,  1100: 3, # 16 unique DM pairs from t1_DM*100 + t2_DM
