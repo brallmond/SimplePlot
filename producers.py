@@ -37,7 +37,7 @@ def produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode):
     dataset, _ = set_dataset_info(final_state_mode)
     AR_region    = set_AR_region(final_state_mode, era) # same role as "set_good_events"
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
-    branches     = set_branches(final_state_mode, DeepTau_version, process=dataset)
+    branches     = set_branches(final_state_mode, era, DeepTau_version, process=dataset)
 
     FF_dictionary = {}
     FF_dictionary[fakesLabel] = {}
