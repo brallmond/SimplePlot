@@ -13,14 +13,14 @@ import gc
 
 def set_AR_region(final_state_mode, era):
   common_selection = set_good_events(final_state_mode, era, non_SR_region=True)
-  #AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau)"
   AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau | Trigger_ditauplusjet | Trigger_VBFditau)"
   AR_region_mutau  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
   AR_region_etau   = common_selection + " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
   AR_region_emu    = common_selection + " & (abs(HTT_pdgId)==11*13) & (Trigger_emu)"
   AR_region_dimuon = common_selection + " & (abs(HTT_pdgId)==13*13) & (HLT_IsoMu24)"
 
-  AR_region_dictionary = {"ditau" : AR_region_ditau, "mutau" : AR_region_mutau, "etau" : AR_region_etau, "emu" : AR_region_emu,
+  AR_region_dictionary = {"ditau" : AR_region_ditau, "mutau" : AR_region_mutau, 
+                          "etau"  : AR_region_etau, "emu"    : AR_region_emu,
                           "dimuon" : AR_region_dimuon}
   AR_region = AR_region_dictionary[final_state_mode]
   return AR_region
@@ -56,11 +56,8 @@ def produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode):
       AR_process_dictionary = load_process_from_file(dataset, using_directory, this_file_map, log_file,
                                               branches, AR_region, final_state_mode,
                                               data=True, testing=testing)
-      # print(AR_process_dictionary[dataset]["info"].keys())
       AR_events = AR_process_dictionary[dataset]["info"]
       cut_events_AR = apply_AR_cut(dataset, AR_events, final_state_mode, jet_mode, semilep_mode, DeepTau_version, tau_pt_cut)
-      # print("\nPrint the AR_events", AR_events.keys())
-      # print("\nPrint the cut_events_AR", cut_events_AR["FF_weight"])
       if "FF_weight" not in FF_dictionary[fakesLabel]: # First file, or not doing one at a time
         FF_dictionary[fakesLabel]["FF_weight"]  = cut_events_AR["FF_weight"]
         for var in vars_to_plot:
