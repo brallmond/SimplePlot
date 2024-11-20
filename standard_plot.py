@@ -96,7 +96,7 @@ if __name__ == "__main__":
     # being reset each run, but they're literally strings so who cares
     _, reject_datasets = set_dataset_info(final_state_mode)
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
-    branches     = set_branches(final_state_mode, DeepTau_version, process)
+    branches     = set_branches(final_state_mode, era, DeepTau_version, process)
  
     if (process in reject_datasets): continue
 
@@ -200,22 +200,22 @@ if __name__ == "__main__":
                     "FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_DM", "FS_t1_mass",
                     "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_DM", "FS_t2_mass",
                     "FS_dphi_t1t2", "FS_deta_t1t2",
-                    "PuppiMET_pt", "HTT_H_pt_using_PUPPI_MET",
+                    "PuppiMET_pt",
                     "nCleanJetGT30"]
     if (final_state_mode == "mutau"):
       vars_to_plot = ["HTT_m_vis", 
                     "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_mass", "FS_tau_DM",
                     "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", 
                     "FS_dphi_mutau", "FS_deta_mutau",
-                    "PuppiMET_pt", "HTT_H_pt_using_PUPPI_MET",
+                    "PuppiMET_pt",
                     "FS_mt", "nCleanJetGT30"]
-  plots_unrolled = True
+  plots_unrolled = False
   if (plots_unrolled == True):
     rolled_vars = ["FastMTT_mass"]
     H_pT_bins = [0, 45, 80, 120, 200, 350, 450]
     unrolled_vars = {
-      "HTT_H_pt_using_PUPPI_MET" : [0, 45, 80, 120, 200, 350, 450],
-      "nCleanJetGT30"            : [0, 1, 2, 3, 4],
+      "HTT_H_pt"      : [0, 45, 80, 120, 200, 350, 450],
+      "nCleanJetGT30" : [0, 1, 2, 3, 4],
     }
     if ("1j" in jet_mode):
       unrolled_vars["CleanJetGT30_pt_1"] = [30, 60, 120, 200, 350]
@@ -250,7 +250,7 @@ if __name__ == "__main__":
           spruce_up_unrolled_plot(fig_unroll, stack_n_ax, ratio_n_ax, label_dictionary[rolled_var], title+" Unrolled", 
                                   final_state_mode, jet_mode, tau_pt_cut, set_x_log=False, set_y_log=True)
           text = ""
-          if (unrolled_var == "HTT_H_pt_using_PUPPI_MET"):
+          if (unrolled_var == "HTT_H_pt"):
             try:               text = f"{unrolled_bins[ith_bin]} ≤ H_pT < {unrolled_bins[ith_bin+1]}"
             except IndexError: text = f"H_pT > {unrolled_bins[ith_bin]}"
           elif (unrolled_var == "nCleanJetGT30"):
@@ -322,10 +322,10 @@ if __name__ == "__main__":
   if (plots_2D == True):
     varY = "FS_t2_pt"
     if (jet_mode == "Inclusive"):
-      list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET"]
+      list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt"]
       list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1)]
     elif (jet_mode == "1j"):
-      list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET", "CleanJetGT30_pt_1"]
+      list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt", "CleanJetGT30_pt_1"]
       list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1), np.linspace(0, 600, 12+1)]
     #list_of_processes = ["DataTau", "ggH", "VBF", "DY0JNLO", "myQCD"]
     list_of_processes = ["DataTau", "ggH", "VBF"]

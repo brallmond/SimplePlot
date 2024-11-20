@@ -66,7 +66,7 @@ if __name__ == "__main__":
       gc.collect()
       if (process in reject_datasets): continue
 
-      branches     = set_branches(final_state_mode, DeepTau_version, process)
+      branches     = set_branches(final_state_mode, era, DeepTau_version, process)
       new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
                                               branches, good_events, final_state_mode,
                                               data=("Data" in process), testing=testing)
@@ -232,7 +232,7 @@ if __name__ == "__main__":
         list_varX = ["FS_t2_eta"]
         list_binX = binning_dictionary[final_state_mode][list_varX[0]]
       elif (jet_mode == "1j"):
-        list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt_using_PUPPI_MET", "CleanJetGT30_pt_1"]
+        list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt", "CleanJetGT30_pt_1"]
         list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1), np.linspace(0, 600, 12+1)]
       list_of_processes = ["DataTau"]
       for varX, binX in zip(list_varX, list_binX):

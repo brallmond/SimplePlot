@@ -164,7 +164,7 @@ if __name__ == "__main__":
       gc.collect()
       if (process in reject_datasets): continue
 
-      branches     = set_branches(final_state_mode, DeepTau_version, process)
+      branches     = set_branches(final_state_mode, era, DeepTau_version, process)
       new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
                                               branches, good_events, final_state_mode,
                                               data=("Data" in process), testing=testing)
