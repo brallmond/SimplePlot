@@ -105,6 +105,7 @@ full_file_map = {
   "VBF_TauTau" : "Signal/VBF_TauTau_Filtered*",
 
   # DY
+  "DYJetsToLL_M10to50NLO" : "DY/DYJetsToLL_M-10to50_NLO*",
   "DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
   "DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
   "DYJetsToLL_M-50_2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
@@ -127,7 +128,6 @@ full_file_map = {
   "ST_TWminus_LNu2Q"   : "ST/ST_TWminus_LNu2Q*",
 
   # WJ
-  #"WJetsIncNLO"      : "WJ/WJetsToLNu_HTauTau*",
   "WJetsToLNu_0JNLO" : "WJ/W0JetsToLNu_HTauTau*",
   "WJetsToLNu_1JNLO" : "WJ/W1JetsToLNu_HTauTau*",
   "WJetsToLNu_2JNLO" : "WJ/W2JetsToLNu_HTauTau*",
