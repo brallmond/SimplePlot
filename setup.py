@@ -39,18 +39,11 @@ class setup_handler:
     if testing: era = "2022 G"     # testing overrides era inputs
     lumi = luminosities[era]
 
-    # TODO: condense
-    if (final_state_mode == "ditau"):
-      possible_jet_modes = ["Inclusive", "0j", "1j", "GTE2j"]
-      if (jet_mode not in possible_jet_modes):
-        print(f"Your jet mode is {jet_mode}. Possible jet modes for {final_state_mode} are {possible_jet_modes}")
-        exit()
-
-    if ((final_state_mode == "mutau") or (final_state_mode == "etau")):
-      possible_jet_modes = ["Inclusive", "0j", "GTE1j"]
-      if (jet_mode not in possible_jet_modes):
-        print(f"Your jet mode is {jet_mode}. Possible jet modes for {final_state_mode} are {possible_jet_modes}")
-        exit()
+    # note: emu case isn't handled yet
+    possible_jet_modes = ["Inclusive", "0j", "1j", "GTE2j"] if final_state_mode == "ditau" else ["Inclusive", "0j", "GTE1j"]
+    if (jet_mode not in possible_jet_modes):
+      print(f"Your jet mode is {jet_mode}. Possible jet modes for {final_state_mode} are {possible_jet_modes}")
+      exit()
 
     # file info
     infile_directory = self.set_infile_directory(era, final_state_mode)
@@ -67,6 +60,13 @@ class setup_handler:
     hide_yields = args.hide_yields # False by default, show yields unless otherwise specified
     DeepTau_version = args.DeepTau_version # default is 2p5 [possible values 2p1 and 2p5]
     do_JetFakes  = args.do_JetFakes  # True by default, set to False to remove contributions from Fakes
+    if (type(do_JetFakes) != bool):
+      print(f"do_JetFakes is somehow not a boolean. It is {do_JetFakes} type: {type(do_JetFakes)}. Manually overriding.")
+      if   "T" in do_JetFakes.upper(): do_JetFakes = True
+      elif "F" in do_JetFakes.upper(): do_JetFakes = False
+      else: print("do_JetFakes isn't True or False, setting to False and hoping for the best.")
+      print(f"do_JetFakes = {do_JetFakes}, type: {type(do_JetFakes)}")
+
     semilep_mode = args.semilep_mode # default is QCD [possible values are Full, QCD, and WJ] (Full is both)
     presentation_mode = args.presentation_mode # default is False, True hides yields and S/B on plots, and combines bkgds
 
