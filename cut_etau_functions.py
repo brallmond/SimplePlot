@@ -3,7 +3,7 @@ import numpy as np # TODO is importing this everywhere slowing things down? does
 from calculate_functions import calculate_mt, calculate_acoplan
 from branch_functions import add_trigger_branches, add_DeepTau_branches
 
-def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_cut="None"):
+def make_etau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_cut="None"):
   '''
   Works similarly to 'make_ditau_cut'. 
   '''
@@ -13,7 +13,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
                  "Tau_dxy", "Tau_dz", "Tau_charge", "Lepton_mass", "Tau_decayMode",
                  "PuppiMET_pt", "PuppiMET_phi", 
                  "Lepton_tauIdx", "Lepton_elIdx", "l1_indices", "l2_indices",
-                 #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe"
+                 "Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe"
                  "CleanJet_btagWP",
                  ]
   unpack_etau = add_DeepTau_branches(unpack_etau, DeepTau_version)
@@ -24,10 +24,11 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
   FS_el_pt, FS_el_eta, FS_el_phi, FS_el_iso, FS_el_dxy, FS_el_dz, FS_el_chg, FS_el_mass = [], [], [], [], [], [], [], []
   FS_tau_pt, FS_tau_eta, FS_tau_phi, FS_tau_dxy, FS_tau_dz, FS_tau_chg, FS_tau_mass, FS_tau_DM = [], [], [], [], [], [], [], []
   FS_dphi_etau, FS_deta_etau = [], []
+  FS_tau_PNet_v_jet, FS_tau_PNet_v_mu, FS_tau_PNet_v_ele = [], [], []
   for i, lep_pt, lep_eta, lep_phi, lep_iso,\
       el_dxy, el_dz, el_chg, el_mass, tau_dxy, tau_dz, tau_chg, tau_mass, tau_decayMode,\
       MET_pt, MET_phi, tau_idx, el_idx,\
-      l1_idx, l2_idx, btag,\
+      l1_idx, l2_idx, PNetvJet, PNetvMu, PNetvEle, btag,\
       vJet, vMu, vEle, trg30el, trg32el, trg35el, crosstrg in zip(*to_check):
 
     # in ETau, electron is always lepton 1 in FS branches, tau is always lepton 2
