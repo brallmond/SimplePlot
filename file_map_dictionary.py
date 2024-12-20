@@ -3,6 +3,8 @@
 # The :testing" file maps are subsets of full filelists for faster processing times.
 
 dataset_dictionary = {"ditau"  : "DataTau", 
+                      #"ditau"  : ["DataTau", "DataVBF"], # only for 2023... this is getting way too complicated
+                      #"ditau"  : "DataVBF",
                       "mutau"  : "DataMuon", 
                       "etau"   : "DataElectron", 
                       "emu"    : "DataEMu",
@@ -63,24 +65,21 @@ def update_data_filemap(luminosity_key, file_map):
     file_map["DataElectron"] = "Data/EGamma_Run2022*"
     file_map["DataEMu"]      = "Data/MuonEG_Run2022*"
   if luminosity_key == "2023 C":
+    file_map["DataVBF"]      = "Data/VBFParking_Run2023*"
     file_map["DataTau"]      = "Data/Tau_Run2023*"
-    file_map["DataMuon"]     = "Data/Muon?_2023*"
-    file_map["DataElectron"] = "Data/EGamma?_2023*"
-    file_map["DataEMu"]      = "Data/MuonEG_2023*"
+    file_map["DataMuon"]     = "Data/Muon_Run2023*"
+    file_map["DataElectron"] = "Data/EGamma_Run2023*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2023*"
   if luminosity_key == "2023 D":
+    file_map["DataVBF"]      = "Data/VBFParking_Run2023*"
     file_map["DataTau"]      = "Data/Tau_Run2023*"
-    file_map["DataMuon"]     = "Data/Muon?_2023*"
-    file_map["DataElectron"] = "Data/EGamma?_2023*"
-    file_map["DataEMu"]      = "Data/MuonEG_2023*"
+    file_map["DataMuon"]     = "Data/Muon_Run2023*"
+    file_map["DataElectron"] = "Data/EGamma_Run2023*"
+    file_map["DataEMu"]      = "Data/MuonEG_Run2023*"
   return file_map 
 
 
 testing_file_map = {
-  "DataTau"      : "Data/Tau_Run*G*",
-  "DataMuon"     : "Data/Muon_Run*G*",
-  "DataElectron" : "Data/EGamma*G*",
-  "DataEMu"      : "Data/MuonEG_Run*G*",
-
   "DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
   "DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
   "DYJetsToLL_M-50_2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
@@ -94,17 +93,19 @@ testing_file_map = {
 # not the entry itself, but the filemapping
 # "entry" : "file/mapping*"
 full_file_map = {
-  # Data
-  "DataTau"      : "Data/Tau_Run*",
-  "DataMuon"     : "Data/Muon_Run*",
-  "DataElectron" : "Data/EGamma_Run*",
-  "DataEMu"      : "Data/MuonEG_Run*",
+  # Data is set above in update_data_filemap()
 
   # Signal
   "ggH_TauTau" : "Signal/ggH_TauTau_Filtered*",
   "VBF_TauTau" : "Signal/VBF_TauTau_Filtered*",
 
   # DY
+  "DYJetsToLL_M10to50"    : "DY/DYJetsToLL_M-10to50_LO_*",
+  "DYJetsToLL_M-50_1J"    : "DY/DY1JetsToLL_M-50_LO*",
+  "DYJetsToLL_M-50_2J"    : "DY/DY2JetsToLL_M-50_LO*",
+  "DYJetsToLL_M-50_3J"    : "DY/DY3JetsToLL_M-50_LO*",
+  "DYJetsToLL_M-50_4J"    : "DY/DY4JetsToLL_M-50_LO*",
+
   "DYJetsToLL_M10to50NLO" : "DY/DYJetsToLL_M-10to50_NLO*",
   "DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
   "DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
