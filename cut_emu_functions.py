@@ -5,7 +5,7 @@ from ROOT import TLorentzVector
 from calculate_functions import calculate_mt_emu 
 from branch_functions import add_trigger_branches
 
-def make_emu_cut(event_dictionary):
+def make_emu_cut(era, event_dictionary):
   '''
   Works similarly to 'make_ditau_cut'.
   Notably, the mutau cuts are more complicated, but it is simple to 
