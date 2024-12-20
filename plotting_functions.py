@@ -143,15 +143,6 @@ def make_two_dimensional_ratio_plot(numerator_dictionary, denominator_dictionary
 
   plt.colorbar(cmesh)
 
-  #print("shape and xbins")
-  #print(ratio_h2d.shape[0])
-  #print(ybins)
-  #print()
-  #print(ratio_h2d.shape[1])
-  #print(xbins)
-  #for i in range(ratio_h2d.shape[0] - 1):
-  #  for j in range(ratio_h2d.shape[1] - 1):
-  #    plt.text(ybins[i], xbins[j], f"{ratio_h2d[i,j]:.2f}", ha='center', va='center')
 
 def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mode, label_suffix):
   eta_phi_by_FS_dict = {"ditau"  : ["FS_t1_eta", "FS_t1_phi", "FS_t2_eta", "FS_t2_phi"],
@@ -168,12 +159,11 @@ def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mo
     make_two_dimensional_plot(process_dictionary[process_name]["PlotEvents"], final_state_mode,
                              "CleanJetGT30_eta_1", "CleanJetGT30_phi_1", add_to_title=label_suffix)
 
+
 def plot_raw(histogram_axis, xbins, input_vals, luminosity,
              color="black", label="Data", marker="o", fillstyle="full"):
-  '''
-  Plotting function for raw values, usually made by pre-processing data/background
-  '''
-  stat_error = np.sqrt(input_vals) # TODO: this isn't necessarily correct
+  """ Plotting function for raw values, usually made by pre-processing data/background """
+  stat_error = np.sqrt(input_vals) # TODO: this is only correct for data or single MC processes with no SFs
   midpoints   = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2 # only works for uniform bin widths
   histogram_axis.errorbar(midpoints, input_vals, xerr=bin_width, yerr=stat_error,
@@ -181,7 +171,7 @@ def plot_raw(histogram_axis, xbins, input_vals, luminosity,
                           linestyle='none', markersize=3)
 
 def blind_region(input_array, allbins, blind_range):
-  # zero-out anything in the blind range
+  """ replace anything in the blind range with zeros"""
   output_array = input_array
   blind_idx = np.where((allbins >= blind_range[0]) & (allbins <= blind_range[1])) # get indices greater/less than range
   output_array[blind_idx] = 0
@@ -194,8 +184,8 @@ def plot_data(histogram_axis, xbins, data_dictionary, luminosity, presentation_m
   '''
   Add the data histogram to the existing histogram axis, computing errors in a simple way.
   For data, since points and error bars are used, they are shifted to the center of the bins.
-  TODO: The error calculation should be followed up and separated to another function. 
   '''
+  # TODO: The error calculation should be followed up and separated to another function. 
   data_info = data_dictionary["Data"]["BinnedEvents"]
   stat_error = np.sqrt(data_dictionary["Data"]["BinnedErrors"])
   sum_of_data = np.sum(data_info)
@@ -206,8 +196,6 @@ def plot_data(histogram_axis, xbins, data_dictionary, luminosity, presentation_m
   histogram_axis.errorbar(midpoints, data_info, xerr=bin_width, yerr=stat_error, 
                           color=color, marker=marker, fillstyle=fillstyle, label=label,
                           linestyle='none', markersize=3)
-  #below plots without error bars
-  #histogram_axis.plot(midpoints, data_info, color="black", marker=marker, linestyle='none', markersize=3, label=label)
 
 
 def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, presentation_mode=False,
@@ -222,7 +210,7 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, presentation_mo
   stack_top   = 0
   for MC_process in stack_dictionary:
     #print(MC_process) # DEBUG
-    if custom == True:  pass
+    if custom == True:  pass # assumes color and label are already set
     else:               color, label, _ = set_MC_process_info(MC_process, luminosity)
     current_hist = stack_dictionary[MC_process]["BinnedEvents"]
     current_hist = np.append(current_hist, 0) # adding empty element to get around step="post" in stackplot
@@ -272,19 +260,7 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
     if ("Fakes" in process) or (process=="myQCD"): scaling = 1
     else: scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
     #if process.startswith("WJets"): scaling = MC_dictionary[process]["plot_scaling"] # Removing XSecMCweight if Stitchweight used instead
-    # TODO: can i remove these lines? do i care if testing still works like that? 
-    # hacky unscaling and rescaling so that "testing" still works
-    if ("C" in lumi_key) or ("D" in lumi_key):
-      scaling *= 1 / luminosities["2022 CD"]
-    elif ("E" in lumi_key) or ("F" in lumi_key) or ("G" in lumi_key):
-      scaling *= 1 / luminosities["2022 EFG"]
-    elif (lumi_key == "2022"):
-      scaling *= 1 / luminosities["2022"]
-    elif (lumi_key == ""):
-      print(f"custom luminosity set to {luminosity} for {process} process")
-    else:
-      print(f"unrecognized lumi_key: {lumi_key}")
-    scaling *= luminosity
+
   if signal:
     #label += " x" + str(MC_dictionary[process]["plot_scaling"])
     label += " x100"
@@ -337,16 +313,16 @@ jet_mode_str = {
     "GTE1j" : "≥1j",
     "GTE2j" : "≥2j",
 }
+
+
 def add_final_state_and_jet_mode(axis, final_state_mode, jet_mode):
-  axis.text(0.05, 0.92, 
-  #axis.text(0.45, -0.045, 
-            final_state_str[final_state_mode] + " : " + jet_mode_str[jet_mode], 
+  axis.text(0.05, 0.92, final_state_str[final_state_mode] + " : " + jet_mode_str[jet_mode], 
             transform=axis.transAxes, fontsize=10)
 
+
 def add_text(axis, text_to_add, loc=[0.05, 0.85], rotation=0, ha="left", va="baseline"):
-  axis.text(loc[0], loc[1], text_to_add,
-            transform=axis.transAxes, fontsize=10, 
-            rotation=rotation, ha=ha, va=va)
+  axis.text(loc[0], loc[1], text_to_add, rotation=rotation, ha=ha, va=va,
+            transform=axis.transAxes, fontsize=10)
 
 
 def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, jet_mode, yrange=None,
@@ -367,38 +343,25 @@ def spruce_up_single_plot(axis, variable_name, ylabel, title, final_state_mode, 
 
 def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_state_mode, jet_mode,
                    set_x_log = False, set_y_log = False):
-  '''
-  Add title and axes labels
-  Additionally:
-    - hide a zero that overlaps with the upper plot.
-    - add a horizontal line at y=1 to the ratio plot
-  '''
+  """ add title, axes labels, copy CMS style plots, add text, and manually handle some possible binnings """
   add_CMS_preliminary(histogram_axis)
   add_final_state_and_jet_mode(histogram_axis, final_state_mode, jet_mode)
   histogram_axis.set_title(title, loc='right', y=0.98)
   histogram_axis.set_ylabel("Events")
   histogram_axis.minorticks_on()
   histogram_axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
-  #yticks = histogram_axis.yaxis.get_major_ticks()
-  #yticks[0].label1.set_visible(false) # hides a zero that overlaps with the upper plot
 
   ylimmin, ylimmax = histogram_axis.get_ylim()
-  # posisble to make multicol, consider part of presentation_mode?
-  # https://www.geeksforgeeks.org/use-multiple-columns-in-a-matplotlib-legend/
   histogram_axis.set_ylim(ylimmin, ylimmax*1.75) # scale up graph so legend fits without crazy overlap
 
-  ratio_plot_axis.set_ylim([0.45, 1.55]) # 0.0, 2.0 also make sense
+  ratio_plot_axis.set_ylim([0.45, 1.55])
   ratio_plot_axis.set_xlabel(variable_name) # shared axis label
   if variable_name == "Trigger Indices":
-    ratio_plot_axis.set_xlabel("") # shared axis label
-    trig_labels = ["DiTau", "DiTau+Jet", "VBFRun3", "VBFRun2"]
-    xpos  = 0.26
-    xstep = 0.18
-    ypos  = -0.35
-    for i,nlabel in enumerate(trig_labels):
-      add_text(ratio_plot_axis, nlabel, loc=[xpos+xstep*i, ypos], rotation=35, ha="center", va="center")
+    ratio_plot_axis.set_xlabel("")
+    ratio_plot_axis.set_xticks([])
+    trig_labels = ["", "DiTau", "DiTau+Jet", "VBFRun3", "VBF+SingleTau"]
+    ratio_plot_axis.set_xticks([-0.5, 0.5, 1.5, 2.5, 3.5], labels=trig_labels, ha="center", fontsize=8)
   if ("Decay Mode" in variable_name) and ("Pair" not in variable_name):
-    flat_map = ["","0","","1","","10","","11",""]
     flat_map = [0, 1, 10, 11]
     ratio_plot_axis.set_xticks(np.arange(len(flat_map)), labels=flat_map, fontsize=10, ha="center")
   if "Tau Pair Decay Mode" in variable_name:
@@ -447,14 +410,10 @@ def spruce_up_unrolled_plot(fig, histogram_axes, ratio_axes, variable_name, titl
     histogram_axis.minorticks_on()
     histogram_axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
 
-  #ylimmin, ylimmax = histogram_axes[0].get_ylim()
-  #for histogram_axis in histogram_axes: # don't do this, it will break
-  #  histogram_axis.set_ylim(ylimmin, ylimmax*1.25) # scale up graph
-
   ratio_axes[0].set_ylabel("Obs. / Exp.")
   ratio_axes[midax].set_xlabel(variable_name) # shared axis label on middle-ish plot
   for ratio_axis in ratio_axes:
-    ratio_axis.set_ylim([0.45, 1.55]) # 0.0, 2.0 also make sense
+    ratio_axis.set_ylim([0.45, 1.55])
     ratio_axis.axhline(y=1, color='grey', linestyle='--')
     ratio_axis.minorticks_on()
     ratio_axis.tick_params(which="both", top=True, bottom=True, right=True, direction="in")
@@ -462,11 +421,9 @@ def spruce_up_unrolled_plot(fig, histogram_axes, ratio_axes, variable_name, titl
     ratio_axis.yaxis.set_major_formatter('{x:.1f}')
     ratio_axis.yaxis.set_minor_locator(plt.MultipleLocator(0.05))
 
-  if (set_y_log == True): # put in loop if you want to use...
+  if (set_y_log == True):
     for histogram_axis in histogram_axes:
       histogram_axis.set_yscale('log')
-    #for ratio_axis in ratio_axes: # almost never will want this
-    #  ratio_axis.set_yscale('log')
   
   handles, labels = histogram_axes[0].get_legend_handles_labels()
   leg = fig.legend(handles, labels, loc="upper center", frameon=False, ncol=len(labels),
@@ -474,22 +431,8 @@ def spruce_up_unrolled_plot(fig, histogram_axes, ratio_axes, variable_name, titl
  
 
 def spruce_up_legend(histogram_axis, final_state_mode):
-  # this post has good advice about moving the legend off the plot
-  # https://stackoverflow.com/questions/4700614/how-to-put-the-legend-outside-the-plot
-  # defaults are here, but using these to mimic ROOT defaults 
-  # https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.legend.html
-  leg = histogram_axis.legend(loc="upper right", frameon=False,
+  leg = histogram_axis.legend(loc="upper right", frameon=False, ncol=2,
                         labelspacing=0.35, handlelength=0.8, handleheight=0.8, handletextpad=0.4)
-
-  if final_state_mode == "dimuon":
-    handles, original_labels = histogram_axis.get_legend_handles_labels()
-    labels, yields = yields_for_CSV(histogram_axis)
-    save_entry = [i for i,yield_ in enumerate(yields) if yield_ != 0]
-    save_handles = [handles[entry] for entry in save_entry]
-    save_labels  = [labels[entry] for entry in save_entry]
-    histogram_axis.legend(save_handles, save_labels)
-    print(f"Legend lables were previously {original_labels}")
-    print("Removed samples with yield=0 from legend!")
 
 
 def make_ratio_plot(ratio_axis, xbins, 
@@ -503,12 +446,12 @@ def make_ratio_plot(ratio_axis, xbins,
   '''
   ratio = numerator_data/denominator_data
   ratio[np.isnan(ratio)] = 0 # numpy idiom to set "nan" values to 0
-  # TODO : technically errors from stack should be individually calculated, not one stack
-  
   # the error bars on a ratio plot of a histogram A divided by a histogram B is:
   # (A/B) * √[ (errA / A)^2 + (errB / B)^2 ]
   # for data, error = √ [N] \ where A and B are simply N events in a bin
   # for MC  , error = √ [ Σ (w)^2] \ where w is "event weights" in a bin
+  # TODO : technically errors from stack should be individually calculated, not one stack
+  # TODO : implement MC errors
   #if (numerator_type=="MC") and (denominator_type=="MC"):
     # ratio error = (A/B) * √ [ ( √ [Σ (w_A)^2] / A)^2 + ( √ [Σ (w_B)^2] / B)^2 ] \
   #if (numerator_type=="Data") and (denominator_type=="MC"):
@@ -519,25 +462,19 @@ def make_ratio_plot(ratio_axis, xbins,
                         if ((denominator_data[i] > 0) and (numerator_data[i] > 0)) else 0
                         for i,_ in enumerate(denominator_data)]) 
   statistical_error[np.isnan(statistical_error)] = 0
-  if no_plot == True:
-    pass
+  if no_plot == True: pass
   else:
     midpoints = get_midpoints(xbins)
     bin_width  = abs(xbins[0:-1]-xbins[1:])/2
     ratio_axis.errorbar(midpoints, ratio, xerr=bin_width, yerr=statistical_error,
                       color=color, marker="o", linestyle='none', markersize=2, label=label)
-
   return ratio, statistical_error
 
 
 def make_bins(variable_name, final_state_mode):
-  '''
-  Information for binning is referenced from a python dictionary in a separate file.
-  '''
-  try: 
-    xbins = binning_dictionary[final_state_mode][variable_name]
-  except KeyError:
-    xbins = binning_dictionary["common"][variable_name]
+  """ Information for binning is referenced from a python dictionary in binning_dictionary.py """
+  try:             xbins = binning_dictionary[final_state_mode][variable_name]
+  except KeyError: xbins = binning_dictionary["common"][variable_name]
   return xbins
 
 
@@ -570,20 +507,19 @@ def adjust_scaling(final_state, process, scaling):
       "TTToSemiLeptonic" : 19,
     },
     "dimuon" : {
-      "DYInc" : 6.482345 # for "New DiMuon DY", whatever that means :)
+      "DYInc" : 6.482345
     },
     "emu" : {
       "TTTo2L2Nu" : 68,
     },
   }
-  try:
-    adjustment_factor = adjustment_dictionary[final_state][process]
-  except KeyError:
-    adjustment_factor = 1
+  try:             adjustment_factor = adjustment_dictionary[final_state][process]
+  except KeyError: adjustment_factor = 1
   return scaling * adjustment_factor
 
 
-def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask=[]):
+def get_binned_info(final_state, testing, process_name, process_variable, variable_name,
+                    xbins, process_weights, luminosity, mask=[]):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
   'scaling' is either set to 1 for data (no scaling) or retrieved from the MC_dictionary.
@@ -596,7 +532,7 @@ def get_binned_info(final_state, testing, process_name, process_variable, xbins,
   if (len(mask) != 0): 
     process_variable = process_variable[mask]
     weights = weights[mask]
-  underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, xbins, weights)
+  underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, variable_name, xbins, weights)
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
   binned_values[0]   += underflow
   binned_values[-1]  += overflow
@@ -606,7 +542,7 @@ def get_binned_info(final_state, testing, process_name, process_variable, xbins,
   return binned_values, binned_weight_2
 
 def get_weight_stats(process_name, process_weights):
-  ''' to be used in get_binned_info as a quick way to quantify process_weights'''
+  """ To be used in get_binned_info as a quick way to quantify process_weights """
   from scipy import stats
   print(f"Average process weight for {process_name}")
   print(np.average(process_weights))
@@ -631,14 +567,7 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     else:
       process_weights = get_MC_weights(process_dictionary, process)
     h_processes[process] = {}
-    #print("process, variable, process_variable, process_weights, process_mask, lengths(var, weights, mask)") # DEBUG
-    #print(process)  # DEBUG
-    #print(variable) # DEBUG
-    #print(process_variable) # DEBUG
-    #print(process_weights)  # DEBUG
-    #print(process_mask) # DEBUG
-    #print(len(process_variable), len(process_weights), len(process_mask)) # DEBUG
-    binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, 
+    binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, variable,
                                                    xbins_, process_weights, lumi_, process_mask)
     h_processes[process]["BinnedEvents"] = binned_values
     h_processes[process]["BinnedErrors"] = binned_errors
@@ -680,7 +609,7 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
 
   # Note: Re-ordering of backgrounds in the stacked histogram can be done here by rearranging the processes in these lists
   if presentation_mode:
-    keep_separate = { # order of these processes determines initial stack order on plot
+    keep_separate = {
       "ditau" : ["JetFakes", "Other", "DY"],
       "mutau" : ["JetFakes", "Other", "DY"],
       "etau"  : ["JetFakes", "Other", "DY"],
@@ -689,7 +618,7 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
   else:
     default_families = ["JetFakes", "TT", "ST", "VV", "DY"] # Note no WJ by default !!
     default_families_WJ = ["JetFakes", "TT", "ST", "VV", "WJ", "DY"]
-    keep_separate = {"ditau" : default_families, "mutau" : default_families, 
+    keep_separate = {"ditau" : default_families, "mutau" : default_families_WJ, 
                      "etau"  : default_families_WJ, "emu"   : default_families}
   MC_by_family = keep_separate[final_state_mode]
 
@@ -704,7 +633,8 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
   background_is_processed = {}
   for MC_process in h_MC_by_process:
     background_is_processed[MC_process] = False
-    if ("Other" in MC_by_family): MC_by_family.remove("Other") # remove so it's not looped over as a family name
+    # if not presentation mode, remove "Other" if it is included by accident
+    if ("Other" in MC_by_family) and (not presentation_mode): MC_by_family.remove("Other")
     for family_name in MC_by_family:
       if   (not background_is_processed[MC_process]) and (family_name in MC_process):
         h_MC_by_family[family_name]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
@@ -717,10 +647,10 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
         h_MC_by_family["VV"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
         background_is_processed[MC_process] = True
       # TODO: Need this below? Wasn't "Other" removed above?
-      #elif (not background_is_processed[MC_process]) and (not np.any([family_name in MC_process for family_name in MC_by_family])):
-      #  h_MC_by_family["Other"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
-      #  h_MC_by_family["Other"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"] # TODO: add in quadrature
-      #  background_is_processed[MC_process] = True
+      elif (not background_is_processed[MC_process]) and (not np.any([family_name in MC_process for family_name in MC_by_family])):
+        h_MC_by_family["Other"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+        h_MC_by_family["Other"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"] # TODO: add in quadrature
+        background_is_processed[MC_process] = True
       else: pass
         # background_is_processed[MC_process] == True OR 
         # current family name doesn't match sample, but a later one does
@@ -735,8 +665,7 @@ def get_summed_backgrounds(h_backgrounds):
   Return a dictionary of summed backgrounds
   Expecting h_backgrounds to be split and binned already
   '''
-  accumulated_values = 0
-  accumulated_errors = 0
+  accumulated_values, accumulated_errors = 0, 0
   for background in h_backgrounds:
     accumulated_values += h_backgrounds[background]["BinnedEvents"]
     accumulated_errors += h_backgrounds[background]["BinnedErrors"]
@@ -789,8 +718,8 @@ final_state_vars = {
     "ditau"  : ["FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_dxy", "FS_t1_dz", "FS_t1_chg", "FS_t1_DM", "FS_t1_mass",
                 "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_dxy", "FS_t2_dz", "FS_t2_chg", "FS_t2_DM", "FS_t2_mass",
                 "FS_t1_flav", "FS_t2_flav", 
-                #"FS_t1_rawPNetVSjet", "FS_t1_rawPNetVSmu", "FS_t1_rawPNetVSe",
-                #"FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
+                "FS_t1_rawPNetVSjet", "FS_t1_rawPNetVSmu", "FS_t1_rawPNetVSe",
+                "FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
                 "FS_t1_DeepTauVSjet", "FS_t1_DeepTauVSmu", "FS_t1_DeepTauVSe", 
                 "FS_t2_DeepTauVSjet", "FS_t2_DeepTauVSmu", "FS_t2_DeepTauVSe", 
                 "FS_trig_idx", "FS_pair_DM",
@@ -805,13 +734,14 @@ final_state_vars = {
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_mass", "FS_tau_DM",
                 "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet", "FS_acoplan",
                 "FS_LeadTkPtOverTau",
-                #"FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
+                "FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
                 "FS_dphi_mutau", "FS_deta_mutau",
                ],
 
     "etau"   : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg", "FS_el_mass",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_mass", "FS_tau_DM",
                 "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet",
+                "FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
                 "FS_dphi_etau", "FS_deta_etau",
                ],
 
@@ -854,12 +784,11 @@ clean_jet_vars = {
 }
 
 def set_vars_to_plot(final_state_mode, jet_mode="none"):
-  '''
-  Helper function to keep plotting variables organized
-  '''
-  # common to all final states
+  """ Helper function to keep plotting variables organized """
+  # these initial variables are common to all final states
   vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mass",
                   "PuppiMET_pt", "PuppiMET_phi", "PV_npvs",
+                  "HTT_H_pt", "HTT_mT_l1l2met",
                  ]
   FS_vars_to_add = final_state_vars[final_state_mode]
   for var in FS_vars_to_add:
