@@ -398,18 +398,22 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
     jetCategories = ["0j", "1j", "GTE2j"] if final_state_mode == "ditau" else ["0j", "GTE1j"]
     for internal_jet_mode in jetCategories:
       temp_JetFakes_dictionary[internal_jet_mode] = produce_FF_weight(setup, fakesLabel, internal_jet_mode, semilep_mode)
+      # note, this will fail and crash if only VBF data is used, because there aren't 0j or 1j modes
       if ("0j" in internal_jet_mode):
         JetFakes_dictionary[fakesLabel]["FF_weight"]  = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]
       else:
         JetFakes_dictionary[fakesLabel]["FF_weight"]  = np.concatenate((JetFakes_dictionary[fakesLabel]["FF_weight"],
                                           temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["FF_weight"]))
+
       for var in vars_to_plot:
         if ("flav" in var) or ("Generator_weight" in var): continue
         if ("0j" in internal_jet_mode): 
           JetFakes_dictionary[fakesLabel]["PlotEvents"][var] = temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["PlotEvents"][var]
         else:
-          JetFakes_dictionary[fakesLabel]["PlotEvents"][var]  = np.concatenate((JetFakes_dictionary[fakesLabel]["PlotEvents"][var],
+          JetFakes_dictionary[fakesLabel]["PlotEvents"][var] = np.concatenate((JetFakes_dictionary[fakesLabel]["PlotEvents"][var],
                                                   temp_JetFakes_dictionary[internal_jet_mode][fakesLabel]["PlotEvents"][var]))
+  elif (do_JetFakes == False): 
+    print("Skip doing jet fakes.")
   else:
     print("Not programmed to handle that case. Crashing now")
   return JetFakes_dictionary
