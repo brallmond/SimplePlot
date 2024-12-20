@@ -1,4 +1,4 @@
-def set_branches(final_state_mode, era, DeepTau_version, process="None"):
+def set_branches(final_state_mode, era, DeepTau_version, process="None", temp_version="None"):
   common_branches = [
     "run", "luminosityBlock", "event", "Generator_weight", "NWEvents", "XSecMCweight",
     "TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull", 
@@ -9,26 +9,34 @@ def set_branches(final_state_mode, era, DeepTau_version, process="None"):
     "HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", 
     "FastMTT_mT", "FastMTT_mass",
     "HTT_pdgId",
-    #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
+    "Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
     "PV_npvs", "Pileup_nPU",
+    "HTT_H_pt", "HTT_mT_l1l2met",
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
     #"HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
     #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
-    "StitchWeight_WJets_NLO",
+    #"StitchWeight_WJets_NLO",
   ]
 
-  if   ("2023" in era): 
-    common_branches.append("HTT_H_pt_using_PUPPI_MET")
-    common_branches.append("HTT_mT_l1l2met_using_PUPPI_MET")
-  elif ("2022" in era): 
-    common_branches.append("HTT_H_pt")
-    common_branches.append("HTT_mT_l1l2met") 
-  else: print(f"Warning, 2022 or 2023 should appear in your 'era' variable. Yours is {era}")
+  # V1 hack
+  #if (temp_version=="V1"):
+  #  common_branches.append("HTT_H_pt_using_PUPPI_MET")
+  #  common_branches.append("HTT_mT_l1l2met_using_PUPPI_MET")
+  #else:
+  #  common_branches.append("HTT_H_pt")
+  #  common_branches.append("HTT_mT_l1l2met") 
+    #else: print(f"Warning, 2022 or 2023 should appear in your 'era' variable. Yours is {era}")
+    #if   ("2023" in era): 
+    #  common_branches.append("HTT_H_pt_using_PUPPI_MET")
+    #  common_branches.append("HTT_mT_l1l2met_using_PUPPI_MET")
+    #elif ("2022" in era): 
+    #  common_branches.append("HTT_H_pt")
+    #  common_branches.append("HTT_mT_l1l2met") 
 
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
   if final_state_mode != ["emu","dimuon"]: branches = add_DeepTau_branches(branches, DeepTau_version)
-  branches = add_trigger_branches(branches, final_state_mode)
+  branches = add_trigger_branches(branches, era, final_state_mode)
   if ("Data" in process): branches.append("FFweight")
   if ("DY" in process): branches = add_Zpt_branches(branches)
   return branches
@@ -75,11 +83,12 @@ def add_final_state_branches(branches_, final_state_mode):
 
 from triggers_dictionary import triggers_dictionary
 
-def add_trigger_branches(branches_, final_state_mode):
+def add_trigger_branches(branches_, era, final_state_mode):
   '''
   Helper function to add HLT branches used by a given final state
   '''
-  for trigger in triggers_dictionary[final_state_mode]:
+  era_year = "2022" if "2022" in era else "2023"
+  for trigger in triggers_dictionary[era_year][final_state_mode]:
     branches_.append(trigger)
   return branches_
 
