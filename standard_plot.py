@@ -10,28 +10,27 @@ import copy
 
 # explicitly import used functions from user files, grouped roughly by call order and relatedness
 # import statements for setup
-from setup import setup_handler, set_good_events
-from branch_functions import set_branches
-from plotting_functions import set_vars_to_plot
+from setup               import setup_handler, set_good_events
+from branch_functions    import set_branches
+from plotting_functions  import set_vars_to_plot
 from file_map_dictionary import set_dataset_info
 
 # import statements for data loading and processing
-from file_functions        import load_process_from_file, append_to_combined_processes, sort_combined_processes
-from FF_functions        import set_JetFakes_process
+from file_functions          import load_process_from_file, append_to_combined_processes, sort_combined_processes
+from FF_functions            import set_JetFakes_process
 from cut_and_study_functions import apply_HTT_FS_cuts_to_process
 from cut_and_study_functions import apply_cut, set_protected_branches
 
 # plotting
-from plotting_functions import get_midpoints, make_eta_phi_plot
 from luminosity_dictionary import luminosities_with_normtag as luminosities
+from plotting_functions    import get_midpoints, make_eta_phi_plot
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals, get_summed_backgrounds
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import setup_single_plot, spruce_up_single_plot, add_text
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart, make_two_dimensional_plot
 from plotting_functions    import make_two_dimensional_ratio_plot
 from plotting_functions    import setup_unrolled_plot, spruce_up_unrolled_plot
-
-from binning_dictionary import label_dictionary
+from binning_dictionary    import label_dictionary
 
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print, print_processing_info
@@ -80,26 +79,31 @@ if __name__ == "__main__":
   # do setup
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut = setup.state_info
-  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time = setup.file_info
+  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time, temp_version = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, presentation_mode = setup.misc_info
   if one_file_at_a_time: import glob
 
   print_setup_info(setup)
   # used for printing, might be different from what is called per process
-  good_events  = set_good_events(final_state_mode, era) 
-  print_processing_info(good_events, "dummy value", "dummy value", log_file)
+  good_events  = set_good_events(final_state_mode, era, non_SR_region=False, temp_version=temp_version)
+  branches     = set_branches(final_state_mode, era, DeepTau_version, "ggH_TauTau", temp_version=temp_version)
+  vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
+  print_processing_info(good_events, branches, vars_to_plot, log_file)
+
+  _, reject_datasets = set_dataset_info(final_state_mode)
+  vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
   for process in file_map: 
 
     # being reset each run, but they're literally strings so who cares
-    _, reject_datasets = set_dataset_info(final_state_mode)
-    vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
-    branches     = set_branches(final_state_mode, era, DeepTau_version, process)
- 
+    branches     = set_branches(final_state_mode, era, DeepTau_version, process, temp_version=temp_version)
+
+    # This line skips Muon_Run* when processing the ditau final state, for example 
     if (process in reject_datasets): continue
 
+    # This line skips WJ backgrounds if the semilep_mode is set to indicate it is already considered in JetFakes
     if ("WJ" in process) and (("WJ" in semilep_mode) or ("Full" in semilep_mode)): continue
 
     if not one_file_at_a_time:
@@ -117,7 +121,7 @@ if __name__ == "__main__":
                                                 data=("Data" in process), testing=testing)
       if new_process_dictionary == None: continue # skip process if empty
 
-      cut_events = apply_HTT_FS_cuts_to_process(process, new_process_dictionary, log_file, final_state_mode, jet_mode,
+      cut_events = apply_HTT_FS_cuts_to_process(era, process, new_process_dictionary, log_file, final_state_mode, jet_mode,
                                                 DeepTau_version, tau_pt_cut)
       if cut_events == None: continue
       '''
@@ -178,7 +182,6 @@ if __name__ == "__main__":
   FF_dictionary = set_JetFakes_process(setup, fakesLabel, semilep_mode)
 
   if (final_state_mode != "dimuon") and (do_JetFakes == True):
-    #background_dictionary["myQCD"] = FF_dictionary["myQCD"] # manually include QCD as background
     background_dictionary[fakesLabel] = FF_dictionary[fakesLabel] # manually include QCD as background
 
   log_print("Processing finished!", log_file, time=True)
@@ -192,11 +195,12 @@ if __name__ == "__main__":
   title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
   title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
  
-  vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  CUSTOM_VARS = True
+  vars_to_plot = [var for var in vars_to_plot if "flav" not in var] # TODO: remove flav from vars to plot (?)
+  CUSTOM_VARS = False
+  if (presentation_mode == True): CUSTOM_VARS = False # always overwrite, you'll want all the plots in this mode
   if CUSTOM_VARS == True:
     if (final_state_mode == "ditau"):
-      vars_to_plot = ["HTT_m_vis", 
+      vars_to_plot = ["HTT_m_vis", "FS_trig_idx",
                     "FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_DM", "FS_t1_mass",
                     "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_DM", "FS_t2_mass",
                     "FS_dphi_t1t2", "FS_deta_t1t2",
@@ -210,6 +214,7 @@ if __name__ == "__main__":
                     "PuppiMET_pt",
                     "FS_mt", "nCleanJetGT30"]
   plots_unrolled = False
+  if (presentation_mode == True): plots_unrolled = True
   if (plots_unrolled == True):
     rolled_vars = ["FastMTT_mass"]
     H_pT_bins = [0, 45, 80, 120, 200, 350, 450]
@@ -265,7 +270,8 @@ if __name__ == "__main__":
             print("haven't styled that variable yet, no text added")
           add_text(stack_n_ax[ith_bin], text, loc=[0.05, 0.90])
 
-        plt.savefig(plot_dir + "/" + "unrolled_TauPtCategory_" + tau_pt_cut + "_" + str(rolled_var) + "-" + str(unrolled_var) + ".png")
+        plt.savefig(plot_dir + "/" + "unrolled_TauPtCategory_" + tau_pt_cut + "_" + str(rolled_var) + "-"
+                    + str(unrolled_var) + ".png", dpi=200)
  
 
   for var in vars_to_plot:
@@ -273,7 +279,6 @@ if __name__ == "__main__":
 
     xbins = make_bins(var, final_state_mode)
     hist_ax, hist_ratio = setup_ratio_plot()
-    #hist_ax = setup_single_plot() # part of removing data
 
     h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
     h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi,
@@ -294,30 +299,12 @@ if __name__ == "__main__":
                     h_data["Data"]["BinnedEvents"], "Data", np.ones(np.shape(h_data)),
                     h_summed_backgrounds["Bkgd"]["BinnedEvents"], "Data", np.ones(np.shape(h_summed_backgrounds)))
    
-    #spruce_up_single_plot(hist_ax, label_dictionary[var], "Events", title, final_state_mode, jet_mode)
     if ("dxy" in var) or ("dz" in var):  hist_ax.set_yscale('log')
     spruce_up_plot(hist_ax, hist_ratio, label_dictionary[var], title, final_state_mode, jet_mode)
     spruce_up_legend(hist_ax, final_state_mode)
 
-    sqrt_SoB = calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
-    text = "" if presentation_mode == True else r'S/$\sqrt{S+B}$ = ' + sqrt_SoB
-    add_text(hist_ax, text)
-
-    plt.savefig(plot_dir + "/" + str(var) + ".png")
+    plt.savefig(plot_dir + "/" + str(var) + ".png", dpi=200)
  
-    #if (var == "HTT_m_vis"): make_pie_chart(h_data, h_backgrounds)
-
-    # calculate and print these quantities only once
-    if (var == "HTT_dR" and False): 
-      desired_order=["Data", "Z", "DY, j", "Z{\rightarrow}ll", "TT", "ST", "W+", "Diboson", "VBF", "ggH", "Fakes"]
-      labels, yields = yields_for_CSV(hist_ax, desired_order)
-      for val_label, val_yield in zip(desired_order, yields):
-        if ("VBF" in val_label): val_yield = val_yield/100.0 # VBF scaling
-        if ("ggH" in val_label): val_yield = val_yield/100.0 # ggH scaling
-        print(f"{val_label}, {val_yield}")
-      log_print(f"Reordered     Labels: {labels}", log_file)
-      log_print(f"Corresponding Yields: {yields}", log_file)
-
   plots_2D = False
   if (plots_2D == True):
     varY = "FS_t2_pt"
@@ -327,7 +314,6 @@ if __name__ == "__main__":
     elif (jet_mode == "1j"):
       list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt", "CleanJetGT30_pt_1"]
       list_binX = [np.linspace(0, 200, 20+1), np.linspace(0, 8, 8+1), np.linspace(0, 500, 20+1), np.linspace(0, 600, 12+1)]
-    #list_of_processes = ["DataTau", "ggH", "VBF", "DY0JNLO", "myQCD"]
     list_of_processes = ["DataTau", "ggH", "VBF"]
     for varX, binX in zip(list_varX, list_binX):
       for single_process in list_of_processes:
@@ -336,7 +322,7 @@ if __name__ == "__main__":
         make_two_dimensional_plot(use_dict[single_process]["PlotEvents"], final_state_mode,
                                   varX, varY, add_to_title=single_process,
                                   alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 14+1))
-        plt.savefig("ditau_2D_plot/" + process + "_" + varX + "_" + varY + ".png")
+        plt.savefig("ditau_2D_plot/" + process + "_" + varX + "_" + varY + ".png", dpi=200)
   
     for varX, binX in zip(list_varX, list_binX):
       make_two_dimensional_ratio_plot(signal_dictionary, data_dictionary,
@@ -344,7 +330,7 @@ if __name__ == "__main__":
                                       final_state_mode, varX, varY, add_to_title="Expected Higgs / √Obs.",
                                       alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 14+1))
                                       #alt_x_bins=binX, alt_y_bins=np.linspace(0, 140, 7+1))
-      plt.savefig("ditau_2D_plot/ratio_" + varX + "_" + varY + ".png")
+      plt.savefig("ditau_2D_plot/ratio_" + varX + "_" + varY + ".png", dpi=200)
 
   print(f"Plots are in {plot_dir}")
   if hide_plots: pass
