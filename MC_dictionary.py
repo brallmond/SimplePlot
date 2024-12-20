@@ -64,15 +64,16 @@ MC_dictionary = {
   # below are real dictionaries for subprocesses          #
   #########################################################
 
-  "ggH_TauTau" : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 100*0.3869}, # Filtered SF
-  "VBF_TauTau" : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 100*0.4216}, # Filtered SF
+  # TODO: UNCOMMENT FOR HLEP V1
+  "ggH_TauTau" : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 100},#*0.3869}, # Filtered SF
+  "VBF_TauTau" : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 100},#*0.4216}, # Filtered SF
 
-  "DYInc"              : {"label": "DYIncLO", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654}, # k-factor to NNLO
-  "DYJetsToLL_M10to50" : {"label": "DY10to50LO", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
-  "DYJetsToLL_M-50_1J" : {"label": "DY1JLO", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
-  "DYJetsToLL_M-50_2J" : {"label": "DY2JLO", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
-  "DYJetsToLL_M-50_3J" : {"label": "DY3JLO", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
-  "DYJetsToLL_M-50_4J" : {"label": "DY4JLO", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},
+  "DYInc"              : {"label": "DYIncLO", "color": color_dictionary["DY"], "plot_scaling" : 3*1.122955654}, # k-factor to NNLO
+  "DYJetsToLL_M10to50" : {"label": "DY10to50LO", "color": color_dictionary["DY"], "plot_scaling" : 3*1}, #1.122955654},
+  "DYJetsToLL_M-50_1J" : {"label": "DY1JLO", "color": color_dictionary["DY"], "plot_scaling" : 3*1.122955654},
+  "DYJetsToLL_M-50_2J" : {"label": "DY2JLO", "color": color_dictionary["DY"], "plot_scaling" : 3*1.122955654},
+  "DYJetsToLL_M-50_3J" : {"label": "DY3JLO", "color": color_dictionary["DY"], "plot_scaling" : 3*1.122955654},
+  "DYJetsToLL_M-50_4J" : {"label": "DY4JLO", "color": color_dictionary["DY"], "plot_scaling" : 3*1.122955654},
 
   # TODO: cleanup this file
   # - properly split the DY contributions without so many copies (similarly for WJ)
@@ -85,7 +86,7 @@ MC_dictionary = {
   "DYJet10to50"    : {"label": "DYJet10to50LO", "color": color_dictionary["DYJet"], "plot_scaling" : 1.12},
 
   "DYIncNLO"              : {"label": "DYIncNLO", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712}, # k-factor to NNLO
-  "DYJetsToLL_M10to50NLO" : {"label": "DY10to50NLO", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
+  "DYJetsToLL_M10to50NLO" : {"label": "DY10to50NLO", "color": color_dictionary["DY"], "plot_scaling" : 1}, #0.992276712},
   "DYJetsToLL_M-50_0JNLO" : {"label": "DY0JNLO", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
   "DYJetsToLL_M-50_1JNLO" : {"label": "DY1JNLO", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
   "DYJetsToLL_M-50_2JNLO" : {"label": "DY2JNLO", "color": color_dictionary["DY"], "plot_scaling" : 0.992276712},
