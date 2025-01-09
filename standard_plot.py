@@ -284,7 +284,7 @@ if __name__ == "__main__":
     # plot everything :)
     blind, blind_range = False, []
     if (var == "HTT_m_vis") or (var == "FastMTT_mass"):
-      blind = True
+      blind = False
       blind_range = [80, 120] if var=="HTT_m_vis" else [110, 150]
     plot_data(   hist_ax, xbins, h_data,        lumi, presentation_mode, blind, blind_range)
     plot_MC(     hist_ax, xbins, h_backgrounds, lumi, presentation_mode)

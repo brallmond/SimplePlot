@@ -358,8 +358,8 @@ binning_dictionary = {
     "HTT_H_pt"                         : np.linspace(0, 300, 30+1),
     "HTT_mT_l1l2met"                   : np.linspace(0, 300, 30+1),
     "HTT_dR"                : np.linspace(0, 6, 60+1),
-    #"HTT_m_vis"             : np.linspace(0, 300, 30+1), # same as KSU binning
-    "HTT_m_vis"             : np.linspace(50, 310, 12+1),
+    "HTT_m_vis"             : np.linspace(0, 300, 30+1), # same as KSU binning
+    #"HTT_m_vis"             : np.linspace(50, 310, 12+1),
     "HTT_m_vis-KSUbinning"  : np.linspace(0, 300, 30+1),
     "HTT_m_vis-SFbinning"   : np.linspace(0, 200, 40+1),
     "HTT_pT_l1l2" : np.linspace(0, 250, 50+1),
@@ -367,7 +367,7 @@ binning_dictionary = {
     "FastMTT_mT"   : np.linspace(0, 400, 40+1),
     #"FastMTT_PUPPIMET_mass" : np.linspace(0, 400, 20+1),
     "FastMTT_PUPPIMET_mass" : np.linspace(50, 290, 12+1),
-    "FastMTT_mass" : np.linspace(50, 290, 12+1),
+    "FastMTT_mass" : np.linspace(50, 300, 25+1),
     "FS_t1_flav" : np.linspace(0, 11, 11+1),
     "FS_t2_flav" : np.linspace(0, 11, 11+1),
     "PV_npvs"    : np.linspace(0, 90, 30+1),
