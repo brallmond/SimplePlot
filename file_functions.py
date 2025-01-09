@@ -111,8 +111,8 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
     if ("FF_weight" in cut_events.keys()):
       combined_processes[process]["FF_weight"] = cut_events["FF_weight"]
 
-  if "WJets" in process:
-    combined_processes[process]["StitchWeight_WJets_NLO"] = cut_events["StitchWeight_WJets_NLO"]
+  #if "WJets" in process:
+  #  combined_processes[process]["StitchWeight_WJets_NLO"] = cut_events["StitchWeight_WJets_NLO"]
     
   for var in vars_to_plot:
     if ("Data" in process) and (("flav" in var) or ("Generator" in var)): continue

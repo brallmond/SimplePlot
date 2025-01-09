@@ -144,8 +144,8 @@ def set_good_events(final_state_mode, era, non_SR_region=False, disable_triggers
   
   good_events =  "(METfilters) & (LeptonVeto==0)"
   jet_vetomaps = ""
-  if ("2023" in era) and any(affected_era in era for affected_era in ["D"]):
-    jet_vetomaps += " & (JetMapVeto_BPix_15GeV)"
+  #if ("2023" in era) and any(affected_era in era for affected_era in ["D"]):
+  #  jet_vetomaps += " & (JetMapVeto_BPix_15GeV)"
   if ("2022" in era) and any(affected_era in era for affected_era in ["E", "F", "G"]):
     jet_vetomaps += " & (JetMapVeto_EE_15GeV)"
   if (final_state_mode == "mutau"):
@@ -167,16 +167,16 @@ def set_good_events(final_state_mode, era, non_SR_region=False, disable_triggers
     if disable_triggers: good_events = good_events.replace(" & (Trigger_ditau)", "")
 
   elif final_state_mode == "mutau":
-    good_events += " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
-    if disable_triggers: good_events = good_events.replace(" & (Trigger_mutau)", "")
+    good_events += " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau | Trigger_SingleMuon)"
+    if disable_triggers: good_events = good_events.replace(" & (Trigger_mutau | Trigger_SingleMuon)", "")
 
   elif final_state_mode == "etau":
-    good_events += " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
-    if disable_triggers: good_events = good_events.replace(" & (Trigger_etau)", "")
+    good_events += " & (abs(HTT_pdgId)==11*15) & (Trigger_etau | Trigger_SingleElectron)"
+    if disable_triggers: good_events = good_events.replace(" & (Trigger_etau | Trigger_SingleElectron)", "")
 
   elif final_state_mode == "emu":
-    good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) "
-    if disable_triggers: good_events = good_events.replace(" & (Trigger_emu)", "")
+    good_events += " & (abs(HTT_pdgId)==11*13) & (Trigger_emu | Trigger_mue) "
+    if disable_triggers: good_events = good_events.replace(" & (Trigger_emu | Trigger_mue)", "")
 
   elif final_state_mode == "dimuon":
     # lepton veto must be applied manually for this final state

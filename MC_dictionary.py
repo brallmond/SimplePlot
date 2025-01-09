@@ -64,8 +64,8 @@ MC_dictionary = {
   # below are real dictionaries for subprocesses          #
   #########################################################
 
-  "ggH_TauTau" : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 100*0.3869}, # Filtered SF
-  "VBF_TauTau" : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 100*0.4216}, # Filtered SF
+  "ggH_TauTau" : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 100},
+  "VBF_TauTau" : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 100},
 
   "DYInc"              : {"label": "DYIncLO", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654}, # k-factor to NNLO
   "DYJetsToLL_M10to50" : {"label": "DY10to50LO", "color": color_dictionary["DY"], "plot_scaling" : 1.122955654},

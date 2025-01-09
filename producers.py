@@ -14,9 +14,9 @@ import gc
 def set_AR_region(final_state_mode, era):
   common_selection = set_good_events(final_state_mode, era, non_SR_region=True)
   AR_region_ditau  = common_selection + " & (abs(HTT_pdgId)==15*15) & (Trigger_ditau | Trigger_ditauplusjet | Trigger_VBFditau)"
-  AR_region_mutau  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)"
-  AR_region_etau   = common_selection + " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)"
-  AR_region_emu    = common_selection + " & (abs(HTT_pdgId)==11*13) & (Trigger_emu)"
+  AR_region_mutau  = common_selection + " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau | Trigger_SingleMuon)"
+  AR_region_etau   = common_selection + " & (abs(HTT_pdgId)==11*15) & (Trigger_etau | Trigger_SingleElectron)"
+  AR_region_emu    = common_selection + " & (abs(HTT_pdgId)==11*13) & (Trigger_emu | Trigger_mue)"
   AR_region_dimuon = common_selection + " & (abs(HTT_pdgId)==13*13) & (HLT_IsoMu24)"
 
   AR_region_dictionary = {"ditau" : AR_region_ditau, "mutau" : AR_region_mutau, 

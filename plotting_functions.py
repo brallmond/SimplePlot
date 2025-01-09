@@ -274,17 +274,17 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
     #if process.startswith("WJets"): scaling = MC_dictionary[process]["plot_scaling"] # Removing XSecMCweight if Stitchweight used instead
     # TODO: can i remove these lines? do i care if testing still works like that? 
     # hacky unscaling and rescaling so that "testing" still works
-    if ("C" in lumi_key) or ("D" in lumi_key):
-      scaling *= 1 / luminosities["2022 CD"]
-    elif ("E" in lumi_key) or ("F" in lumi_key) or ("G" in lumi_key):
-      scaling *= 1 / luminosities["2022 EFG"]
-    elif (lumi_key == "2022"):
-      scaling *= 1 / luminosities["2022"]
-    elif (lumi_key == ""):
-      print(f"custom luminosity set to {luminosity} for {process} process")
-    else:
-      print(f"unrecognized lumi_key: {lumi_key}")
-    scaling *= luminosity
+    #if ("C" in lumi_key) or ("D" in lumi_key):
+    #  scaling *= 1 / luminosities["2022 CD"]
+    #elif ("E" in lumi_key) or ("F" in lumi_key) or ("G" in lumi_key):
+    #  scaling *= 1 / luminosities["2022 EFG"]
+    #elif (lumi_key == "2022"):
+    #  scaling *= 1 / luminosities["2022"]
+    #elif (lumi_key == ""):
+    #  print(f"custom luminosity set to {luminosity} for {process} process")
+    #else:
+    #  print(f"unrecognized lumi_key: {lumi_key}")
+    #scaling *= luminosity
   if signal:
     #label += " x" + str(MC_dictionary[process]["plot_scaling"])
     label += " x100"
@@ -859,8 +859,8 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   '''
   # common to all final states
   vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mass",
-                  "PuppiMET_pt", "PuppiMET_phi", "PV_npvs",
-                 ]
+                  "PuppiMET_pt", "PuppiMET_phi", "PV_npvs", "HTT_H_pt",
+                 ] 
   FS_vars_to_add = final_state_vars[final_state_mode]
   for var in FS_vars_to_add:
     vars_to_plot.append(var)

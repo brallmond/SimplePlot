@@ -57,7 +57,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
     dphi_etau = np.acos(np.cos(elPhi - tauPhi))
     deta_etau = abs(elEta - tauEta)
 
-    passTauPtAndEta  = ((tauPt > 30.0) and (abs(tauEta) < 2.5))
+    passTauPtAndEta  = ((tauPt > 25.0) and (abs(tauEta) < 2.5))
     pass31ElPt   = ((trg30el) and (elPt > 31.0) and (abs(elEta) < 2.5))
     pass33ElPt   = ((trg32el) and (elPt > 33.0) and (abs(elEta) < 2.5))
     pass36ElPt   = ((trg35el) and (elPt > 36.0) and (abs(elEta) < 2.5))
@@ -137,7 +137,7 @@ def make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau=False, tau_pt_
   event_dictionary["FS_dphi_etau"] = np.array(FS_dphi_etau)
   event_dictionary["FS_deta_etau"] = np.array(FS_deta_etau)
   nEvents_postcut = len(np.array(pass_cuts))
-  print(f"nEvents before and after ditau cuts = {nEvents_precut}, {nEvents_postcut}")
+  print(f"nEvents before and after etau cuts = {nEvents_precut}, {nEvents_postcut}")
   return event_dictionary
 
 # no longer used?
