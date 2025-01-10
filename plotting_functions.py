@@ -583,7 +583,7 @@ def adjust_scaling(final_state, process, scaling):
   return scaling * adjustment_factor
 
 
-def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask=[]):
+def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask=[], variable=""):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
   'scaling' is either set to 1 for data (no scaling) or retrieved from the MC_dictionary.
@@ -596,7 +596,7 @@ def get_binned_info(final_state, testing, process_name, process_variable, xbins,
   if (len(mask) != 0): 
     process_variable = process_variable[mask]
     weights = weights[mask]
-  underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, xbins, weights)
+  underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, xbins, weights, variable)
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
   binned_values[0]   += underflow
   binned_values[-1]  += overflow
@@ -639,7 +639,7 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     #print(process_mask) # DEBUG
     #print(len(process_variable), len(process_weights), len(process_mask)) # DEBUG
     binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, 
-                                                   xbins_, process_weights, lumi_, process_mask)
+                                                   xbins_, process_weights, lumi_, process_mask, variable)
     h_processes[process]["BinnedEvents"] = binned_values
     h_processes[process]["BinnedErrors"] = binned_errors
   return h_processes

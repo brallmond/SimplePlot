@@ -384,10 +384,7 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   _, final_state_mode, jet_mode, era, _, _ = setup.state_info # TODO this needs to come from somewhere else
   _, _, _, do_JetFakes, _, _, _ = setup.misc_info
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
-  if (jet_mode != "Inclusive") and (do_JetFakes==True):
-    JetFakes_dictionary = produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode)
-    return JetFakes_dictionary
-  elif (final_state_mode == "emu") and (do_JetFakes == True):
+  if ((jet_mode != "Inclusive") or (final_state_mode in ["emu", "etau"])) and (do_JetFakes==True):
     JetFakes_dictionary = produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode)
     return JetFakes_dictionary
   elif (jet_mode == "Inclusive") and (do_JetFakes==True):
