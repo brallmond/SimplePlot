@@ -36,6 +36,8 @@ from binning_dictionary import label_dictionary
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print, print_processing_info
 
+from make_fitter_shapes    import save_fitter_shapes
+
 def make_masks_per_bin(input_dictionary, var, binning):
   passing_var_bins_dict = {}
   for process in input_dictionary.keys():
@@ -200,14 +202,14 @@ if __name__ == "__main__":
                     "FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_DM", "FS_t1_mass",
                     "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_DM", "FS_t2_mass",
                     "FS_dphi_t1t2", "FS_deta_t1t2",
-                    "PuppiMET_pt",
+                    "PuppiMET_pt", "HTT_H_pt",
                     "nCleanJetGT30"]
     if (final_state_mode == "mutau"):
       vars_to_plot = ["HTT_m_vis", 
                     "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_mass", "FS_tau_DM",
                     "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", 
                     "FS_dphi_mutau", "FS_deta_mutau",
-                    "PuppiMET_pt",
+                    "PuppiMET_pt", "HTT_H_pt",
                     "FS_mt", "nCleanJetGT30"]
   plots_unrolled = False
   if (plots_unrolled == True):
@@ -284,7 +286,7 @@ if __name__ == "__main__":
     # plot everything :)
     blind, blind_range = False, []
     if (var == "HTT_m_vis") or (var == "FastMTT_mass"):
-      blind = True
+      blind = False
       blind_range = [80, 120] if var=="HTT_m_vis" else [110, 150]
     plot_data(   hist_ax, xbins, h_data,        lumi, presentation_mode, blind, blind_range)
     plot_MC(     hist_ax, xbins, h_backgrounds, lumi, presentation_mode)
@@ -349,5 +351,7 @@ if __name__ == "__main__":
   print(f"Plots are in {plot_dir}")
   if hide_plots: pass
   else: plt.show()
+
+  save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, FF_dictionary, fakesLabel, testing, lumi)
 
 

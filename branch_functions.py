@@ -11,19 +11,21 @@ def set_branches(final_state_mode, era, DeepTau_version, process="None"):
     "HTT_pdgId",
     #"Tau_rawPNetVSjet", "Tau_rawPNetVSmu", "Tau_rawPNetVSe",
     "PV_npvs", "Pileup_nPU",
+    "HTT_H_pt",
+    "HTT_mT_l1l2met",
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
-    #"HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
+    "HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
     #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
-    "StitchWeight_WJets_NLO",
+    #"StitchWeight_WJets_NLO",
   ]
 
-  if   ("2023" in era): 
-    common_branches.append("HTT_H_pt_using_PUPPI_MET")
-    common_branches.append("HTT_mT_l1l2met_using_PUPPI_MET")
-  elif ("2022" in era): 
-    common_branches.append("HTT_H_pt")
-    common_branches.append("HTT_mT_l1l2met") 
-  else: print(f"Warning, 2022 or 2023 should appear in your 'era' variable. Yours is {era}")
+  #if   ("2023" in era): 
+  #  common_branches.append("HTT_H_pt_using_PUPPI_MET")
+  #  common_branches.append("HTT_mT_l1l2met_using_PUPPI_MET")
+  #elif ("2022" in era): 
+  #  common_branches.append("HTT_H_pt")
+  #  common_branches.append("HTT_mT_l1l2met") 
+  #else: print(f"Warning, 2022 or 2023 should appear in your 'era' variable. Yours is {era}")
 
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
@@ -63,7 +65,7 @@ def add_final_state_branches(branches_, final_state_mode):
                 "Lepton_elIdx", "Lepton_muIdx",
                 "PuppiMET_pt", "PuppiMET_phi", "Lepton_tauIdx", 
                 "Electron_mass", "Muon_mass",
-                "CleanJet_btagWP", "HTT_DZeta"],
+                "CleanJet_btagWP", "HTT_DZeta", "HTT_mT_l1l2met"],
   }
 
   branch_to_add = final_state_branches[final_state_mode]

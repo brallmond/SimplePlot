@@ -274,17 +274,17 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
     #if process.startswith("WJets"): scaling = MC_dictionary[process]["plot_scaling"] # Removing XSecMCweight if Stitchweight used instead
     # TODO: can i remove these lines? do i care if testing still works like that? 
     # hacky unscaling and rescaling so that "testing" still works
-    if ("C" in lumi_key) or ("D" in lumi_key):
-      scaling *= 1 / luminosities["2022 CD"]
-    elif ("E" in lumi_key) or ("F" in lumi_key) or ("G" in lumi_key):
-      scaling *= 1 / luminosities["2022 EFG"]
-    elif (lumi_key == "2022"):
-      scaling *= 1 / luminosities["2022"]
-    elif (lumi_key == ""):
-      print(f"custom luminosity set to {luminosity} for {process} process")
-    else:
-      print(f"unrecognized lumi_key: {lumi_key}")
-    scaling *= luminosity
+    #if ("C" in lumi_key) or ("D" in lumi_key):
+    #  scaling *= 1 / luminosities["2022 CD"]
+    #elif ("E" in lumi_key) or ("F" in lumi_key) or ("G" in lumi_key):
+    #  scaling *= 1 / luminosities["2022 EFG"]
+    #elif (lumi_key == "2022"):
+    #  scaling *= 1 / luminosities["2022"]
+    #elif (lumi_key == ""):
+    #  print(f"custom luminosity set to {luminosity} for {process} process")
+    #else:
+    #  print(f"unrecognized lumi_key: {lumi_key}")
+    #scaling *= luminosity
   if signal:
     #label += " x" + str(MC_dictionary[process]["plot_scaling"])
     label += " x100"
@@ -583,7 +583,7 @@ def adjust_scaling(final_state, process, scaling):
   return scaling * adjustment_factor
 
 
-def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask=[]):
+def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask=[], variable=""):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
   'scaling' is either set to 1 for data (no scaling) or retrieved from the MC_dictionary.
@@ -596,7 +596,7 @@ def get_binned_info(final_state, testing, process_name, process_variable, xbins,
   if (len(mask) != 0): 
     process_variable = process_variable[mask]
     weights = weights[mask]
-  underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, xbins, weights)
+  underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, xbins, weights, variable)
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
   binned_values[0]   += underflow
   binned_values[-1]  += overflow
@@ -639,7 +639,7 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     #print(process_mask) # DEBUG
     #print(len(process_variable), len(process_weights), len(process_mask)) # DEBUG
     binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, 
-                                                   xbins_, process_weights, lumi_, process_mask)
+                                                   xbins_, process_weights, lumi_, process_mask, variable)
     h_processes[process]["BinnedEvents"] = binned_values
     h_processes[process]["BinnedErrors"] = binned_errors
   return h_processes
@@ -687,8 +687,8 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
       "emu"   : ["JetFakes", "TT", "Other", "DY"],
     }
   else:
-    default_families = ["JetFakes", "TT", "ST", "VV", "DY"] # Note no WJ by default !!
-    default_families_WJ = ["JetFakes", "TT", "ST", "VV", "WJ", "DY"]
+    default_families = ["JetFakes", "TT", "ST", "VV", "DY", "HWW"] # Note no WJ by default !!
+    default_families_WJ = ["JetFakes", "TT", "ST", "VV", "WJ", "DY", "HWW"]
     keep_separate = {"ditau" : default_families, "mutau" : default_families, 
                      "etau"  : default_families_WJ, "emu"   : default_families}
   MC_by_family = keep_separate[final_state_mode]
@@ -709,6 +709,12 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
       if   (not background_is_processed[MC_process]) and (family_name in MC_process):
         h_MC_by_family[family_name]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family[family_name]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
+        background_is_processed[MC_process] = True
+      elif ( (not background_is_processed[MC_process]) 
+            and (np.any([hww_tag in MC_process for hww_tag in ["ggH_WW", "VBF_WW", "ttH_nonbb_WW"]]))
+            and (not presentation_mode) ): # special handling for HWW when not in presentation mode
+        h_MC_by_family["HWW"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+        h_MC_by_family["HWW"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
         background_is_processed[MC_process] = True
       elif ( (not background_is_processed[MC_process]) 
             and (np.any([diboson_tag in MC_process for diboson_tag in ["WW", "WZ", "ZZ"]]))
@@ -859,8 +865,10 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
   '''
   # common to all final states
   vars_to_plot = ["HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", "FastMTT_mass",
-                  "PuppiMET_pt", "PuppiMET_phi", "PV_npvs",
+                  "PuppiMET_pt", "PuppiMET_phi", "PV_npvs", "HTT_H_pt",
                  ]
+  # Just added for the sake of have this variable available in "make_fitter_shapes.py"
+  vars_to_plot += ["HTT_DiJet_MassInv_fromLeadingJets"]
   FS_vars_to_add = final_state_vars[final_state_mode]
   for var in FS_vars_to_add:
     vars_to_plot.append(var)
