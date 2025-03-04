@@ -24,13 +24,13 @@ def make_pie_chart(data_hist, MC_dictionary, use_data=False, use_fakes=False):
           colors.append(color)
       # add Data - MC
       total_sum = np.sum(sums)
-      disagreement = np.sum(data_hist) - total_sum
+      disagreement = np.sum(data_hist["Data"]["BinnedEvents"]) - total_sum
       if (disagreement > 0):
         sums.append(disagreement)
         labels.append("Data-MC")
         colors.append("Grey")
       if (use_data == True):
-        sums = [np.sum(data_hist)]
+        sums = [np.sum(data_hist["Data"]["BinnedEvents"])]
         labels = ["Data"]
         colors = ["White"]
       fig, ax = plt.subplots()
@@ -39,6 +39,7 @@ def make_pie_chart(data_hist, MC_dictionary, use_data=False, use_fakes=False):
 
 def make_fraction_all_events(axis, xbins, h_data, h_backgrounds):
   color_array, label_array, percent_stack_array = [], [], []
+  h_data = h_data["Data"]["BinnedEvents"]
   percent_QCD = np.ones(np.shape(h_data))
   for process in h_backgrounds.keys():
     color, label, _ = set_MC_process_info(process, luminosity=-1)
@@ -59,6 +60,7 @@ def make_fraction_all_events(axis, xbins, h_data, h_backgrounds):
 def make_fraction_fakes(axis, xbins, h_data, h_backgrounds, fake_processes=["TT", "WJ", "DYJet"]):
   color_array, label_array = [], []
   fakes_percent = []
+  h_data = h_data["Data"]["BinnedEvents"]
   h_fakes_total = np.zeros(np.shape(h_data))
   h_bkgd_total = np.zeros(np.shape(h_data))
   for process in h_backgrounds.keys():
@@ -171,7 +173,7 @@ def plot_raw(histogram_axis, xbins, input_vals, luminosity,
                           linestyle='none', markersize=3)
 
 def blind_region(input_array, allbins, blind_range):
-  """ replace anything in the blind range with zeros"""
+  """ replace anything in the blind range with zeros """
   output_array = input_array
   blind_idx = np.where((allbins >= blind_range[0]) & (allbins <= blind_range[1])) # get indices greater/less than range
   output_array[blind_idx] = 0
@@ -198,7 +200,7 @@ def plot_data(histogram_axis, xbins, data_dictionary, luminosity, presentation_m
                           linestyle='none', markersize=3)
 
 
-def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, presentation_mode=False,
+def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, extra_hist=0, presentation_mode=False,
             custom=False, color="default", label="MC", fill=True):
   '''
   Add background MC histograms to the existing histogram axis. The input 'stack_dictionary'
@@ -208,6 +210,15 @@ def plot_MC(histogram_axis, xbins, stack_dictionary, luminosity, presentation_mo
   color_array, label_array, stack_array = [], [], []
   total_error = 0
   stack_top   = 0
+  if (np.sum(extra_hist) != 0):
+    color, label, _ = set_MC_process_info("JetFakes", luminosity) # TODO: remove luminosity from Set_MC_process and propagate
+    extra_hist = np.append(extra_hist, 0)
+    stack_top += extra_hist
+    #total_error += extra_error?
+    label += "" if presentation_mode else f" [{np.sum(extra_hist):>.0f}]"
+    color_array.append(color)
+    label_array.append(label)
+    stack_array.append(extra_hist)
   for MC_process in stack_dictionary:
     #print(MC_process) # DEBUG
     if custom == True:  pass # assumes color and label are already set
@@ -237,11 +248,25 @@ def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity, presentati
   Similar to plot_MC, except signals are not stacked, and the 'stair' method
   of matplotlib DOES expect histogram data, so no adjustment to xbins is necessary.
   '''
+  # combine VH processes
+  first_key = list(signal_dictionary)[0]
+  signal_dictionary["VH"] = {}
+  signal_dictionary["VH"]["BinnedEvents"] = np.zeros(len(signal_dictionary[first_key]["BinnedEvents"]))
+  signal_dictionary["VH"]["BinnedErrors"] = np.zeros(len(signal_dictionary[first_key]["BinnedErrors"]))
+  for signal in signal_dictionary:
+    if (("WpH" in signal) or ("WmH" in signal) or ("ZH" in signal)):
+      signal_dictionary["VH"]["BinnedEvents"] += signal_dictionary[signal]["BinnedEvents"]
+    else: pass
+  del signal_dictionary["WpH_TauTau"]
+  del signal_dictionary["WmH_TauTau"]
+  del signal_dictionary["ZH_TauTau"]
+  # end VH combining, now normal plotting
   for signal in signal_dictionary:
     if custom == True:
       pass
     else:
-      color, label, _ = set_MC_process_info(signal, luminosity, scaling=True, signal=True)
+      # scaling has already been applied in this case, so we just get the color and label, turing scaling off
+      color, label, _ = set_MC_process_info(signal, luminosity, scaling=False, signal=True)
     current_hist = signal_dictionary[signal]["BinnedEvents"]
     label += "" if presentation_mode else f" [{np.sum(current_hist):>.0f}]"
     stairs = histogram_axis.stairs(current_hist, xbins, color=color, label=label, fill=False)
@@ -252,18 +277,17 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
   Obtain process-specific styling and scaling information.
   MC_dictionary is maintained in a separate file.
   '''
+  #print(f"Setting MC process info for: {process}") # DEBUG
   if "alt" in process: process = process.replace("_alt","")
   color = MC_dictionary[process]["color"]
   label = MC_dictionary[process]["label"]
-  lumi_key = "" if "QCD" in process else [key for key in luminosities.items() if key[1] == luminosity][0][0]
   if scaling:
     if ("Fakes" in process) or (process=="myQCD"): scaling = 1
-    else: scaling = MC_dictionary[process]["XSecMCweight"] * MC_dictionary[process]["plot_scaling"]
+    else: scaling = MC_dictionary[process]["plot_scaling"]
     #if process.startswith("WJets"): scaling = MC_dictionary[process]["plot_scaling"] # Removing XSecMCweight if Stitchweight used instead
 
   if signal:
-    #label += " x" + str(MC_dictionary[process]["plot_scaling"])
-    label += " x100"
+    label += " x" + str(MC_dictionary[process]["plot_scaling"])
   return (color, label, scaling)
 
 
@@ -275,6 +299,10 @@ def setup_ratio_plot():
   gs = gridspec_kw = {'height_ratios': [4, 1], 'hspace': 0.09}
   fig, (upper_ax, lower_ax) = plt.subplots(nrows=2, sharex=True, gridspec_kw=gridspec_kw)
   return (upper_ax, lower_ax)
+
+def setup_side_by_side_plot():
+  fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(14, 5))
+  return ax_left, ax_right
 
 
 def setup_single_plot():
@@ -359,8 +387,12 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
   if variable_name == "Trigger Indices":
     ratio_plot_axis.set_xlabel("")
     ratio_plot_axis.set_xticks([])
-    trig_labels = ["", "DiTau", "DiTau+Jet", "VBFRun3", "VBF+SingleTau"]
-    ratio_plot_axis.set_xticks([-0.5, 0.5, 1.5, 2.5, 3.5], labels=trig_labels, ha="center", fontsize=8)
+    if (final_state_mode == "ditau"):
+      trig_labels = ["", "DiTau", "DiTau+Jet", "VBFRun3", "VBF+SingleTau"]
+      ratio_plot_axis.set_xticks([-0.5, 0.5, 1.5, 2.5, 3.5], labels=trig_labels, ha="center", fontsize=8)
+    elif (final_state_mode == "mutau"):
+      trig_labels = ["", "SingleMu", "MuTau", "VBF+SingleTau", "VBF+SingleMu"]
+      ratio_plot_axis.set_xticks([-0.5, 0.5, 1.5, 2.5, 3.5], labels=trig_labels, ha="center", fontsize=8)
   if ("Decay Mode" in variable_name) and ("Pair" not in variable_name):
     flat_map = [0, 1, 10, 11]
     ratio_plot_axis.set_xticks(np.arange(len(flat_map)), labels=flat_map, fontsize=10, ha="center")
@@ -391,7 +423,6 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
 
 def spruce_up_unrolled_plot(fig, histogram_axes, ratio_axes, variable_name, title, final_state_mode, jet_mode, tau_pt_cut,
                             set_x_log = False, set_y_log = False):
-
   vals = {
    "ditau" : { "None" : [], "Low" : [25, 50],  "Mid" : [50, 70],  "High" : [70, 10000]  },
    "mutau" : { "None" : [], "Low" : [30, 50],  "Mid" : [50, 70],  "High" : [70, 10000]  },
@@ -526,7 +557,9 @@ def get_binned_info(final_state, testing, process_name, process_variable, variab
   Underflows and overflows are included in the first and final bins of the output histogram by default.
   Note: 'process_variable' is a list of events
   '''
-  scaling = 1 if "Data" in process_name else set_MC_process_info(process_name, luminosity, scaling=True)[2]
+  skip_scaling = ("Data" in process_name) or ("Fakes" in process_name)
+  scaling = 1 if skip_scaling else set_MC_process_info(process_name, luminosity, scaling=True)[2] # used to get XSecMCweight
+  # now does nothing, remove
   if testing == True: scaling = adjust_scaling(final_state, process_name, scaling)
   weights = scaling * process_weights
   if (len(mask) != 0): 
@@ -555,15 +588,27 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
   This is written to only get on process at a time. Other functions combine the processes when necessary.
   '''
   h_processes = {}
-
   for process in process_dictionary:
+    #print(process) # DEBUG
     process_variable = process_dictionary[process]["PlotEvents"][variable]
     process_mask = mask[process][mask_n] if mask_n != 999 else []
     if len(process_variable) == 0: continue
-    if "Data" in process:
-      process_weights = np.ones(np.shape(process_variable)) # weights of one for data
-    elif ("Fakes" in process) or (process == "myQCD"):
-      process_weights = process_dictionary[process]["FF_weight"]
+    if ("Data" in process) and ("Fakes" not in process):
+      process_weights = np.ones(np.shape(process_variable)) # weights of one for data if not part of fakes estimate
+    elif ("Data" in process) and ("Fakes" in process):
+      print(f"Fakes process having weights set: {process}")
+      # define process weights directly for Data
+      FF_weightQCD = process_dictionary[process]["FFweight_QCD"]*process_dictionary[process]["FFweight_FractionQCD"]
+      FF_weightWJ = process_dictionary[process]["FFweight_WJ"]*(1-process_dictionary[process]["FFweight_FractionQCD"])
+      process_weights = FF_weightQCD + FF_weightWJ
+      #process_weights = get_MC_weights(process_dictionary, process, add_weights=FF_weight)
+    elif ("Data" not in process) and (("Fakes" in process) or (process == "myQCD")):
+      # for signal and MC, get process weights as an option in the set_MC_weights function
+      try:
+        process_weights = get_MC_weights(process_dictionary, process, useFFweights=True)
+      except KeyError: # V3 and lower, preserving old behavior
+        process_weights = process_dictionary[process]["FF_weight"]
+        #process_weights = get_MC_weights(process_dictionary, process)
     else:
       process_weights = get_MC_weights(process_dictionary, process)
     h_processes[process] = {}
@@ -611,14 +656,16 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
   if presentation_mode:
     keep_separate = {
       "ditau" : ["JetFakes", "Other", "DY"],
-      "mutau" : ["JetFakes", "Other", "DY"],
-      "etau"  : ["JetFakes", "Other", "DY"],
+      "mutau" : ["JetFakes", "Other", "NLODYGen", "NLODYLep", "NLODYJet"],
+      "etau" : ["JetFakes", "Other", "NLODYGen", "NLODYLep", "NLODYJet"],
+      #"etau"  : ["JetFakes", "Other", "DY"],
       "emu"   : ["JetFakes", "TT", "Other", "DY"],
     }
   else:
-    default_families = ["JetFakes", "TT", "ST", "VV", "DY"] # Note no WJ by default !!
-    default_families_WJ = ["JetFakes", "TT", "ST", "VV", "WJ", "DY"]
-    keep_separate = {"ditau" : default_families, "mutau" : default_families_WJ, 
+    default_families = ["JetFakes", "TT", "ST", "VV", "NLODYGen", "NLODYLep", "NLODYJet", "Other"] # Note no WJ by default !! 
+    default_families_WJ = ["JetFakes", "TT", "ST", "VV", "WJ", "NLODYGen", "NLODYLep", "NLODYJet", "Other"]
+    #keep_separate = {"ditau" : default_families, "mutau" : default_families_WJ, 
+    keep_separate = {"ditau" : default_families_WJ, "mutau" : default_families_WJ, # include WJ for ditau for FF control plots
                      "etau"  : default_families_WJ, "emu"   : default_families}
   MC_by_family = keep_separate[final_state_mode]
 
@@ -633,9 +680,8 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
   background_is_processed = {}
   for MC_process in h_MC_by_process:
     background_is_processed[MC_process] = False
-    # if not presentation mode, remove "Other" if it is included by accident
-    if ("Other" in MC_by_family) and (not presentation_mode): MC_by_family.remove("Other")
     for family_name in MC_by_family:
+      #print(family_name) # DEBUG
       if   (not background_is_processed[MC_process]) and (family_name in MC_process):
         h_MC_by_family[family_name]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family[family_name]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
@@ -646,17 +692,23 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
         h_MC_by_family["VV"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family["VV"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
         background_is_processed[MC_process] = True
-      # TODO: Need this below? Wasn't "Other" removed above?
       elif (not background_is_processed[MC_process]) and (not np.any([family_name in MC_process for family_name in MC_by_family])):
         h_MC_by_family["Other"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family["Other"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"] # TODO: add in quadrature
         background_is_processed[MC_process] = True
-      else: pass
+      else: 
+        pass
         # background_is_processed[MC_process] == True OR 
         # current family name doesn't match sample, but a later one does
         # for example, MC_process = DY0JNLO , but it has to go through families JetFakes, TT, ST, VV before DY
+      #print(background_is_processed) # DEBUG
   for process_key, is_processed in background_is_processed.items():
     if (not is_processed): print(f"Warning! {process_key} wasn't processed! It's not part of the plot!")
+  for family_name in MC_by_family:
+    checksum = np.sum(h_MC_by_family[family_name]["BinnedEvents"])
+    if (checksum == 0): 
+      #print(f"MC family {family_name} has no events") # DEBUG
+      del h_MC_by_family[family_name]
 
   return h_MC_by_family
 
@@ -681,7 +733,7 @@ def get_binned_signals(final_state, testing, signal_dictionary, variable, xbins_
   return h_signals
 
 
-def get_MC_weights(MC_dictionary, process):
+def get_MC_weights(MC_dictionary, process, useFFweights=False):
   gen     = MC_dictionary[process]["Generator_weight"]
   PU      = MC_dictionary[process]["PUweight"]
   TauSF   = MC_dictionary[process]["TauSFweight"]
@@ -690,8 +742,15 @@ def get_MC_weights(MC_dictionary, process):
   BTagSF  = MC_dictionary[process]["BTagSFfull"]
   DY_Zpt  = MC_dictionary[process]["Weight_DY_Zpt"]
   TT_NNLO = MC_dictionary[process]["Weight_TTbar_NNLO"]
+  XSecMC  = MC_dictionary[process]["XSecMCweight"]
   full_weights = gen * PU * TauSF * MuSF * ElSF *\
-                 BTagSF * DY_Zpt * TT_NNLO
+                 BTagSF * DY_Zpt * TT_NNLO * XSecMC
+
+  if (useFFweights):
+    FF_weightQCD = MC_dictionary[process]["FFweight_QCD"]*MC_dictionary[process]["FFweight_FractionQCD"]
+    FF_weightWJ = MC_dictionary[process]["FFweight_WJ"]*(1-MC_dictionary[process]["FFweight_FractionQCD"])
+    FF_weight = FF_weightQCD + FF_weightWJ
+    full_weights *= FF_weight
 
   # Additional weights per individual sample
   additional = 1.
@@ -717,31 +776,34 @@ final_state_vars = {
     "none"   : [],
     "ditau"  : ["FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_dxy", "FS_t1_dz", "FS_t1_chg", "FS_t1_DM", "FS_t1_mass",
                 "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_dxy", "FS_t2_dz", "FS_t2_chg", "FS_t2_DM", "FS_t2_mass",
-                "FS_t1_flav", "FS_t2_flav", 
+                #"FS_t1_flav", "FS_t2_flav", 
                 "FS_t1_rawPNetVSjet", "FS_t1_rawPNetVSmu", "FS_t1_rawPNetVSe",
                 "FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",
                 "FS_t1_DeepTauVSjet", "FS_t1_DeepTauVSmu", "FS_t1_DeepTauVSe", 
                 "FS_t2_DeepTauVSjet", "FS_t2_DeepTauVSmu", "FS_t2_DeepTauVSe", 
                 "FS_trig_idx", "FS_pair_DM",
-                "FS_mt_t1t2", "FS_mt_t1_MET", "FS_mt_t2_MET", "FS_mt_TOT", "FS_dphi_t1t2", "FS_deta_t1t2",
-                "FS_t1_FLsig", "FS_t1_FLX", "FS_t1_FLY", "FS_t1_FLZ", "FS_t1_FLmag",
-                "FS_t1_ipLsig", "FS_t1_ip3d", "FS_t1_tk_lambda", "FS_t1_tk_qoverp",
-                "FS_t2_FLsig", "FS_t2_FLX", "FS_t2_FLY", "FS_t2_FLZ", "FS_t2_FLmag",
-                "FS_t2_ipLsig", "FS_t2_ip3d", "FS_t2_tk_lambda", "FS_t2_tk_qoverp",
+                "FS_mt_t1t2", "FS_mt_t1_MET", "FS_mt_t2_MET", "FS_mt_TOT", 
+                "FS_dphi_t1t2", "FS_deta_t1t2", "FS_dpt_t1t2",
+                #"FS_t1_FLsig", "FS_t1_FLX", "FS_t1_FLY", "FS_t1_FLZ", "FS_t1_FLmag",
+                #"FS_t1_ipLsig", "FS_t1_ip3d", "FS_t1_tk_lambda", "FS_t1_tk_qoverp",
+                #"FS_t2_FLsig", "FS_t2_FLX", "FS_t2_FLY", "FS_t2_FLZ", "FS_t2_FLmag",
+                #"FS_t2_ipLsig", "FS_t2_ip3d", "FS_t2_tk_lambda", "FS_t2_tk_qoverp",
                ],
 
     "mutau"  : ["FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "FS_mu_iso", "FS_mu_dxy", "FS_mu_dz", "FS_mu_chg", "FS_mu_mass",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_mass", "FS_tau_DM",
-                "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet", "FS_acoplan",
+                "FS_mt", "FS_nbJet", "FS_acoplan", "FS_trig_idx",
+                #"FS_t1_flav", "FS_t2_flav", 
                 "FS_LeadTkPtOverTau",
-                "FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
-                "FS_dphi_mutau", "FS_deta_mutau",
+                "FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe",
+                "FS_dphi_mutau", "FS_deta_mutau", "FS_dpt_mutau",
+                "FS_mt_branch", "FS_mt_diff",
                ],
 
     "etau"   : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg", "FS_el_mass",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_mass", "FS_tau_DM",
                 "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet",
-                "FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe"
+                "FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe",
                 "FS_dphi_etau", "FS_deta_etau",
                ],
 
