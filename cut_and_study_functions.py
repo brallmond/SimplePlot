@@ -13,10 +13,10 @@ from cut_dimuon_functions import make_dimuon_cut, manual_dimuon_lepton_veto
 from cut_emu_functions    import make_emu_cut
  
 from FF_functions         import make_ditau_SR_cut, make_mutau_SR_cut, make_etau_SR_cut, make_emu_SR_cut
-from FF_functions         import make_ditau_AR_cut, make_mutau_AR_cut, make_etau_AR_cut, make_emu_AR_cut
+from FF_functions         import make_ditau_AR_cut, make_ditau_AR_star_cut, make_mutau_AR_cut, make_etau_AR_cut, make_emu_AR_cut
 from FF_functions         import add_FF_weights, add_FF_weight_from_branch
 
-from file_functions       import load_and_store_NWEvents, customize_DY
+from file_functions       import load_and_store_NWEvents 
 from plotting_functions   import final_state_vars, clean_jet_vars
 
 def append_lepton_indices(event_dictionary):
@@ -308,8 +308,9 @@ def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
       #  event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary["pass_3j_cuts"])
 
     elif ((branch != cut_branch) and (branch not in protected_branches)):
-      if DEBUG: print(f"going to cut {branch}, {len(event_dictionary[branch])}")
+      if DEBUG: print(f"{len(event_dictionary[branch])} \t\t = pre cut len({branch})")
       event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary[cut_branch])
+      if DEBUG: print(f"{len(event_dictionary[branch])} \t\t = post cut len({branch})")
 
   return event_dictionary
 
@@ -333,7 +334,7 @@ def make_run_cut(event_dictionary, good_runs):
   return event_dictionary
 
 
-def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, tau_pt_cut, useMiniIso=False):
+def apply_final_state_cut(era, event_dictionary, final_state_mode, DeepTau_version, tau_pt_cut, useMiniIso=False):
   '''
   Organizational function that generalizes call to a (set of) cuts based on the
   final cut. Importantly, the function that rejects events, 'apply_cut',
@@ -347,36 +348,25 @@ def apply_final_state_cut(event_dictionary, final_state_mode, DeepTau_version, t
     event_dictionary = make_ditau_SR_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     if (event_dictionary == None): return event_dictionary
-    event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+    event_dictionary = make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "mutau":
     event_dictionary = make_mutau_SR_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     if (event_dictionary == None): return event_dictionary
-    event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+    event_dictionary = make_mutau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "etau":
     event_dictionary = make_etau_SR_cut(event_dictionary, DeepTau_version)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     if (event_dictionary == None): return event_dictionary
-    event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+    event_dictionary = make_etau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
-  elif final_state_mode == "dimuon":
-    # old samples need manual lepton veto
-    if (useMiniIso == False):
-      event_dictionary = manual_dimuon_lepton_veto(event_dictionary)
-      event_dictionary = apply_cut(event_dictionary, "pass_manual_lepton_veto")
-      event_dictionary = make_dimuon_cut(event_dictionary)
-      event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
-    # new samples don't and they use a different iso
-    if (useMiniIso == True):
-      event_dictionary = make_dimuon_cut(event_dictionary, useMiniIso==True)
-      event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "emu":
     event_dictionary = make_emu_SR_cut(event_dictionary)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
     if (event_dictionary == None): return event_dictionary
-    event_dictionary = make_emu_cut(event_dictionary)
+    event_dictionary = make_emu_cut(era, event_dictionary)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   else:
     print(f"No cuts to apply for {final_state_mode} final state.")
@@ -416,7 +406,7 @@ def apply_jet_cut(event_dictionary, jet_mode):
   return event_dictionary
 
 
-def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
+def apply_HTT_FS_cuts_to_process(era, process, process_dictionary, log_file,
                                  final_state_mode, jet_mode="Inclusive", 
                                  DeepTau_version="2p5", tau_pt_cut="None", useMiniIso=False):
   '''
@@ -437,22 +427,16 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
   if ("Data" not in process) and (final_state_mode != "dimuon"):
     if ("TTToSemiLeptonic" in process): process = "TTToSemiLeptonic"
     load_and_store_NWEvents(process, process_events)
-    if ("DY" in process): 
-      customize_DY(process, final_state_mode)
-      #append_Zpt_weight(process_events)
     keep_fakes = False
-    #keep_fakes = True # TODO : fix this block
+    #keep_fakes = True #DEBUG #TODO : fix this block
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("mutau" in final_state_mode)):
       # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("etau" in final_state_mode)):
-      # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
-    #if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("ditau" in final_state_mode)):
     if ( (("DY" in process) or ("QCD" in process)) and (final_state_mode=="ditau")):
       keep_fakes = True
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("emu" in final_state_mode)):
-      # when FF method is finished/improved no longer need to keep TT and WJ fakes
       keep_fakes = True
     #print("KEEPING ALL FAKES!") #DEBUG
     if (final_state_mode != "emu"):
@@ -460,7 +444,7 @@ def apply_HTT_FS_cuts_to_process(process, process_dictionary, log_file,
       process_events = apply_cut(process_events, "pass_gen_cuts", protected_branches=protected_branches)
     if (process_events==None or len(process_events["run"])==0): return None
 
-  FS_cut_events = apply_final_state_cut(process_events, final_state_mode, DeepTau_version, tau_pt_cut, useMiniIso=useMiniIso)
+  FS_cut_events = apply_final_state_cut(era, process_events, final_state_mode, DeepTau_version, tau_pt_cut, useMiniIso=useMiniIso)
   if (FS_cut_events==None or len(FS_cut_events["run"])==0): return None 
   cut_events = apply_jet_cut(FS_cut_events, jet_mode)
   if (cut_events==None or len(cut_events["run"])==0): return None
@@ -533,7 +517,7 @@ def set_protected_branches(final_state_mode, jet_mode, DeepTau_version="none"):
   return protected_branches
 
 
-def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_mode, DeepTau_version, tau_pt_cut):
+def apply_AR_cut(era, process, event_dictionary, final_state_mode, jet_mode, semilep_mode, DeepTau_version, tau_pt_cut):
   '''
   Organizational function
   added 'skip_DeepTau' to apply a partial selection (all but leading tau deeptau reqs)
@@ -544,7 +528,6 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_
   event_dictionary = append_lepton_indices(event_dictionary)
   if ("Data" not in process) and (final_state_mode != "dimuon"):
     load_and_store_NWEvents(process, event_dictionary)
-    if ("DY" in process): customize_DY(process, final_state_mode)
     keep_fakes = False
     if (("DY" in process) and (final_state_mode=="ditau")):
       keep_fakes = True
@@ -561,29 +544,38 @@ def apply_AR_cut(process, event_dictionary, final_state_mode, jet_mode, semilep_
   if (final_state_mode != "dimuon"):
     skip_DeepTau = True
     if (final_state_mode == "ditau"):
-      event_dictionary = make_ditau_AR_cut(event_dictionary, DeepTau_version)
-      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
+      method = "NEW"
+      print("WHICH METHOD DO YOU WANT TO BE USING?????")
+      print(f"CURRENTLY USING: {method} METHOD")
+      if (method == "OLD"):
+        event_dictionary = make_ditau_AR_cut(event_dictionary, DeepTau_version)
+        cut_string = "pass_AR_cuts"
+      elif (method == "NEW"):
+        event_dictionary = make_ditau_AR_star_cut(event_dictionary, DeepTau_version)
+        cut_string = "pass_AR_star_cuts"
+      else: print(f"METHOD NOT SET! METHOD IS: {method}     CRASHING!!!")
+      event_dictionary = apply_cut(event_dictionary, cut_string, protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+      event_dictionary = make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     if (final_state_mode == "mutau"):
       event_dictionary = make_mutau_AR_cut(event_dictionary, DeepTau_version)
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_mutau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+      event_dictionary = make_mutau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     if (final_state_mode == "etau"):
       event_dictionary = make_etau_AR_cut(event_dictionary, DeepTau_version)
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_etau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+      event_dictionary = make_etau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     if (final_state_mode == "emu"):
       event_dictionary = make_emu_AR_cut(event_dictionary, iso_region_el=True, iso_region_mu=True)
       event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
-      event_dictionary = make_emu_cut(event_dictionary)
+      event_dictionary = make_emu_cut(era, event_dictionary)
     protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
     event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
     # weights associated with jet_mode key (testing suffix automatically removed)
-    if (final_state_mode == "emu"):
+    if (final_state_mode in ["etau", "emu"]):
       event_dictionary = add_FF_weight_from_branch(event_dictionary, final_state_mode, process)
     else:
       event_dictionary = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode)

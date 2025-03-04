@@ -3,36 +3,56 @@
 # Very similar in design to "TriggerList.py" in NanoTauAnalysis.
 
 triggers_dictionary = {
-  "ditau" : [
-             "HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1",
-             "HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60",
-             "HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet75",
-             "HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1",
-             "HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1",
-          ],
-          #   "HLT_DoubleMediumChargedIsoPFTauHPS40_Trk1_eta2p1", # Run2, only for Era F study
-          #   "HLT_DoubleTightChargedIsoPFTauHPS35_Trk1_eta2p1",  # Run2, only for Era F study
-  "mutau" : [
-             "HLT_IsoMu24", 
-             "HLT_IsoMu27",
-             "HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1", 
-          ],
-             #"HLT_IsoMu20_eta2p1_TightChargedIsoPFTauHPS27_eta2p1_TightID_CrossL1", # Run2, only for Era F study
-  "etau"  : [
-             "HLT_Ele30_WPTight_Gsf",
-             "HLT_Ele32_WPTight_Gsf",
-             "HLT_Ele35_WPTight_Gsf",
-             "HLT_Ele24_eta2p1_WPTight_Gsf_LooseDeepTauPFTauHPS30_eta2p1_CrossL1",
-          ],
-  "dimuon": [
-             "HLT_IsoMu24",
-             "HLT_IsoMu27",
-          ],
-
-  "emu"  : [
-             "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
-             "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ", #Naila Added
-          ],
+  "2022" : {
+    "ditau" : [
+               "HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1",
+               "HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60",
+               #"HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1",
+               "HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1",
+            ],
+    "mutau" : [
+               "HLT_IsoMu24", 
+               #"HLT_IsoMu27",
+               "HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1", 
+            ],
+    "etau"  : [
+               "HLT_Ele30_WPTight_Gsf",
+               #"HLT_Ele32_WPTight_Gsf",
+               "HLT_Ele24_eta2p1_WPTight_Gsf_LooseDeepTauPFTauHPS30_eta2p1_CrossL1",
+            ],
+    "emu"  : [
+               "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+               "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+            ],
+  },
+  "2023" : {
+    "ditau" : [
+               "HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1",
+               "HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60",
+               #"HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1",
+               "HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1",
+               "HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1", 
+            ],
+    "mutau" : [
+               "HLT_IsoMu24", 
+               #"HLT_IsoMu27",
+               "HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1", 
+               "HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1", 
+               "HLT_VBF_DiPFJet90_40_Mjj600_Detajj2p5_Mu3_TrkIsoVVL",
+            ],
+            # [ "Trigger_SingleMuon", "Trigger_mutau", "Trigger_VBFsingleTau", "Trigger_VBFsingleMu"]
+    "etau"  : [
+               "HLT_Ele30_WPTight_Gsf",
+               #"HLT_Ele32_WPTight_Gsf",
+               "HLT_Ele24_eta2p1_WPTight_Gsf_LooseDeepTauPFTauHPS30_eta2p1_CrossL1",
+               "HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1", 
+               "HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_Ele17_eta2p1_WPTight_Gsf",
+            ],
+    "emu"  : [
+               "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",
+               "HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL_DZ",
+            ],
+  }
 }
 
 

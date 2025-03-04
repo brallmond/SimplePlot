@@ -3,7 +3,6 @@ import numpy as np
 
 from utility_functions import time_print, text_options, log_print
 from MC_dictionary import MC_dictionary
-from XSec import XSecRun3 as XSec 
 
 ### README ###
 # This file contains the main method to load data from root files
@@ -64,15 +63,16 @@ def load_process_from_file(process, file_directory, file_map, log_file,
   return process_list
 
 
-def sort_combined_processes(combined_processes_dictionary):
+def sort_combined_processes(combined_processes_dictionary, fakes=False):
   data_dictionary, background_dictionary, signal_dictionary = {}, {}, {}
   for process in combined_processes_dictionary:
-    if "Data" in process:
-      data_dictionary[process]       = combined_processes_dictionary[process]
-    elif "_TauTau" in process: #puts HWW in backgrounds
-      signal_dictionary[process]     = combined_processes_dictionary[process]
+    newProcess = process + "Fakes" if fakes==True else process
+    if "Data" in newProcess:
+      data_dictionary[newProcess]       = combined_processes_dictionary[process]
+    elif "_TauTau" in newProcess: #puts HWW in backgrounds
+      signal_dictionary[newProcess]     = combined_processes_dictionary[process]
     else:
-      background_dictionary[process] = combined_processes_dictionary[process]
+      background_dictionary[newProcess] = combined_processes_dictionary[process]
   return data_dictionary, background_dictionary, signal_dictionary
 
 
@@ -88,31 +88,32 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
       "Cuts"              : {},
       "Generator_weight"  : cut_events["Generator_weight"],
       "Weight_TTbar_NNLO" : cut_events["Weight_TTbar_NNLO"],
-      "Weight_DY_Zpt"     : cut_events["Weight_DY_Zpt_LO"],
+      "Weight_DY_Zpt"     : cut_events["Weight_DY_Zpt"],
       "TauSFweight"       : cut_events["TauSFweight"],
       "MuSFweight"        : cut_events["MuSFweight"],
       "ElSFweight"        : cut_events["ElSFweight"],
       "BTagSFfull"        : cut_events["BTagSFfull"],
       "PUweight"          : cut_events["PUweight"],
+      "XSecMCweight"      : cut_events["XSecMCweight"],
       "SF_weight"         : np.ones(cut_events["Generator_weight"].shape)
     }
-    if   ("DY" in process) and ("NLO" not in process): 
-      print("using LO DY ZpT")
-    elif ("DY" in process) and ("NLO" in process):
-      print("using NLO DY ZpT")
-      combined_processes[process]["Weight_DY_Zpt"] = cut_events["Weight_DY_Zpt_NLO"]
-    else:  pass
   elif "Data" in process:
     combined_processes[process] = { 
       "PlotEvents": {},
       "Cuts": {},
-      "FFweight": cut_events["FFweight"]
+      "FFweight": cut_events["FFweight"] # TODO: somehow reconcile the old and new FF storage method...
     }
     if ("FF_weight" in cut_events.keys()):
       combined_processes[process]["FF_weight"] = cut_events["FF_weight"]
 
-  if "WJets" in process:
-    combined_processes[process]["StitchWeight_WJets_NLO"] = cut_events["StitchWeight_WJets_NLO"]
+  # remove this to get previous behavior
+  combined_processes[process]["FFweight"] = cut_events["FFweight"]
+  combined_processes[process]["FFweight_QCD"] = cut_events["FFweight_QCD"]
+  combined_processes[process]["FFweight_WJ"] = cut_events["FFweight_WJ"]
+  combined_processes[process]["FFweight_FractionQCD"] = cut_events["FFweight_FractionQCD"]
+
+  #if "WJets" in process:
+  #  combined_processes[process]["StitchWeight_WJets_NLO"] = cut_events["StitchWeight_WJets_NLO"]
     
   for var in vars_to_plot:
     if ("Data" in process) and (("flav" in var) or ("Generator" in var)): continue
@@ -140,29 +141,15 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
 
   return combined_processes
 
-
 def load_and_store_NWEvents(process, event_dictionary):
   '''
   Read the NWEvents value for a sample and store it in the MC_dictionary,
   overriding the hardcoded values from V11 samples. Delete the NWEvents branch after.
   '''
   MC_dictionary[process]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
-  #MC_dictionary[process]["XSecMCweight"]  = 1 # DEBUG
-  event_dictionary.pop("XSecMCweight")
+  if ("DY" in process):
+    MC_dictionary[process+"DYGen"]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
+    MC_dictionary[process+"DYLep"]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
+    MC_dictionary[process+"DYJet"]["XSecMCweight"] = event_dictionary["XSecMCweight"][0]
 
-
-def customize_DY(process, final_state_mode):
-  DYtypes_LO  = ["DYGen", "DYLep", "DYJet", "DYGen10to50", "DYLep10to50", "DYJet10to50"]
-  DYtypes_NLO = ["DYGenNLO", "DYLepNLO", "DYJetNLO", "DYGen10to50NLO", "DYLep10to50NLO", "DYJet10to50NLO"]
-  combined_DYtypes = DYtypes_LO + DYtypes_NLO
-  #for DYtype in ["DYGen", "DYLep", "DYJet", "DYGen10to50", "DYLep10to50", "DYJet10to50"]:
-  for DYtype in combined_DYtypes:
-    MC_dictionary[DYtype]["XSecMCweight"] = MC_dictionary[process]["XSecMCweight"]
-  label_text = { "ditau" : r"$Z{\rightarrow}{\tau_h}{\tau_h}$",
-                 "mutau" : r"$Z{\rightarrow}{\tau_{\mu}}{\tau_h}$",
-                 "etau"  : r"$Z{\rightarrow}{\tau_e}{\tau_h}$",
-                 "emu"   : r"$Z{\rightarrow}{\tau_e}{\tau_{\mu}}$",
-                 "dimuon": r"$Z{\rightarrow}{\mu}{\mu}$"}
-  MC_dictionary["DYGen"]["label"] = label_text[final_state_mode]
-  MC_dictionary["DYGenNLO"]["label"] = label_text[final_state_mode]
 
