@@ -1,6 +1,6 @@
 # this is messy and bad, need to fix by more clearly separating functions and files...
-from setup import set_good_events
-from file_functions import load_process_from_file, customize_DY, load_and_store_NWEvents
+from setup import set_good_events, add_triggers_and_FS_to_good_events
+from file_functions import load_process_from_file, load_and_store_NWEvents
 from branch_functions import set_branches
 from plotting_functions import set_vars_to_plot
 from utility_functions import log_print
@@ -12,34 +12,8 @@ import gc
 
 
 def set_AR_region(final_state_mode, era, temp_version):
-  # TODO: need to abstract the handling in setup and then copy it over here
   common_selection = set_good_events(final_state_mode, era, non_SR_region=True, temp_version=temp_version)
-  if final_state_mode == "ditau":
-    triggersV1 = "(HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1\
-               | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60\
-               | HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet75\
-               | HLT_VBF_DoubleMediumDeepTauPFTauHPS20_eta2p1\
-               | HLT_DoublePFJets40_Mass500_MediumDeepTauPFTauHPS45_L2NN_MediumDeepTauPFTauHPS20_eta2p1)" # HLepV1
-    triggersV2 = "((Trigger_ditau) | (Trigger_ditauplusjet) | (Trigger_VBFditau) | (Trigger_VBFsingleTau))" # HLepV2
-
-    triggers = triggersV1 if temp_version == "V1" else triggersV2
-    common_selection += " & (abs(HTT_pdgId)==15*15) & " + triggers
-
-  elif final_state_mode == "mutau":
-    good_eventsV1 = " & (abs(HTT_pdgId)==13*15) & (Trigger_mutau)" # HLepV1
-    good_eventsV2 = " & (abs(HTT_pdgId)==13*15) & ((Trigger_mutau) | (Trigger_SingleMuon))" # HLepV2
-    common_selection += good_eventsV1 if temp_version == "V1" else good_eventsV2
-
-  elif final_state_mode == "etau":
-    good_eventsV1 = " & (abs(HTT_pdgId)==11*15) & (Trigger_etau)" # HLepV1
-    good_eventsV2 = " & (abs(HTT_pdgId)==11*15) & ((Trigger_etau) | (Trigger_SingleElectron))" # HLepV2
-    common_selection += good_eventsV1 if temp_version == "V1" else good_eventsV2
-
-  elif final_state_mode == "emu":
-    good_eventsV1 = " & (abs(HTT_pdgId)==11*13) & (Trigger_emu) " # HLepV1
-    good_eventsV2 = " & (abs(HTT_pdgId)==11*13) & ((Trigger_emu) | (Trigger_mue))" # HLepV2
-    common_selection += good_eventsV1 if temp_version == "V1" else good_eventsV2
-
+  common_selection = add_triggers_and_FS_to_good_events(common_selection, final_state_mode, era)
   return common_selection
 
 
