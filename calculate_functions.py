@@ -228,6 +228,15 @@ def return_TLorentz_Jets(passingJetsPt, passingJetsEta, passingJetsPhi, passingJ
 def user_exp(x, a, b, c, d):
     return a*np.exp(-b*(x-c)) + d
 
+#def user_exp(x, a, b, c):
+#    return a*np.exp(-b*x) + c
+
+#def user_line_p_const(x, a, b, c d): # line + const y = a*x + b if x < c, else y = d
+#    return np.piecewise(x, [x < c], [lambda x: a * x + b, lambda x: d])
+
+def user_line_p_const(x, a, b, c): # line + const y = a*x + b if x < c, else y = a*c + b
+    return np.piecewise(x, [x < c], [lambda x: a * x + b, lambda x: a * c + b])
+
 def user_pol_np(x, par):
     '''
     Defines function given length of parameters as
