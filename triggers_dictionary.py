@@ -12,7 +12,7 @@ triggers_dictionary = {
             ],
     "mutau" : [
                "HLT_IsoMu24", 
-               "HLT_IsoMu27",
+               #"HLT_IsoMu27",
                "HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1", 
             ],
     "etau"  : [
@@ -36,9 +36,12 @@ triggers_dictionary = {
             ],
     "mutau" : [
                "HLT_IsoMu24", 
-               "HLT_IsoMu27",
+               #"HLT_IsoMu27",
                "HLT_IsoMu20_eta2p1_LooseDeepTauPFTauHPS27_eta2p1_CrossL1", 
+               "HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1", 
+               "HLT_VBF_DiPFJet90_40_Mjj600_Detajj2p5_Mu3_TrkIsoVVL",
             ],
+            # [ "Trigger_SingleMuon", "Trigger_mutau", "Trigger_VBFsingleTau", "Trigger_VBFsingleMu"]
     "etau"  : [
                "HLT_Ele30_WPTight_Gsf",
                "HLT_Ele32_WPTight_Gsf",
