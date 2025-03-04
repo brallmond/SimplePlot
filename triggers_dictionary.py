@@ -17,8 +17,7 @@ triggers_dictionary = {
             ],
     "etau"  : [
                "HLT_Ele30_WPTight_Gsf",
-               "HLT_Ele32_WPTight_Gsf",
-               "HLT_Ele35_WPTight_Gsf",
+               #"HLT_Ele32_WPTight_Gsf",
                "HLT_Ele24_eta2p1_WPTight_Gsf_LooseDeepTauPFTauHPS30_eta2p1_CrossL1",
             ],
     "emu"  : [
@@ -44,9 +43,10 @@ triggers_dictionary = {
             # [ "Trigger_SingleMuon", "Trigger_mutau", "Trigger_VBFsingleTau", "Trigger_VBFsingleMu"]
     "etau"  : [
                "HLT_Ele30_WPTight_Gsf",
-               "HLT_Ele32_WPTight_Gsf",
-               "HLT_Ele35_WPTight_Gsf",
+               #"HLT_Ele32_WPTight_Gsf",
                "HLT_Ele24_eta2p1_WPTight_Gsf_LooseDeepTauPFTauHPS30_eta2p1_CrossL1",
+               "HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1", 
+               "HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_Ele17_eta2p1_WPTight_Gsf",
             ],
     "emu"  : [
                "HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ",

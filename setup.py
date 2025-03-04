@@ -40,10 +40,10 @@ class setup_handler:
     lumi = luminosities[era]
 
     # note: emu case isn't handled yet
-    possible_jet_modes = ["Inclusive", "0j", "1j", "GTE2j"] if final_state_mode == "ditau" else ["Inclusive", "0j", "GTE1j"]
-    if (jet_mode not in possible_jet_modes):
-      print(f"Your jet mode is {jet_mode}. Possible jet modes for {final_state_mode} are {possible_jet_modes}")
-      exit()
+    #possible_jet_modes = ["Inclusive", "0j", "1j", "GTE2j"] if final_state_mode == "ditau" else ["Inclusive", "0j", "GTE1j"]
+    #if (jet_mode not in possible_jet_modes):
+    #  print(f"Your jet mode is {jet_mode}. Possible jet modes for {final_state_mode} are {possible_jet_modes}")
+    #  exit()
 
     # file info
     infile_directory = self.set_infile_directory(era, final_state_mode, temp_version)

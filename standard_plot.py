@@ -237,6 +237,11 @@ if __name__ == "__main__":
       event_dictionary   = make_mutau_cut(era, event_dictionary, DeepTau_version)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
+    if (final_state_mode == "etau"):
+      from cut_etau_functions import make_etau_cut
+      event_dictionary   = make_etau_cut(era, event_dictionary, DeepTau_version)
+      if (event_dictionary==None or len(event_dictionary["run"])==0): continue
+
     protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
     event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
     if (event_dictionary==None or len(event_dictionary["run"])==0): continue

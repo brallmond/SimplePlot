@@ -144,12 +144,12 @@ def make_ditau_DRar_star_cut(event_dictionary, DeepTau_version):
 
 
 mutau_DeepTauVsJet_WP = 5
-mutau_mt_value = 50 # replace with 9999 to disable temporarily
+mutau_mt_value = 60 # replace with 9999 to disable temporarily
 ### begin mutau region cuts
 def make_mutau_SR_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_SR_cuts" if iso_region == True else "pass_SR_aiso_cuts"
   event_dictionary   = make_mutau_region(event_dictionary, name, 
-                         FS_pair_sign=-1, pass_mu_iso_req=iso_region, mu_iso_value=[0.00,0.15],
+                         FS_pair_sign=-1, pass_mu_iso_req=iso_region, mu_iso_value=[0.00, 0.15],
                          pass_DeepTau_req=True, DeepTau_value=mutau_DeepTauVsJet_WP, DeepTau_version=DeepTau_version,
                          pass_mt_req=True, mt_value=mutau_mt_value, pass_BTag_req=True)
   return event_dictionary
@@ -157,7 +157,7 @@ def make_mutau_SR_cut(event_dictionary, DeepTau_version, iso_region=True):
 def make_mutau_AR_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_AR_cuts" if iso_region == True else "pass_AR_aiso_cuts"
   event_dictionary   = make_mutau_region(event_dictionary, name, 
-                         FS_pair_sign=-1, pass_mu_iso_req=iso_region, mu_iso_value=[0.00,0.15],
+                         FS_pair_sign=-1, pass_mu_iso_req=iso_region, mu_iso_value=[0.00, 0.15],
                          pass_DeepTau_req=False, DeepTau_value=mutau_DeepTauVsJet_WP, DeepTau_version=DeepTau_version,
                          pass_mt_req=True, mt_value=mutau_mt_value, pass_BTag_req=True)
   return event_dictionary
@@ -172,7 +172,7 @@ def make_mutau_AR_aiso_cut(event_dictionary, DeepTau_version):
 def make_mutau_DRsr_QCD_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_DRsr_cuts" if iso_region == True else "pass_DRsr_aiso_cuts"
   event_dictionary   = make_mutau_region(event_dictionary, name,
-                         FS_pair_sign=1, pass_mu_iso_req=iso_region, mu_iso_value=[0.05,0.15],
+                         FS_pair_sign=1, pass_mu_iso_req=iso_region, mu_iso_value=[0.05, 0.15],
                          pass_DeepTau_req=True, DeepTau_value=mutau_DeepTauVsJet_WP, DeepTau_version="2p5",
                          pass_mt_req=True, mt_value=mutau_mt_value, pass_BTag_req=True)
   return event_dictionary
@@ -180,7 +180,7 @@ def make_mutau_DRsr_QCD_cut(event_dictionary, DeepTau_version, iso_region=True):
 def make_mutau_DRar_QCD_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_DRar_cuts" if iso_region == True else "pass_DRar_aiso_cuts"
   event_dictionary   = make_mutau_region(event_dictionary, name,
-                         FS_pair_sign=1, pass_mu_iso_req=iso_region, mu_iso_value=[0.05,0.15],
+                         FS_pair_sign=1, pass_mu_iso_req=iso_region, mu_iso_value=[0.05, 0.15],
                          pass_DeepTau_req=False, DeepTau_value=mutau_DeepTauVsJet_WP, DeepTau_version="2p5",
                          pass_mt_req=True, mt_value=mutau_mt_value, pass_BTag_req=True)
   return event_dictionary
@@ -195,7 +195,7 @@ def make_mutau_DRar_aiso_QCD_cut(event_dictionary, DeepTau_version):
 def make_mutau_DRsr_WJ_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_DRsr_cuts" if iso_region == True else "pass_DRsr_aiso_cuts"
   event_dictionary   = make_mutau_region(event_dictionary, name,
-                         FS_pair_sign=-1, pass_mu_iso_req=iso_region, mu_iso_value=[0.0,0.15],
+                         FS_pair_sign=-1, pass_mu_iso_req=iso_region, mu_iso_value=[0.0, 0.15],
                          pass_DeepTau_req=True, DeepTau_value=mutau_DeepTauVsJet_WP, DeepTau_version="2p5",
                          pass_mt_req=False, mt_value=mutau_mt_value, pass_BTag_req=True)
   return event_dictionary
@@ -203,7 +203,7 @@ def make_mutau_DRsr_WJ_cut(event_dictionary, DeepTau_version, iso_region=True):
 def make_mutau_DRar_WJ_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_DRar_cuts" if iso_region == True else "pass_DRar_aiso_cuts"
   event_dictionary   = make_mutau_region(event_dictionary, name,
-                         FS_pair_sign=-1, pass_mu_iso_req=iso_region, mu_iso_value=[0.0,0.15],
+                         FS_pair_sign=-1, pass_mu_iso_req=iso_region, mu_iso_value=[0.0, 0.15],
                          pass_DeepTau_req=False, DeepTau_value=mutau_DeepTauVsJet_WP, DeepTau_version="2p5",
                          pass_mt_req=False, mt_value=mutau_mt_value, pass_BTag_req=True)
   return event_dictionary
@@ -218,7 +218,7 @@ def make_mutau_DRar_aiso_WJ_cut(event_dictionary, DeepTau_version):
 def make_mutau_DRsr_TT_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_DRsr_cuts" if iso_region == True else "pass_DRsr_aiso_cuts"
   event_dictionary   = make_mutau_region(event_dictionary, name,
-                         FS_pair_sign=-1, pass_mu_iso_req=True, mu_iso_value=0.15,
+                         FS_pair_sign=-1, pass_mu_iso_req=True, mu_iso_value=[0.0, 0.15],
                          pass_DeepTau_req=True, DeepTau_value=mutau_DeepTauVsJet_WP, DeepTau_version="2p5",
                          pass_mt_req=True, mt_value=mutau_mt_value, pass_BTag_req=False)
   return event_dictionary
@@ -226,7 +226,7 @@ def make_mutau_DRsr_TT_cut(event_dictionary, DeepTau_version, iso_region=True):
 def make_mutau_DRar_TT_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_DRar_cuts" if iso_region == True else "pass_DRar_aiso_cuts"
   event_dictionary   = make_mutau_region(event_dictionary, name,
-                         FS_pair_sign=-1, pass_mu_iso_req=True, mu_iso_value=0.15,
+                         FS_pair_sign=-1, pass_mu_iso_req=True, mu_iso_value=[0.0, 0.15],
                          pass_DeepTau_req=False, DeepTau_value=mutau_DeepTauVsJet_WP, DeepTau_version="2p5",
                          pass_mt_req=True, mt_value=mutau_mt_value, pass_BTag_req=False)
   return event_dictionary
@@ -240,20 +240,21 @@ def make_mutau_DRar_aiso_TT_cut(event_dictionary, DeepTau_version):
 
 # etau
 etau_DeepTauVsJet_WP = 5
+etau_mt_value = 60
 def make_etau_SR_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_SR_cuts" if iso_region == True else "pass_SR_aiso_cuts"
   event_dictionary   = make_etau_region(event_dictionary, name, 
-                         FS_pair_sign=-1, pass_el_iso_req=iso_region, el_iso_value=0.15,
+                         FS_pair_sign=-1, pass_el_iso_req=iso_region, el_iso_value=[0.00, 0.15],
                          pass_DeepTau_req=True, DeepTau_value=etau_DeepTauVsJet_WP, DeepTau_version=DeepTau_version,
-                         pass_mt_req=True, mt_value=50, pass_BTag_req=True)
+                         pass_mt_req=True, mt_value=etau_mt_value, pass_BTag_req=True)
   return event_dictionary
 
 def make_etau_AR_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_AR_cuts" if iso_region == True else "pass_AR_aiso_cuts"
   event_dictionary   = make_etau_region(event_dictionary, name, 
-                         FS_pair_sign=-1, pass_el_iso_req=iso_region, el_iso_value=0.15,
+                         FS_pair_sign=-1, pass_el_iso_req=iso_region, el_iso_value=[0.00, 0.15],
                          pass_DeepTau_req=False, DeepTau_value=etau_DeepTauVsJet_WP, DeepTau_version=DeepTau_version,
-                         pass_mt_req=True, mt_value=50, pass_BTag_req=True)
+                         pass_mt_req=True, mt_value=etau_mt_value, pass_BTag_req=True)
   return event_dictionary
 
 def make_etau_SR_aiso_cut(event_dictionary, DeepTau_version):
@@ -261,6 +262,30 @@ def make_etau_SR_aiso_cut(event_dictionary, DeepTau_version):
  
 def make_etau_AR_aiso_cut(event_dictionary, DeepTau_version):
   return make_etau_AR_cut(event_dictionary, DeepTau_version, iso_region=False)
+
+# QCD
+def make_etau_DRsr_QCD_cut(event_dictionary, DeepTau_version, iso_region=True):
+  name = "pass_DRsr_cuts" if iso_region == True else "pass_DRsr_aiso_cuts"
+  event_dictionary   = make_etau_region(event_dictionary, name, 
+                         FS_pair_sign=1, pass_el_iso_req=iso_region, el_iso_value=[0.05, 0.15],
+                         pass_DeepTau_req=True, DeepTau_value=etau_DeepTauVsJet_WP, DeepTau_version=DeepTau_version,
+                         pass_mt_req=True, mt_value=etau_mt_cut, pass_BTag_req=True)
+  return event_dictionary
+
+def make_etau_DRar_QCD_cut(event_dictionary, DeepTau_version, iso_region=True):
+  name = "pass_DRar_cuts" if iso_region == True else "pass_DRar_aiso_cuts"
+  event_dictionary   = make_etau_region(event_dictionary, name, 
+                         FS_pair_sign=1, pass_el_iso_req=iso_region, el_iso_value=[0.05, 0.15],
+                         pass_DeepTau_req=False, DeepTau_value=etau_DeepTauVsJet_WP, DeepTau_version=DeepTau_version,
+                         pass_mt_req=True, mt_value=etau_mt_value, pass_BTag_req=True)
+  return event_dictionary
+
+def make_etau_DRsr_aiso_QCD_cut(event_dictionary, DeepTau_version):
+  return make_etau_DRsr_cut(event_dictionary, DeepTau_version, iso_region=False)
+
+def make_etau_DRar_aiso_QCD_cut(event_dictionary, DeepTau_version):
+  return make_etau_DRar_cut(event_dictionary, DeepTau_version, iso_region=False)
+
 
 # dimuon
 def make_dimuon_SR_cut(event_dictionary, iso_region=True):

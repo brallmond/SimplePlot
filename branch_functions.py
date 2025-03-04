@@ -44,7 +44,7 @@ def add_final_state_branches(branches_, final_state_mode):
     "etau"   : ["Electron_dxy", "Electron_dz", "Electron_charge", "Electron_mass",
                 "Lepton_mass", "Tau_dxy", "Tau_dz", "Tau_charge", 
                 "Lepton_tauIdx", "Lepton_elIdx",
-                "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
+                "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP", "HTT_mT_lmet"],
 
     "dimuon" : ["Lepton_pdgId", "Lepton_muIdx",
                 "Muon_dxy", "Muon_dz", "Muon_charge",

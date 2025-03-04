@@ -393,6 +393,9 @@ def spruce_up_plot(histogram_axis, ratio_plot_axis, variable_name, title, final_
     elif (final_state_mode == "mutau"):
       trig_labels = ["", "SingleMu", "MuTau", "VBF+SingleTau", "VBF+SingleMu"]
       ratio_plot_axis.set_xticks([-0.5, 0.5, 1.5, 2.5, 3.5], labels=trig_labels, ha="center", fontsize=8)
+    elif (final_state_mode == "etau"):
+      trig_labels = ["", "SingleEle", "ETau", "VBF+SingleTau", "VBF+SingleEle"]
+      ratio_plot_axis.set_xticks([-0.5, 0.5, 1.5, 2.5, 3.5], labels=trig_labels, ha="center", fontsize=8)
   if ("Decay Mode" in variable_name) and ("Pair" not in variable_name):
     flat_map = [0, 1, 10, 11]
     ratio_plot_axis.set_xticks(np.arange(len(flat_map)), labels=flat_map, fontsize=10, ha="center")
@@ -596,7 +599,6 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     if ("Data" in process) and ("Fakes" not in process):
       process_weights = np.ones(np.shape(process_variable)) # weights of one for data if not part of fakes estimate
     elif ("Data" in process) and ("Fakes" in process):
-      print(f"Fakes process having weights set: {process}")
       # define process weights directly for Data
       FF_weightQCD = process_dictionary[process]["FFweight_QCD"]*process_dictionary[process]["FFweight_FractionQCD"]
       FF_weightWJ = process_dictionary[process]["FFweight_WJ"]*(1-process_dictionary[process]["FFweight_FractionQCD"])
@@ -802,9 +804,10 @@ final_state_vars = {
 
     "etau"   : ["FS_el_pt", "FS_el_eta", "FS_el_phi", "FS_el_iso", "FS_el_dxy", "FS_el_dz", "FS_el_chg", "FS_el_mass",
                 "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_dxy", "FS_tau_dz", "FS_tau_chg", "FS_tau_mass", "FS_tau_DM",
-                "FS_mt", "FS_t1_flav", "FS_t2_flav", "FS_nbJet",
+                "FS_mt", "FS_nbJet", "FS_acoplan", "FS_trig_idx",
+                #"FS_t1_flav", "FS_t2_flav",
                 "FS_tau_rawPNetVSjet", "FS_tau_rawPNetVSmu", "FS_tau_rawPNetVSe",
-                "FS_dphi_etau", "FS_deta_etau",
+                "FS_dphi_etau", "FS_deta_etau", "FS_dpt_etau",
                ],
 
     "dimuon" : ["FS_m1_pt", "FS_m1_eta", "FS_m1_phi", "FS_m1_iso", "FS_m1_dxy", "FS_m1_dz",
