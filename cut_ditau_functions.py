@@ -3,7 +3,7 @@ import numpy as np
 from calculate_functions import calculate_acoplan, return_TLorentz_Jets, calculate_mt, phi_mpi_pi
 from branch_functions import add_trigger_branches, add_DeepTau_branches
 
-def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut):
+def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, tau_pt_cut="None"):
   '''
   Use a minimal set of branches to define selection criteria and identify events which pass.
   A separate function uses the generated branch "pass_cuts" to remove the info from the
@@ -43,7 +43,8 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_
   FS_t1_DeepTau_v_jet, FS_t1_DeepTau_v_mu, FS_t1_DeepTau_v_ele = [], [], []
   FS_t2_DeepTau_v_jet, FS_t2_DeepTau_v_mu, FS_t2_DeepTau_v_ele = [], [], []
   FS_trig_idx, pair_decayMode = [], []
-  FS_mt_t1t2, FS_mt_t1_MET, FS_mt_t2_MET, FS_mt_TOT, FS_dphi_t1t2, FS_deta_t1t2 = [], [], [], [], [], []
+  FS_mt_t1t2, FS_mt_t1_MET, FS_mt_t2_MET, FS_mt_TOT = [], [], [], []
+  FS_dphi_t1t2, FS_deta_t1t2, FS_dpt_t1t2 = [], [], []
   FS_t1_FLsig, FS_t1_FLX, FS_t1_FLY, FS_t1_FLZ, FS_t1_FLmag = [], [], [], [], []
   FS_t1_ipLsig, FS_t1_ip3d, FS_t1_tk_lambda, FS_t1_tk_qoverp = [], [], [], []
   FS_t2_FLsig, FS_t2_FLX, FS_t2_FLY, FS_t2_FLZ, FS_t2_FLmag = [], [], [], [], []
@@ -108,7 +109,7 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_
     encoded_pair_decayMode = pair_DM_encoder[t1_decayMode*100 + t2_decayMode]
     #good_tau_decayMode = ((t1_decayMode == 11) and (t2_decayMode == 11))
     #good_tau_decayMode = ((t1_decayMode == 0) and (t2_decayMode == 0))
-    good_tau_decayMode = True
+    #good_tau_decayMode = True
 
     t1_chg = tau_chg[t1_br_idx]
     t2_chg = tau_chg[t2_br_idx]
@@ -117,16 +118,16 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_
     t2_mass = tau_mass[l2_idx]
 
     # there is almost certainly a better way to do this...
-    t1_FLsig = tau_FLsig[t1_br_idx]
-    t2_FLsig = tau_FLsig[t2_br_idx]
-    t1_FLX, t1_FLY, t1_FLZ = tau_FLX[t1_br_idx], tau_FLY[t1_br_idx], tau_FLZ[t1_br_idx]
-    t1_FLmag = np.sqrt(t1_FLX*t1_FLX + t1_FLY*t1_FLY + t1_FLZ*t1_FLZ)
-    t2_FLX, t2_FLY, t2_FLZ = tau_FLX[t2_br_idx], tau_FLY[t2_br_idx], tau_FLZ[t2_br_idx]
-    t2_FLmag = np.sqrt(t2_FLX*t2_FLX + t2_FLY*t2_FLY + t2_FLZ*t2_FLZ)
-    t1_ipLsig, t1_ip3d = tau_ipLsig[t1_br_idx], tau_ip3d[t1_br_idx]
-    t2_ipLsig, t2_ip3d = tau_ipLsig[t2_br_idx], tau_ip3d[t2_br_idx]
-    t1_tk_lambda, t1_tk_qoverp = tau_tk_lambda[t1_br_idx], tau_tk_qoverp[t1_br_idx]
-    t2_tk_lambda, t2_tk_qoverp = tau_tk_lambda[t2_br_idx], tau_tk_qoverp[t2_br_idx]
+    #t1_FLsig = tau_FLsig[t1_br_idx]
+    #t2_FLsig = tau_FLsig[t2_br_idx]
+    #t1_FLX, t1_FLY, t1_FLZ = tau_FLX[t1_br_idx], tau_FLY[t1_br_idx], tau_FLZ[t1_br_idx]
+    #t1_FLmag = np.sqrt(t1_FLX*t1_FLX + t1_FLY*t1_FLY + t1_FLZ*t1_FLZ)
+    #t2_FLX, t2_FLY, t2_FLZ = tau_FLX[t2_br_idx], tau_FLY[t2_br_idx], tau_FLZ[t2_br_idx]
+    #t2_FLmag = np.sqrt(t2_FLX*t2_FLX + t2_FLY*t2_FLY + t2_FLZ*t2_FLZ)
+    #t1_ipLsig, t1_ip3d = tau_ipLsig[t1_br_idx], tau_ip3d[t1_br_idx]
+    #t2_ipLsig, t2_ip3d = tau_ipLsig[t2_br_idx], tau_ip3d[t2_br_idx]
+    #t1_tk_lambda, t1_tk_qoverp = tau_tk_lambda[t1_br_idx], tau_tk_qoverp[t1_br_idx]
+    #t2_tk_lambda, t2_tk_qoverp = tau_tk_lambda[t2_br_idx], tau_tk_qoverp[t2_br_idx]
 
     cut_map = { "Low" : [25, 50],  "Mid" : [50, 70],  "High" : [70, 10000]  }
     subtau_req = True 
@@ -141,8 +142,9 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_
 
     dphi_t1t2 = np.acos(np.cos(t1_phi - t2_phi))
     deta_t1t2 = abs(t1_eta - t2_eta)
+    dpt_t1t2  = t1_pt - t2_pt
 
-    if (passKinems and t1passDT and t2passDT and good_tau_decayMode and subtau_req):
+    if (passKinems and t1passDT and t2passDT and subtau_req):
       pass_cuts.append(i)
       FS_t1_pt.append(t1_pt)
       FS_t1_eta.append(t1_eta)
@@ -179,26 +181,27 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_
       FS_mt_TOT.append(mt_TOT)
       FS_dphi_t1t2.append(dphi_t1t2)
       FS_deta_t1t2.append(deta_t1t2)
+      FS_dpt_t1t2.append(dpt_t1t2) 
 
-      FS_t1_FLsig.append(t1_FLsig) 
-      FS_t1_FLX.append(t1_FLX) 
-      FS_t1_FLY.append(t1_FLY)
-      FS_t1_FLZ.append(t1_FLZ)
-      FS_t1_FLmag.append(t1_FLmag)
-      FS_t1_ipLsig.append(t1_ipLsig)
-      FS_t1_ip3d.append(t1_ip3d)
-      FS_t1_tk_lambda.append(t1_tk_lambda)
-      FS_t1_tk_qoverp.append(t1_tk_qoverp)
+      #FS_t1_FLsig.append(t1_FLsig) 
+      #FS_t1_FLX.append(t1_FLX) 
+      #FS_t1_FLY.append(t1_FLY)
+      #FS_t1_FLZ.append(t1_FLZ)
+      #FS_t1_FLmag.append(t1_FLmag)
+      #FS_t1_ipLsig.append(t1_ipLsig)
+      #FS_t1_ip3d.append(t1_ip3d)
+      #FS_t1_tk_lambda.append(t1_tk_lambda)
+      #FS_t1_tk_qoverp.append(t1_tk_qoverp)
 
-      FS_t2_FLsig.append(t2_FLsig) 
-      FS_t2_FLX.append(t2_FLX) 
-      FS_t2_FLY.append(t2_FLY)
-      FS_t2_FLZ.append(t2_FLZ)
-      FS_t2_FLmag.append(t2_FLmag)
-      FS_t2_ipLsig.append(t2_ipLsig)
-      FS_t2_ip3d.append(t2_ip3d)
-      FS_t2_tk_lambda.append(t2_tk_lambda)
-      FS_t2_tk_qoverp.append(t2_tk_qoverp)
+      #FS_t2_FLsig.append(t2_FLsig) 
+      #FS_t2_FLX.append(t2_FLX) 
+      #FS_t2_FLY.append(t2_FLY)
+      #FS_t2_FLZ.append(t2_FLZ)
+      #FS_t2_FLmag.append(t2_FLmag)
+      #FS_t2_ipLsig.append(t2_ipLsig)
+      #FS_t2_ip3d.append(t2_ip3d)
+      #FS_t2_tk_lambda.append(t2_tk_lambda)
+      #FS_t2_tk_qoverp.append(t2_tk_qoverp)
       pair_decayMode.append(encoded_pair_decayMode)
 
   event_dictionary["pass_cuts"] = np.array(pass_cuts)
@@ -237,24 +240,25 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_
   event_dictionary["FS_mt_TOT"]          = np.array(FS_mt_TOT)
   event_dictionary["FS_dphi_t1t2"]       = np.array(FS_dphi_t1t2)
   event_dictionary["FS_deta_t1t2"]       = np.array(FS_deta_t1t2)
-  event_dictionary["FS_t1_FLsig"]        = np.array(FS_t1_FLsig)
-  event_dictionary["FS_t1_FLX"]          = np.array(FS_t1_FLX)
-  event_dictionary["FS_t1_FLY"]          = np.array(FS_t1_FLY)
-  event_dictionary["FS_t1_FLZ"]          = np.array(FS_t1_FLZ)
-  event_dictionary["FS_t1_FLmag"]        = np.array(FS_t1_FLmag)
-  event_dictionary["FS_t1_ipLsig"]       = np.array(FS_t1_ipLsig)
-  event_dictionary["FS_t1_ip3d"]         = np.array(FS_t1_ip3d)
-  event_dictionary["FS_t1_tk_lambda"]    = np.array(FS_t1_tk_lambda)
-  event_dictionary["FS_t1_tk_qoverp"]    = np.array(FS_t1_tk_qoverp)
-  event_dictionary["FS_t2_FLsig"]        = np.array(FS_t2_FLsig)
-  event_dictionary["FS_t2_FLX"]          = np.array(FS_t2_FLX)
-  event_dictionary["FS_t2_FLY"]          = np.array(FS_t2_FLY)
-  event_dictionary["FS_t2_FLZ"]          = np.array(FS_t2_FLZ)
-  event_dictionary["FS_t2_FLmag"]        = np.array(FS_t2_FLmag)
-  event_dictionary["FS_t2_ipLsig"]       = np.array(FS_t2_ipLsig)
-  event_dictionary["FS_t2_ip3d"]         = np.array(FS_t2_ip3d)
-  event_dictionary["FS_t2_tk_lambda"]    = np.array(FS_t2_tk_lambda)
-  event_dictionary["FS_t2_tk_qoverp"]    = np.array(FS_t2_tk_qoverp)
+  event_dictionary["FS_dpt_t1t2"]        = np.array(FS_dpt_t1t2)
+  #event_dictionary["FS_t1_FLsig"]        = np.array(FS_t1_FLsig)
+  #event_dictionary["FS_t1_FLX"]          = np.array(FS_t1_FLX)
+  #event_dictionary["FS_t1_FLY"]          = np.array(FS_t1_FLY)
+  #event_dictionary["FS_t1_FLZ"]          = np.array(FS_t1_FLZ)
+  #event_dictionary["FS_t1_FLmag"]        = np.array(FS_t1_FLmag)
+  #event_dictionary["FS_t1_ipLsig"]       = np.array(FS_t1_ipLsig)
+  #event_dictionary["FS_t1_ip3d"]         = np.array(FS_t1_ip3d)
+  #event_dictionary["FS_t1_tk_lambda"]    = np.array(FS_t1_tk_lambda)
+  #event_dictionary["FS_t1_tk_qoverp"]    = np.array(FS_t1_tk_qoverp)
+  #event_dictionary["FS_t2_FLsig"]        = np.array(FS_t2_FLsig)
+  #event_dictionary["FS_t2_FLX"]          = np.array(FS_t2_FLX)
+  #event_dictionary["FS_t2_FLY"]          = np.array(FS_t2_FLY)
+  #event_dictionary["FS_t2_FLZ"]          = np.array(FS_t2_FLZ)
+  #event_dictionary["FS_t2_FLmag"]        = np.array(FS_t2_FLmag)
+  #event_dictionary["FS_t2_ipLsig"]       = np.array(FS_t2_ipLsig)
+  #event_dictionary["FS_t2_ip3d"]         = np.array(FS_t2_ip3d)
+  #event_dictionary["FS_t2_tk_lambda"]    = np.array(FS_t2_tk_lambda)
+  #event_dictionary["FS_t2_tk_qoverp"]    = np.array(FS_t2_tk_qoverp)
   event_dictionary["FS_pair_DM"]  = np.array(pair_decayMode)
 
   nEvents_postcut = len(np.array(pass_cuts))
@@ -276,7 +280,8 @@ def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta,
   passEventJetKinems = False
   if (nJet == 0):   passEventJetKinems = True # no jet requirements in nJet=0 category
   elif (nJet == 1): passEventJetKinems = (j1_pt > 30.)
-  else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.)) # nJet >= 2
+  else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.) and (mjj > 350)) # nJet >= 2
+  #else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.)) # nJet >= 2
 
   passTrigTauKinems, passTrigJetKinems = False, False
   pass_ditau = False
@@ -327,12 +332,14 @@ def make_ditau_region(event_dictionary, new_branch_name, FS_pair_sign,
     if (DEBUG): print(i, tau_idx, signed_pdgId, pass_DeepTau_t1, pass_DeepTau_t2, vJet)
 
     if ( (np.sign(signed_pdgId) == FS_pair_sign) and
-         ((pass_DeepTau_t1_req == "None") or (pass_DeepTau_t2_req == "None")) ):
+         ((pass_DeepTau_t1_req == "None") or (pass_DeepTau_t2_req == "None")) 
+         and not ((pass_DeepTau_t1 == True) and (pass_DeepTau_t2 == True)) ): # skip SR and DRsr events
       pass_cuts.append(i)
     elif ( (np.sign(signed_pdgId) == FS_pair_sign) and 
          (pass_DeepTau_t1_minimum) and (pass_DeepTau_t2_minimum) and
          (pass_DeepTau_t1 == pass_DeepTau_t1_req) and (pass_DeepTau_t2 == pass_DeepTau_t2_req) ):
       pass_cuts.append(i)
+ 
     else: pass
   
   event_dictionary[new_branch_name] = np.array(pass_cuts)
