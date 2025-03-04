@@ -2,7 +2,8 @@ def set_branches(final_state_mode, era, DeepTau_version, process="None", temp_ve
   common_branches = [
     "run", "luminosityBlock", "event", "Generator_weight", "NWEvents", "XSecMCweight",
     "TauSFweight", "MuSFweight", "ElSFweight", "BTagSFfull", 
-    "Weight_DY_Zpt_LO", "Weight_DY_Zpt_NLO", "PUweight", "Weight_TTbar_NNLO",
+    "Weight_DY_Zpt", "PUweight", "Weight_TTbar_NNLO",
+    "FFweight", "FFweight_QCD", "FFweight_WJ", "FFweight_FractionQCD",
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass",
@@ -18,21 +19,6 @@ def set_branches(final_state_mode, era, DeepTau_version, process="None", temp_ve
     #"StitchWeight_WJets_NLO",
   ]
 
-  # V1 hack
-  #if (temp_version=="V1"):
-  #  common_branches.append("HTT_H_pt_using_PUPPI_MET")
-  #  common_branches.append("HTT_mT_l1l2met_using_PUPPI_MET")
-  #else:
-  #  common_branches.append("HTT_H_pt")
-  #  common_branches.append("HTT_mT_l1l2met") 
-    #else: print(f"Warning, 2022 or 2023 should appear in your 'era' variable. Yours is {era}")
-    #if   ("2023" in era): 
-    #  common_branches.append("HTT_H_pt_using_PUPPI_MET")
-    #  common_branches.append("HTT_mT_l1l2met_using_PUPPI_MET")
-    #elif ("2022" in era): 
-    #  common_branches.append("HTT_H_pt")
-    #  common_branches.append("HTT_mT_l1l2met") 
-
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
   if final_state_mode != ["emu","dimuon"]: branches = add_DeepTau_branches(branches, DeepTau_version)
@@ -43,19 +29,17 @@ def set_branches(final_state_mode, era, DeepTau_version, process="None", temp_ve
 
 
 def add_final_state_branches(branches_, final_state_mode):
-  '''
-  Helper function to add only relevant branches to loaded branches based on final state.
-  '''
+  """ Helper function to add only relevant branches to loaded branches based on final state """
   final_state_branches = {
     "ditau"  : ["Lepton_tauIdx", "Lepton_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "PuppiMET_pt", "PuppiMET_phi",
                 "Tau_flightLengthSig", "Tau_flightLengthX", "Tau_flightLengthY", "Tau_flightLengthZ", 
                 "Tau_ipLengthSig", "Tau_ip3d", "Tau_track_lambda", "Tau_track_qoverp",
                ],
 
-    "mutau"  : ["Muon_dxy", "Muon_dz", "Muon_charge", "Muon_mass",
+    "mutau"  : ["Muon_dxy", "Muon_dz", "Muon_charge", "Muon_mass", "Muon_tightId", 
                 "Lepton_mass", "Tau_dxy", "Tau_dz", "Tau_charge", "Tau_leadTkPtOverTauPt",
                 "Lepton_tauIdx", "Lepton_muIdx",
-                "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP"],
+                "PuppiMET_pt", "PuppiMET_phi", "CleanJet_btagWP", "HTT_mT_lmet"],
 
     "etau"   : ["Electron_dxy", "Electron_dz", "Electron_charge", "Electron_mass",
                 "Lepton_mass", "Tau_dxy", "Tau_dz", "Tau_charge", 
