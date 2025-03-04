@@ -13,10 +13,10 @@ from cut_dimuon_functions import make_dimuon_cut, manual_dimuon_lepton_veto
 from cut_emu_functions    import make_emu_cut
  
 from FF_functions         import make_ditau_SR_cut, make_mutau_SR_cut, make_etau_SR_cut, make_emu_SR_cut
-from FF_functions         import make_ditau_AR_cut, make_mutau_AR_cut, make_etau_AR_cut, make_emu_AR_cut
+from FF_functions         import make_ditau_AR_cut, make_ditau_AR_star_cut, make_mutau_AR_cut, make_etau_AR_cut, make_emu_AR_cut
 from FF_functions         import add_FF_weights, add_FF_weight_from_branch
 
-from file_functions       import load_and_store_NWEvents, customize_DY
+from file_functions       import load_and_store_NWEvents 
 from plotting_functions   import final_state_vars, clean_jet_vars
 
 def append_lepton_indices(event_dictionary):
@@ -308,8 +308,9 @@ def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
       #  event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary["pass_3j_cuts"])
 
     elif ((branch != cut_branch) and (branch not in protected_branches)):
-      if DEBUG: print(f"going to cut {branch}, {len(event_dictionary[branch])}")
+      if DEBUG: print(f"{len(event_dictionary[branch])} \t\t = pre cut len({branch})")
       event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary[cut_branch])
+      if DEBUG: print(f"{len(event_dictionary[branch])} \t\t = post cut len({branch})")
 
   return event_dictionary
 
@@ -361,17 +362,6 @@ def apply_final_state_cut(era, event_dictionary, final_state_mode, DeepTau_versi
     if (event_dictionary == None): return event_dictionary
     event_dictionary = make_etau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
-  elif final_state_mode == "dimuon":
-    # old samples need manual lepton veto
-    if (useMiniIso == False):
-      event_dictionary = manual_dimuon_lepton_veto(event_dictionary)
-      event_dictionary = apply_cut(event_dictionary, "pass_manual_lepton_veto")
-      event_dictionary = make_dimuon_cut(event_dictionary)
-      event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
-    # new samples don't and they use a different iso
-    if (useMiniIso == True):
-      event_dictionary = make_dimuon_cut(event_dictionary, useMiniIso==True)
-      event_dictionary = apply_cut(event_dictionary, "pass_cuts", protected_branches)
   elif final_state_mode == "emu":
     event_dictionary = make_emu_SR_cut(event_dictionary)
     event_dictionary = apply_cut(event_dictionary, "pass_SR_cuts", protected_branches)
@@ -437,8 +427,6 @@ def apply_HTT_FS_cuts_to_process(era, process, process_dictionary, log_file,
   if ("Data" not in process) and (final_state_mode != "dimuon"):
     if ("TTToSemiLeptonic" in process): process = "TTToSemiLeptonic"
     load_and_store_NWEvents(process, process_events)
-    if ("DY" in process): 
-      customize_DY(process, final_state_mode)
     keep_fakes = False
     #keep_fakes = True #DEBUG #TODO : fix this block
     if ((("TT" in process) or ("WJ" in process) or ("DY" in process)) and ("mutau" in final_state_mode)):
@@ -540,7 +528,6 @@ def apply_AR_cut(era, process, event_dictionary, final_state_mode, jet_mode, sem
   event_dictionary = append_lepton_indices(event_dictionary)
   if ("Data" not in process) and (final_state_mode != "dimuon"):
     load_and_store_NWEvents(process, event_dictionary)
-    if ("DY" in process): customize_DY(process, final_state_mode)
     keep_fakes = False
     if (("DY" in process) and (final_state_mode=="ditau")):
       keep_fakes = True
@@ -557,8 +544,17 @@ def apply_AR_cut(era, process, event_dictionary, final_state_mode, jet_mode, sem
   if (final_state_mode != "dimuon"):
     skip_DeepTau = True
     if (final_state_mode == "ditau"):
-      event_dictionary = make_ditau_AR_cut(event_dictionary, DeepTau_version)
-      event_dictionary = apply_cut(event_dictionary, "pass_AR_cuts", protected_branches)
+      method = "NEW"
+      print("WHICH METHOD DO YOU WANT TO BE USING?????")
+      print(f"CURRENTLY USING: {method} METHOD")
+      if (method == "OLD"):
+        event_dictionary = make_ditau_AR_cut(event_dictionary, DeepTau_version)
+        cut_string = "pass_AR_cuts"
+      elif (method == "NEW"):
+        event_dictionary = make_ditau_AR_star_cut(event_dictionary, DeepTau_version)
+        cut_string = "pass_AR_star_cuts"
+      else: print(f"METHOD NOT SET! METHOD IS: {method}     CRASHING!!!")
+      event_dictionary = apply_cut(event_dictionary, cut_string, protected_branches)
       event_dictionary = apply_jet_cut(event_dictionary, jet_mode)
       event_dictionary = make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
     if (final_state_mode == "mutau"):
