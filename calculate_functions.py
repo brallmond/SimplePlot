@@ -5,7 +5,8 @@ import numpy as np
 # this file contains functions to perform simple calculations and return or print the result
 
 
-def calculate_underoverflow(events, variable_name, xbins, weights):
+
+def calculate_underoverflow(events, xbins, weights, variable=""):
   '''
   Count the number of events falling outside (below and above) the specified bins. 
   For data, an array of ones is passed to the 'weights' variable.
@@ -15,7 +16,8 @@ def calculate_underoverflow(events, variable_name, xbins, weights):
   values, _ = np.histogram(events, count_bin_values, weights=weights)
   underflow_value, overflow_value = values[0], values[-1]
   if (underflow_value > 1000) or (overflow_value > 100000):
-    print(f"large under/over flow values in {variable_name}: {underflow_value}, {overflow_value}")
+    print(f"large under/over flow values for variable '{variable}': {underflow_value}, {overflow_value}")
+
   values_error, _ = np.histogram(events, count_bin_values, weights=weights*weights)
   underflow_error, overflow_error = values_error[0], values[-1]
   return underflow_value, overflow_value, underflow_error, overflow_error

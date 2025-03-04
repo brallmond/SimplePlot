@@ -77,7 +77,8 @@ def make_etau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=False, ta
     tauPNetvMu  = PNetvMu[tauBranchLoc]
     tauPNetvEle = PNetvEle[tauBranchLoc]
 
-    passTauPtAndEta  = ((tauPt > 30.0) and (abs(tauEta) < 2.5))
+
+    passTauPtAndEta  = ((tauPt > 25.0) and (abs(tauEta) < 2.5))
     pass31ElPt   = ((ele_trig) and (elPt > 31.0) and (abs(elEta) < 2.5))
     # upper bound on cross trigger will change if lower single electron trigger included
     # HLT_Ele24_eta2p1_WPTight_Gsf_LooseDeepTauPFTauHPS30_eta2p1_CrossL1
@@ -228,7 +229,7 @@ def make_etau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=False, ta
   event_dictionary["FS_tau_rawPNetVSmu"]  = np.array(FS_tau_PNet_v_mu)
   event_dictionary["FS_tau_rawPNetVSe"]   = np.array(FS_tau_PNet_v_ele)
   nEvents_postcut = len(np.array(pass_cuts))
-  print(f"nEvents before and after ditau cuts = {nEvents_precut}, {nEvents_postcut}")
+  print(f"nEvents before and after etau cuts = {nEvents_precut}, {nEvents_postcut}")
   return event_dictionary
 
 

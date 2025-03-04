@@ -152,8 +152,6 @@ label_dictionary = {
   "HTT_DiJet_j2index"                : r'Subleading Jet Index of Highest Mjj Pair - from branch',
   "HTT_H_pt"                         : r'Higgs $p_T$ [GeV]',
   "HTT_mT_l1l2met"                   : r'$m_T$($\ell_1\ell_2$, MET) [GeV]',
-  "HTT_H_pt_using_PUPPI_MET"         : r'Higgs $p_T$ [GeV]', # deprecated from HLep V2 onward
-  "HTT_mT_l1l2met_using_PUPPI_MET"   : r'$m_T$($\ell_1\ell_2$, MET) [GeV]', # deprecated from HLep V2 onward
   "HTT_dR"      : r'$\Delta$R',
   "HTT_m_vis"            : r'$m_{vis}$ [GeV]',
   "HTT_m_vis-KSUbinning" : r'$m_{vis}$ [GeV]',
@@ -377,8 +375,6 @@ binning_dictionary = {
     "HTT_DiJet_j2index"                : np.linspace(0, 10, 10+1),
     "HTT_H_pt"                         : np.linspace(0, 300, 30+1),
     "HTT_mT_l1l2met"                   : np.linspace(0, 300, 30+1),
-    "HTT_H_pt_using_PUPPI_MET"         : np.linspace(0, 300, 30+1), # deprecated from HLep V2 onwards
-    "HTT_mT_l1l2met_using_PUPPI_MET"   : np.linspace(0, 300, 30+1), # deprecated from HLep V2 onwards
     "HTT_dR"                : np.linspace(0, 6, 60+1),
     "HTT_m_vis"             : np.linspace(0, 300, 30+1), # same as KSU binning
     #"HTT_m_vis"             : np.linspace(50, 310, 12+1),
@@ -388,7 +384,7 @@ binning_dictionary = {
     "FastMTT_PUPPIMET_mT"   : np.linspace(0, 400, 40+1),
     "FastMTT_mT"   : np.linspace(0, 400, 40+1),
     "FastMTT_PUPPIMET_mass" : np.linspace(50, 290, 12+1),
-    "FastMTT_mass" : np.linspace(50, 290, 12+1),
+    "FastMTT_mass" : np.linspace(50, 300, 25+1),
     "FS_t1_flav" : np.linspace(0, 11, 11+1),
     "FS_t2_flav" : np.linspace(0, 11, 11+1),
     "PV_npvs"    : np.linspace(0, 90, 30+1),

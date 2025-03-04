@@ -55,7 +55,7 @@ def add_final_state_branches(branches_, final_state_mode):
                 "Lepton_elIdx", "Lepton_muIdx",
                 "PuppiMET_pt", "PuppiMET_phi", "Lepton_tauIdx", 
                 "Electron_mass", "Muon_mass",
-                "CleanJet_btagWP", "HTT_DZeta"],
+                "CleanJet_btagWP", "HTT_DZeta", "HTT_mT_l1l2met"],
   }
 
   branch_to_add = final_state_branches[final_state_mode]

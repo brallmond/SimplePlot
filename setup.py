@@ -187,6 +187,7 @@ def set_good_events(final_state_mode, era, non_SR_region=False, temp_version="No
   
   good_events =  "(METfilters) & (LeptonVeto==0)"
   jet_vetomaps = ""
+
   if ("2022" in era) and any(affected_era in era for affected_era in ["E", "F", "G"]):
     jet_vetomaps += " & (JetMapVeto_EE_15GeV)"
   if (final_state_mode == "mutau"):
@@ -196,7 +197,6 @@ def set_good_events(final_state_mode, era, non_SR_region=False, temp_version="No
   good_events = add_triggers_and_FS_to_good_events(good_events, final_state_mode, era)
   if (non_SR_region): return good_events # give output with MET filters, lepton veto, veto maps, FS, and triggers
   good_events += " & (HTT_SRevent)" # preselected events from HTT ntuplizer
-
 
   return good_events
 

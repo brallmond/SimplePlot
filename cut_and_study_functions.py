@@ -575,7 +575,7 @@ def apply_AR_cut(era, process, event_dictionary, final_state_mode, jet_mode, sem
     protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
     event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
     # weights associated with jet_mode key (testing suffix automatically removed)
-    if (final_state_mode == "emu"):
+    if (final_state_mode in ["etau", "emu"]):
       event_dictionary = add_FF_weight_from_branch(event_dictionary, final_state_mode, process)
     else:
       event_dictionary = add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode)

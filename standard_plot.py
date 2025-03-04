@@ -302,14 +302,14 @@ if __name__ == "__main__":
                     "FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_DM", "FS_t1_mass",
                     "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_DM", "FS_t2_mass",
                     "FS_dphi_t1t2", "FS_deta_t1t2",
-                    "PuppiMET_pt",
+                    "PuppiMET_pt", "HTT_H_pt",
                     "nCleanJetGT30"]
     if (final_state_mode == "mutau"):
       vars_to_plot = ["HTT_m_vis", 
                     "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_mass", "FS_tau_DM",
                     "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", 
                     "FS_dphi_mutau", "FS_deta_mutau",
-                    "PuppiMET_pt",
+                    "PuppiMET_pt", "HTT_H_pt",
                     "FS_mt", "nCleanJetGT30"]
   plots_unrolled = False
   #if (presentation_mode == True): plots_unrolled = True

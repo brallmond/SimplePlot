@@ -406,7 +406,7 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
   return event_dictionary
 
 def add_FF_weight_from_branch(event_dictionary, final_state_mode, process):
-  if ((final_state_mode == "emu" ) and ("Data" in process)):
+  if ("Data" in process):
     unpack_FF_vars = ["Lepton_pt", "HTT_m_vis", "FFweight"]
     unpack_FF_vars = (event_dictionary.get(key) for key in unpack_FF_vars)
     to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_FF_vars]
@@ -417,7 +417,7 @@ def add_FF_weight_from_branch(event_dictionary, final_state_mode, process):
         print("Negative FF weights!")
         print("FF_weight: ", ff)
     event_dictionary["FF_weight"] = np.array(FF_weights)
-    return event_dictionary  
+  return event_dictionary  
 
 from producers import produce_FF_weight
 def set_JetFakes_process(setup, fakesLabel, semilep_mode):
@@ -426,10 +426,7 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   _, final_state_mode, jet_mode, era, _, _ = setup.state_info # TODO this needs to come from somewhere else
   _, _, _, do_JetFakes, _, _, _ = setup.misc_info
   vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode)
-  if (jet_mode != "Inclusive") and (do_JetFakes==True):
-    JetFakes_dictionary = produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode)
-    return JetFakes_dictionary
-  elif (final_state_mode == "emu") and (do_JetFakes == True):
+  if ((jet_mode != "Inclusive") or (final_state_mode in ["emu", "etau"])) and (do_JetFakes==True):
     JetFakes_dictionary = produce_FF_weight(setup, fakesLabel, jet_mode, semilep_mode)
     return JetFakes_dictionary
   elif (jet_mode == "Inclusive") and (do_JetFakes==True):

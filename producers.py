@@ -11,6 +11,7 @@ import numpy as np
 import gc
 
 
+
 def set_AR_region(final_state_mode, era, temp_version):
   common_selection = set_good_events(final_state_mode, era, non_SR_region=True, temp_version=temp_version)
   common_selection = add_triggers_and_FS_to_good_events(common_selection, final_state_mode, era)

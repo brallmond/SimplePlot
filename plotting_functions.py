@@ -285,7 +285,6 @@ def set_MC_process_info(process, luminosity, scaling=False, signal=False):
     if ("Fakes" in process) or (process=="myQCD"): scaling = 1
     else: scaling = MC_dictionary[process]["plot_scaling"]
     #if process.startswith("WJets"): scaling = MC_dictionary[process]["plot_scaling"] # Removing XSecMCweight if Stitchweight used instead
-
   if signal:
     label += " x" + str(MC_dictionary[process]["plot_scaling"])
   return (color, label, scaling)
@@ -552,8 +551,8 @@ def adjust_scaling(final_state, process, scaling):
   return scaling * adjustment_factor
 
 
-def get_binned_info(final_state, testing, process_name, process_variable, variable_name,
-                    xbins, process_weights, luminosity, mask=[]):
+
+def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask=[], variable=""):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
   'scaling' is either set to 1 for data (no scaling) or retrieved from the MC_dictionary.
@@ -568,7 +567,7 @@ def get_binned_info(final_state, testing, process_name, process_variable, variab
   if (len(mask) != 0): 
     process_variable = process_variable[mask]
     weights = weights[mask]
-  underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, variable_name, xbins, weights)
+  underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, xbins, weights, variable)
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
   binned_values[0]   += underflow
   binned_values[-1]  += overflow

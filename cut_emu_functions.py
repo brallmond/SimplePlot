@@ -68,7 +68,7 @@ def make_emu_cut(era, event_dictionary):
     elPhiVal   = lep_phi[elFSLoc]
     elIsoVal   = lep_iso[elFSLoc]
     elDxyVal   = abs(el_dxy[elBranchLoc])
-    elDzVal    = el_dz[elBranchLoc]
+    elDzVal    = abs(el_dz[elBranchLoc])
     elChgVal   = el_chg[elBranchLoc]
 
     #HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
