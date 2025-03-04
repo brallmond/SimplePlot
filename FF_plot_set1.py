@@ -26,7 +26,8 @@ from plotting_functions    import get_midpoints, make_eta_phi_plot
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals, get_summed_backgrounds
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import setup_single_plot, spruce_up_single_plot
-from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart, make_two_dimensional_plot
+from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_two_dimensional_plot
+from plotting_functions    import make_pie_chart, make_fraction_all_events, make_fraction_fakes
 
 from binning_dictionary import label_dictionary, binning_dictionary
 
@@ -41,17 +42,16 @@ if __name__ == "__main__":
   # do setup
   setup = setup_handler()
   testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut = setup.state_info
-  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time = setup.file_info
+  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time, temp_version = setup.file_info
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, _ = setup.misc_info
 
   print_setup_info(setup)
 
-  do_QCD = do_JetFakes
-  _, reject_datasets = set_dataset_info(final_state_mode)
+  dataset, reject_datasets = set_dataset_info(final_state_mode)
 
-  do_QCD = False
   semilep_mode = "QCD" #"QCD" or "WJ"
   #for region in ["AR", "DRsr", "DRar", "SR_aiso", "AR_aiso", "DRsr_aiso", "DRar_aiso"]:
+  #for region in ["DRsr_aiso"]:
   for region in ["AR"]:
   #for region in ["combined_OS", "combined_SS"]:
     non_SR_region = ("AR" in region) or ("DR" in region) or ("aiso" in region) or ("combined" in region)
@@ -77,9 +77,8 @@ if __name__ == "__main__":
       from cut_and_study_functions import append_lepton_indices, append_flavor_indices
       event_dictionary = append_lepton_indices(event_dictionary)
       if ("Data" not in process):
-        from file_functions import load_and_store_NWEvents, customize_DY
+        from file_functions import load_and_store_NWEvents
         load_and_store_NWEvents(process, event_dictionary)
-        if ("DY" in process): customize_DY(process, final_state_mode)
         event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
 
       from FF_functions import FF_control_flow
@@ -92,11 +91,11 @@ if __name__ == "__main__":
 
       skip_DeepTau = True
       if (final_state_mode == "ditau"):
-        event_dictionary   = make_ditau_cut(event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+        event_dictionary   = make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
         if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
       if (final_state_mode == "mutau"):
-        event_dictionary   = make_mutau_cut(event_dictionary, DeepTau_version) # no DeepTau or Charge requirements
+        event_dictionary   = make_mutau_cut(era, event_dictionary, DeepTau_version) # no DeepTau or Charge requirements
         if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
       protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
@@ -105,9 +104,10 @@ if __name__ == "__main__":
 
 
       if ((final_state_mode == "mutau") or (final_state_mode == "etau")) and (semilep_mode == "WJ"):
-        if ("Data" in process) and (do_QCD == True): 
+        if ("Data" in process) and (do_JetFakes == True): 
           event_dictionary = add_FF_weights(event_dictionary, final_state_mode, 
-                                            jet_mode, DeepTau_version, determining_FF=False,
+                                            jet_mode, semilep_mode,
+                                            #jet_mode, DeepTau_version, determining_FF=False,
                                                 # [FF int, slope, OS SS int, slope]
                                                 #bypass = [0.278, -0.000577, 1, 0])
                                                 # ditau
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                                                 #bypass = [2.41e-01, -6.12e-04, 1, 0] #DRsr/ar aiso eras EFG
                                                 # mutau
                                                 #bypass = [0.0262364,-1.88738e-05, 1, 0] # old, hacky
-                                                bypass = [0.0790, 0.000444, 1, 0] # DRsr/ar iso eras EFG Inc RedX=27 # 30min
+                                                #bypass = [0.0790, 0.000444, 1, 0] # DRsr/ar iso eras EFG Inc RedX=27 # 30min
                                                 )
       # TODO : extendable to jet cuts (something I've meant to do for some time)
       '''
@@ -172,27 +172,28 @@ if __name__ == "__main__":
     # after loop, sort big dictionary into three smaller ones
     data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
 
+    
+    fakesLabel = "JetFakes"
     if ((final_state_mode == "mutau") or (final_state_mode == "etau")) and (semilep_mode == "WJ"):
       QCD_dictionary = {}
-      QCD_dictionary["myQCD"] = {}
-      QCD_dictionary["myQCD"]["PlotEvents"] = {}
-      QCD_dictionary["myQCD"]["FF_weight"]  = data_dictionary[dataset]["FF_weight"]
+      QCD_dictionary[fakesLabel] = {}
+      QCD_dictionary[fakesLabel]["PlotEvents"] = {}
+      QCD_dictionary[fakesLabel]["FF_weight"]  = data_dictionary[dataset]["FF_weight"]
       for var in vars_to_plot:
         if ("flav" in var): continue
-        QCD_dictionary["myQCD"]["PlotEvents"][var] = data_dictionary[dataset]["PlotEvents"][var]
+        QCD_dictionary[fakesLabel]["PlotEvents"][var] = data_dictionary[dataset]["PlotEvents"][var]
 
-      background_dictionary["myQCD"] = QCD_dictionary["myQCD"] # manually include QCD as background
+      background_dictionary[fakesLabel] = QCD_dictionary[fakesLabel] # manually include QCD as background
 
     log_print("Processing finished!", log_file, time=True)
     ## end processing loop, begin plotting
 
     vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-    # remove mvis, replace with mvis_HTT and mvis_SF
     if (final_state_mode == "ditau"):
       vars_to_plot = ["HTT_m_vis", 
                     "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",
                     "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt",
-                    "FS_t1_DM", "FS_t2_DM", "FS_t1_mass", "FS_t2_mass"]
+                    "FS_t1_DM", "FS_t2_DM", "FS_pair_DM", "FS_t1_mass", "FS_t2_mass"]
     if (final_state_mode == "mutau"):
       vars_to_plot = ["HTT_m_vis", 
                     "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_DM", "FS_tau_mass",
@@ -225,11 +226,28 @@ if __name__ == "__main__":
 
       plt.savefig(plot_dir + "/" + str(var) + "_" + semilep_mode + "_" + region + ".png")
 
+      plot_fractions = True if semilep_mode == "QCD" else False
+      if (var == "HTT_m_vis") and (plot_fractions): 
+        make_pie_chart(h_data, h_backgrounds)
+        # fraction should be of fakes only, not including genuine background
+        new_ax = setup_single_plot()
+        make_fraction_all_events(new_ax, xbins, h_data, h_backgrounds)
+        spruce_up_single_plot(new_ax, label_dictionary[var], "Fraction of All Events", title, final_state_mode, jet_mode)
+        plt.savefig(plot_dir + "/" + str(var) + "_" + semilep_mode + "_" + region + "_pie.png")
+
+        newer_ax = setup_single_plot()
+        fake_processes = ["TT", "WJ"]
+        make_fraction_fakes(newer_ax, xbins, h_data, h_backgrounds, fake_processes)
+        spruce_up_single_plot(newer_ax, label_dictionary[var], "Fraction of All Jet Fakes", title, final_state_mode, jet_mode)
+        plt.savefig(plot_dir + "/" + str(var) + "_" + semilep_mode + "_" + region + "_pie2.png")
+
     plots_2D = True
     if (plots_2D == True):
-      varY = "FS_t2_phi"
+      varY = "FS_t1_mass"
+      list_varX = ["FS_t2_mass"]
+      list_binX = binning_dictionary[final_state_mode][list_varX[0]]
       if (jet_mode == "Inclusive"):
-        list_varX = ["FS_t2_eta"]
+        list_varX = ["FS_t2_mass"]
         list_binX = binning_dictionary[final_state_mode][list_varX[0]]
       elif (jet_mode == "1j"):
         list_varX = ["FS_t1_pt", "nCleanJetGT30", "HTT_H_pt", "CleanJetGT30_pt_1"]
@@ -243,27 +261,8 @@ if __name__ == "__main__":
                                     varX, varY, add_to_title=single_process)
           plt.savefig("ditau_2D_plot/" + process + "_" + varX + "_" + varY + ".png")
       
-      '''
-      if (var == "HTT_m_vis-KSUbinning"): 
-        make_pie_chart(h_data, h_backgrounds)
-        # fraction should be of fakes only, not including genuine background
-        new_ax = setup_single_plot()
-        make_fraction_all_events(new_ax, xbins, h_data, h_backgrounds)
-        spruce_up_single_plot(new_ax, label_dictionary[var], "Fraction of All Events", title, final_state_mode, jet_mode)
-
-        newer_ax = setup_single_plot()
-        fake_processes = ["TT", "WJ", "DYJet"]
-        make_fraction_fakes(newer_ax, xbins, h_data, h_backgrounds, fake_processes)
-        spruce_up_single_plot(newer_ax, label_dictionary[var], "Fraction of All Jet Fakes", title, final_state_mode, jet_mode)
-
-      # calculate and print these quantities only once
-      if (var == "HTT_m_vis"): 
-        calculate_signal_background_ratio(h_data, h_backgrounds, h_signals)
-        labels, yields = yields_for_CSV(hist_ax, desired_order=["Data", "TT", "WJ", "DY", "VV", "ST", "ggH", "VBF"])
-        print(f"Reordered     Labels: {labels}")
-        print(f"Corresponding Yields: {yields}")
-      '''
-
+    print(f"Plots are in {plot_dir}")
+    if (final_state_mode == "ditau"): print("Remember to remove WJ from the ditau default_families in plotting_functions.py!")
     if hide_plots: pass
     else: plt.show()
     log_print(f"Finished plots for {region} region!", log_file, time=True)

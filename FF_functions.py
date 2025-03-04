@@ -1,4 +1,5 @@
 import numpy as np
+import gc
 from setup import set_good_events
 from cut_ditau_functions import make_ditau_region, make_ditau_cut
 from cut_mutau_functions import make_mutau_region, make_mutau_cut
@@ -6,7 +7,7 @@ from cut_etau_functions  import make_etau_region,  make_etau_cut
 from cut_dimuon_functions  import make_dimuon_region, make_dimuon_cut
 from cut_emu_functions  import make_emu_region, make_emu_cut
 from FF_dictionary import FF_fit_values, FF_mvis_weights
-from calculate_functions import user_exp, user_line
+from calculate_functions import user_exp, user_line, user_line_p_const
 from plotting_functions import set_vars_to_plot
 
 def FF_control_flow(final_state_mode, semilep_mode, region, event_dictionary, DeepTau_version):
@@ -19,6 +20,8 @@ def FF_control_flow(final_state_mode, semilep_mode, region, event_dictionary, De
     if (region == "AR_aiso"):   event_dictionary   = make_ditau_AR_aiso_cut(event_dictionary, DeepTau_version)
     if (region == "DRsr_aiso"): event_dictionary   = make_ditau_DRsr_aiso_cut(event_dictionary, DeepTau_version)
     if (region == "DRar_aiso"): event_dictionary   = make_ditau_DRar_aiso_cut(event_dictionary, DeepTau_version)
+    if (region == "AR_star"):   event_dictionary   = make_ditau_AR_star_cut(event_dictionary, DeepTau_version)
+    if (region == "DRar_star"): event_dictionary   = make_ditau_DRar_star_cut(event_dictionary, DeepTau_version)
     if (region == "combined_OS") or (region == "combined_SS"):
       if "OS" in region:   sign = -1
       elif "SS" in region: sign = 1
@@ -125,17 +128,23 @@ def make_ditau_DRar_aiso_cut(event_dictionary, DeepTau_version):
 
 def make_ditau_combined_cut(event_dictionary, DeepTau_version, sign):
   # use to combine all regions for a given sign pair
-  signstr = "OS" if sign==-1 else "SS"
-  name = "pass_combined_"+signstr+"_cuts" 
+  name = "pass_AR_star_cuts" if sign==-1 else "pass_DRar_star_cuts"
   event_dictionary = make_ditau_region(event_dictionary, name, FS_pair_sign=sign,
-                       pass_DeepTau_t1_req="None", DeepTau_t1_value=0,
-                       pass_DeepTau_t2_req="None", DeepTau_t2_value=0,
+                       pass_DeepTau_t1_req="None", DeepTau_t1_value=ditau_DeepTauVsJet_WP,
+                       pass_DeepTau_t2_req="None", DeepTau_t2_value=ditau_DeepTauVsJet_WP,
                        DeepTau_version="2p5")
   return event_dictionary
 
+def make_ditau_AR_star_cut(event_dictionary, DeepTau_version):
+  return make_ditau_combined_cut(event_dictionary, DeepTau_version, -1)
+
+def make_ditau_DRar_star_cut(event_dictionary, DeepTau_version):
+  return make_ditau_combined_cut(event_dictionary, DeepTau_version, 1)
+
+
 
 mutau_DeepTauVsJet_WP = 5
-mutau_mt_value = 50
+mutau_mt_value = 50 # replace with 9999 to disable temporarily
 ### begin mutau region cuts
 def make_mutau_SR_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_SR_cuts" if iso_region == True else "pass_SR_aiso_cuts"
@@ -327,21 +336,29 @@ def add_FF_weights(event_dictionary, final_state_mode, jet_mode, semilep_mode, c
     fakeleg_idx = l1_idx if final_state_mode == "ditau" else l2_idx # mutau/etau is always l2, ditau is always l1
     lepleg_idx  = l2_idx if final_state_mode == "ditau" else l1_idx
     tau_pt = lep_pt[fakeleg_idx]
-    low_val = 20.0 if final_state_mode == "ditau" else 30.0
-    #low_val = 40.0 if final_state_mode == "ditau" else 30.0
-    hi_val  = 140.0 if final_state_mode == "ditau" else 200
-    tau_pt = tau_pt if tau_pt > low_val else low_val
-    tau_pt = tau_pt if tau_pt < hi_val else hi_val
+    # temporarily disabled for piecewise
+    #low_val = 20.0 if final_state_mode == "ditau" else 30.0
+    ##low_val = 40.0 if final_state_mode == "ditau" else 30.0
+    #hi_val  = 140.0 if final_state_mode == "ditau" else 200
+    #tau_pt = tau_pt if tau_pt > low_val else low_val
+    #tau_pt = tau_pt if tau_pt < hi_val else hi_val
     if (final_state_mode == "etau"):
        if (m_vis <=40): m_vis_idx = 1
        else: m_vis_idx = int(m_vis // 20)
     else: 
       m_vis_idx = int(m_vis // 10) # hard-coding mvis bins of 10 GeV, starting at 0 and ending at 300 ( // is modulo division )
+    # TODO: below is a hack that sets fraction to 1 for a closure test
+    #       for mutau, this is not correct. You need the fraction of events as a function of mvis in DRar, not 1
     f_QCD     = FF_mvis_weights[final_state_mode][jet_mode]["QCD"][m_vis_idx] if not closure else 1
-    user_func_QCD = user_exp if final_state_mode=="mutau" else user_line
-    user_func_WJ = user_exp
-    FF_QCD    = user_func_QCD(tau_pt, *QCD_fitvals) * 1.1 # OS / SS bias
-    if (final_state_mode != "ditau"): # else pass
+    #user_func_QCD = user_line_p_const if final_state_mode=="mutau" else user_line
+    user_func_QCD = user_line_p_const
+    #user_func_QCD = user_exp if final_state_mode=="mutau" else user_line
+    user_func_WJ = user_line_p_const #user_exp
+    #FF_QCD    = user_func_QCD(tau_pt, *QCD_fitvals) # use this for closure plots..
+    #FF_QCD    = user_func_QCD(tau_pt, *QCD_fitvals) * 1.1 # SS --> OS bias
+    #FF_QCD    = user_func_QCD(tau_pt, *QCD_fitvals) * (-0.0014*m_vis + 1.5841) # SS --> OS bias # old method
+    FF_QCD    = user_func_QCD(tau_pt, *QCD_fitvals) * (-0.0016*m_vis + 1.5008) # SS --> OS bias # new method
+    if (final_state_mode != "ditau"):
       f_WJ       = FF_mvis_weights[final_state_mode][jet_mode]["WJ"][m_vis_idx] if not closure else 1
       FF_WJ      = user_func_WJ(tau_pt, *WJ_fitvals)
     else: pass
@@ -369,7 +386,7 @@ def add_FF_weight_from_branch(event_dictionary, final_state_mode, process):
     unpack_FF_vars = (event_dictionary.get(key) for key in unpack_FF_vars)
     to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_FF_vars]
     FF_weights = []
-    for i, lep_pt, m_vis, ff in zip(*to_check):
+    for i, lep_pt, m_vis, ff in zip(*to_check): # TODO: generalize
       FF_weights.append(ff)
       if (ff <= 0):
         print("Negative FF weights!")
@@ -417,6 +434,7 @@ def set_JetFakes_process(setup, fakesLabel, semilep_mode):
   else:
     print("Not programmed to handle that case. Crashing now")
   return JetFakes_dictionary
+
 
 if __name__ == "__main__":
   from setup import setup_handler

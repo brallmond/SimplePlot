@@ -28,13 +28,17 @@ from plotting_functions    import get_binned_data, get_binned_backgrounds, get_b
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
 from plotting_functions    import setup_single_plot, spruce_up_single_plot
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart, plot_raw
+from plotting_functions    import setup_side_by_side_plot
 
 from binning_dictionary import label_dictionary
 
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print
 
-from calculate_functions import user_exp, user_line
+from calculate_functions import user_exp, user_line, user_line_p_const
+
+from cut_ditau_functions import make_ditau_cut
+from cut_mutau_functions import make_mutau_cut
 
 def make_exp_fit(method, starting_vals):
   m = Minuit(method, starting_vals, name=name_vals)
@@ -44,6 +48,7 @@ def make_exp_fit(method, starting_vals):
   RX2 = chi_squared / ndof
 
   return m.values, RX2
+
 
 def make_pol_fit(method, order):
   nvals = order + 1
@@ -136,9 +141,9 @@ if __name__ == "__main__":
 
   # do setup
   setup = setup_handler()
-  testing, final_state_mode, jet_mode, era, lumi = setup.state_info
-  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time = setup.file_info
-  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _ = setup.misc_info
+  testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut = setup.state_info
+  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time, temp_version = setup.file_info
+  hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, _ = setup.misc_info
 
   print_setup_info(setup)
 
@@ -151,7 +156,7 @@ if __name__ == "__main__":
   store_region_sgnl_dictionary = {}
   semilep_mode = "QCD" # "QCD" or "WJ"
   numerator = "DRsr"
-  denominator = "DRar"
+  denominator = "DRar_star"
   for region in [numerator, denominator]:
 
     vars_to_plot = set_vars_to_plot(final_state_mode, jet_mode=jet_mode)
@@ -175,9 +180,8 @@ if __name__ == "__main__":
       from cut_and_study_functions import append_lepton_indices, append_flavor_indices
       event_dictionary = append_lepton_indices(event_dictionary)
       if ("Data" not in process):
-        from file_functions import load_and_store_NWEvents, customize_DY
+        from file_functions import load_and_store_NWEvents
         load_and_store_NWEvents(process, event_dictionary)
-        if ("DY" in process): customize_DY(process, final_state_mode)
         event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=True)
 
       from FF_functions import FF_control_flow
@@ -189,12 +193,11 @@ if __name__ == "__main__":
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
       if (final_state_mode == "ditau"):
-        from cut_ditau_functions  import make_ditau_cut 
-        event_dictionary   = make_ditau_cut(event_dictionary, DeepTau_version) # no DeepTau or Charge requirements
+        event_dictionary   = make_ditau_cut(era, event_dictionary, DeepTau_version)
         if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
       if (final_state_mode == "mutau"):
-        event_dictionary   = make_mutau_cut(event_dictionary, DeepTau_version) # no DeepTau or Charge requirements
+        event_dictionary   = make_mutau_cut(era, event_dictionary, DeepTau_version)
         if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
       protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
@@ -203,6 +206,7 @@ if __name__ == "__main__":
 
 
       # TODO : extendable to jet cuts (something I've meant to do for some time)
+      '''
       if "DY" in process:
         event_flavor_arr = event_dictionary["event_flavor"]
         pass_gen_flav, pass_lep_flav, pass_jet_flav = [], [], []
@@ -232,15 +236,19 @@ if __name__ == "__main__":
         if background_jet_deepcopy == None: continue
 
         combined_process_dictionary = append_to_combined_processes("DYGen", background_gen_deepcopy, vars_to_plot, 
-                                                                   combined_process_dictionary)
+                                                                   combined_process_dictionary, one_file_at_a_time)
         combined_process_dictionary = append_to_combined_processes("DYLep", background_lep_deepcopy, vars_to_plot, 
-                                                                   combined_process_dictionary)
+                                                                   combined_process_dictionary, one_file_at_a_time)
         combined_process_dictionary = append_to_combined_processes("DYJet", background_jet_deepcopy, vars_to_plot, 
-                                                                   combined_process_dictionary)
+                                                                   combined_process_dictionary, one_file_at_a_time)
         
       else:
         combined_process_dictionary = append_to_combined_processes(process, event_dictionary, vars_to_plot, 
-                                                                   combined_process_dictionary)
+                                                                   combined_process_dictionary, one_file_at_a_time)
+      '''
+      combined_process_dictionary = append_to_combined_processes(process, event_dictionary, vars_to_plot, 
+                                                                 combined_process_dictionary, one_file_at_a_time)
+ 
 
     # after loop, sort big dictionary into three smaller ones
     data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(combined_process_dictionary)
@@ -249,7 +257,7 @@ if __name__ == "__main__":
     store_region_data_dictionary[region] = data_dictionary
     store_region_bkgd_dictionary[region] = background_dictionary
     store_region_sgnl_dictionary[region] = signal_dictionary
-
+    # end region loop
 
   numerator_data = store_region_data_dictionary[numerator]
   numerator_bkgd = store_region_bkgd_dictionary[numerator]
@@ -262,22 +270,19 @@ if __name__ == "__main__":
   ## end processing loop, begin plotting
 
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
-  # remove mvis, replace with mvis_HTT and mvis_SF
-  vars_to_plot.remove("HTT_m_vis")
-  vars_to_plot.append("HTT_m_vis-KSUbinning")
   if (final_state_mode == "ditau"):
-    #vars_to_plot = ["HTT_m_vis-KSUbinning", 
-    vars_to_plot = [
-                  "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",]
-                  #"FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt"]
+    vars_to_plot = ["HTT_m_vis", 
+                  "FS_t1_pt", "FS_t1_eta", "FS_t1_phi",
+                  "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "PuppiMET_pt",
+                  "FS_t1_DM", "FS_t2_DM", "FS_t1_mass", "FS_t2_mass"]
   if (final_state_mode == "mutau"):
-    #vars_to_plot = ["HTT_m_vis-KSUbinning", 
-    vars_to_plot = [
-                  "FS_tau_pt", "FS_tau_eta", "FS_tau_phi",]
-                  #"FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "PuppiMET_pt", "FS_mt"]
-  # and add back variables unique to the jet mode
+    vars_to_plot = ["HTT_m_vis", 
+                  "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_DM", "FS_tau_mass",
+                  "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", "PuppiMET_pt", "FS_mt"]
+  # add back variables unique to the jet mode
   if (jet_mode == "1j") or (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_1")
   if (jet_mode == "GTE2j"): vars_to_plot.append("CleanJetGT30_pt_2")
+
   for var in vars_to_plot:
     log_print(f"Plotting {var}", log_file, time=True)
 
@@ -292,38 +297,35 @@ if __name__ == "__main__":
         #xbins = np.array([0, 5, 10, 15, 20, 25, 30, 31.25, 32.5, 33.75, 35, 36.25, 37.5, 38.75, 40, 42.25, 45, 52.5, 60, 120, 200])
       print(f"new xbins = {xbins}")
 
-    ax_compare = setup_single_plot()
-    ax_ratio   = setup_single_plot()
+    ax_compare, ax_ratio = setup_side_by_side_plot()
 
-    temp_var = var
-    if "HTT_m_vis" in var: var = "HTT_m_vis"
-    h_numerator_data = get_binned_data(final_state_mode, testing, numerator_data, var, xbins, lumi)
-    h_denominator_data = get_binned_data(final_state_mode, testing, denominator_data, var, xbins, lumi)
+    h_numerator_data                 = get_binned_data(final_state_mode, testing, numerator_data, var, xbins, lumi)
+    h_denominator_data               = get_binned_data(final_state_mode, testing, denominator_data, var, xbins, lumi)
     h_numerator_backgrounds          = get_binned_backgrounds(final_state_mode, testing, numerator_bkgd, var, xbins, lumi)
     h_numerator_summed_backgrounds   = get_summed_backgrounds(h_numerator_backgrounds)
     h_denominator_backgrounds        = get_binned_backgrounds(final_state_mode, testing, denominator_bkgd, var, xbins, lumi)
     h_denominator_summed_backgrounds = get_summed_backgrounds(h_denominator_backgrounds)
-    var = temp_var
 
     h_num_data_m_MC, h_den_data_m_MC = subtract_data_MC(semilep_mode, 
-                     h_numerator_data, h_numerator_backgrounds, h_numerator_summed_backgrounds, 
+                     h_numerator_data,   h_numerator_backgrounds,   h_numerator_summed_backgrounds, 
                      h_denominator_data, h_denominator_backgrounds, h_denominator_summed_backgrounds)
 
     # reversed dictionary search for era name based on lumi 
-    title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
-    title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
+    title = f"{era}, {lumi:.2f}" + r"$fb^{-1}$"
 
     # plot everything :)
-    plot_raw(ax_compare, xbins, h_num_data_m_MC, lumi, color="grey", label=f"{numerator} : Data-MC")
-    plot_raw(ax_compare, xbins, h_den_data_m_MC, lumi, color="blue",  label=f"{denominator} : Data-MC")
+    plot_raw(ax_compare, xbins, h_num_data_m_MC, lumi, color="grey", label=f"{numerator} : Data - MC")
+    plot_raw(ax_compare, xbins, h_den_data_m_MC, lumi, color="blue", label=f"{denominator} : Data - MC")
+
     spruce_up_single_plot(ax_compare, label_dictionary[var], "Events", title, final_state_mode, jet_mode)
-    plt.savefig(plot_dir + "/" + str(var) + "_" + str(region) + ".png")
 
     FF_ratio, FF_ratio_err = make_ratio_plot(ax_ratio, xbins, 
                              h_num_data_m_MC, "Data", np.ones(np.shape(h_num_data_m_MC)),
                              h_den_data_m_MC, "Data", np.ones(np.shape(h_den_data_m_MC)),
                              no_plot=False, label=f"{numerator} / {denominator}")
 
+    spruce_up_single_plot(ax_ratio, label_dictionary[var], "Ratio and Fit", 
+                          title, final_state_mode, jet_mode, yrange=[0.0, 0.6]) #0.03
 
     silly_zeros = mask_zeros(FF_ratio)
     midpoints = get_midpoints(xbins)
@@ -336,9 +338,9 @@ if __name__ == "__main__":
 
     if (var == "FS_t1_pt") or (var == "FS_tau_pt"): # FS_tau_pt belongs to mutau/etau, FS_t1_pt is ditau
 
-
-
-      low_val  = 30 if var == "FS_tau_pt" else 40
+      #low_val  = 30 if var == "FS_tau_pt" else 40
+      #low_val  = 25 if var == "FS_tau_pt" else 40
+      low_val  = 25
       #high_val = 100 if var == "FS_tau_pt" else 150
       high_val = xbins[-1]
       use_vals = np.array([((midpoints[i] > low_val) and (midpoints[i] < high_val)) for i in range(len(midpoints))])
@@ -346,13 +348,16 @@ if __name__ == "__main__":
       use_FF_ratio_err = FF_ratio_err[use_vals]
       use_midpoints    = midpoints[use_vals]
       #use_xbins    = xbins[use_vals]
-      mask_all_zeros = mask_zeros(use_FF_ratio, mask_all=True)
-      use_FF_ratio = use_FF_ratio[~mask_all_zeros]
+      mask_all_zeros   = mask_zeros(use_FF_ratio, mask_all=True)
+      use_FF_ratio     = use_FF_ratio[~mask_all_zeros]
       use_FF_ratio_err = use_FF_ratio_err[~mask_all_zeros]
-      use_midpoints = use_midpoints[~mask_all_zeros]
+      use_midpoints    = use_midpoints[~mask_all_zeros]
       #use_xbins = use_xbins[~mask_all_zeros]
+      print(use_midpoints)
+      print(use_FF_ratio)
 
       # put all bins above cutoff value together, get coefficient from function directly, and slap it on the plot
+      # TODO: tail bins appears to use the same value twice in one array...
       tail_bins = np.array([high_val, xbins[-1]]) # overflows are captured and used by default
       h_num_data_tail = get_binned_data(final_state_mode, testing, numerator_data, var, tail_bins, lumi)
       h_den_data_tail = get_binned_data(final_state_mode, testing, denominator_data, var, tail_bins, lumi)
@@ -366,65 +371,90 @@ if __name__ == "__main__":
                                      h_num_data_tail, h_num_bkgd_tail, h_num_summed_bkgd_tail,
                                      h_den_data_tail, h_den_bkgd_tail, h_den_summed_bkgd_tail)
 
-      tail_ratio, tail_ratio_err = make_ratio_plot(ax_ratio, xbins, 
-                          h_num_data_m_MC_tail, "Data", np.ones(np.shape(h_num_data_m_MC_tail)),
-                          h_den_data_m_MC_tail, "Data", np.ones(np.shape(h_den_data_m_MC_tail)),
-                          no_plot=False)
+      #tail_ratio, tail_ratio_err = make_ratio_plot(ax_ratio, xbins, 
+      #                    h_num_data_m_MC_tail, "Data", np.ones(np.shape(h_num_data_m_MC_tail)),
+      #                    h_den_data_m_MC_tail, "Data", np.ones(np.shape(h_den_data_m_MC_tail)),
+      #                    no_plot=False)
+      
       #ax_ratio.plot([high_val, xbins[-1]], [tail_ratio[0],tail_ratio[0]], color="purple", label=f"high pt const")
 
-    least_squares_pol = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_line) # line is a function defined above
-    least_squares_exp = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_exp) 
+    if (var == "FS_t1_pt") or (var == "FS_tau_pt"): # FS_tau_pt belongs to mutau/etau, FS_t1_pt is ditau
 
-    # "Fo2" = Fit, order 2
-    Fo1_values, Fo1_label, Fo1_RX2 = make_pol_fit(least_squares_pol, 1) # line # want "order 1" to mean line
-    #Fo2_values, Fo2_label, Fo2_RX2 = make_pol_fit(least_squares_pol, 2) # qaudratic
-    #Fo3_values, Fo3_label, Fo3_RX2 = make_pol_fit(least_squares_pol, 3) # 3rd order polynomial
+      least_squares_pol = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_line)
+      least_squares_exp = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_exp) 
+      least_squares_pw  = LeastSquares(use_midpoints, use_FF_ratio, use_FF_ratio_err, user_line_p_const) 
 
-    exp_fit = Minuit(least_squares_exp, a=-4, b=0.2, c=6, d=0.1) # give initial values from a fit that worked
-    exp_fit.migrad()
-    FoE_values = exp_fit.values
-    print(exp_fit)
-    chi_squared = exp_fit.fval
-    ndof = len(use_FF_ratio) - len(exp_fit.values)
-    print(FoE_values)
-    func_params = {}
-    for i, val in enumerate(FoE_values):
-      temp = "abcd"
-      print(temp[i], val)
-      func_params[temp[i]] = val
-    print(func_params)
+      # "Fo2" = Fit, order 2
+      Fo1_values, Fo1_label, Fo1_RX2 = make_pol_fit(least_squares_pol, 1) # line # want "order 1" to mean line
+      #Fo2_values, Fo2_label, Fo2_RX2 = make_pol_fit(least_squares_pol, 2) # qaudratic
+      #Fo3_values, Fo3_label, Fo3_RX2 = make_pol_fit(least_squares_pol, 3) # 3rd order polynomial
 
-    exp_label = f"exp func = a*e^-b(x-c)+d \n\
-                 a = {func_params['a']:.4f} \n\
-                 b = {func_params['b']:.4f} \n\
-                 c = {func_params['c']:.4f} \n\
-                 d = {func_params['d']:.4f}"
+      print("LINEAR FIT VALUES")
+      print(Fo1_values)
 
-    # check reduced chi2, goodness-of-fit estimate, should be around 1 # from Minuit manual
+      linear_label = f"mx+b: {Fo1_values[0]:.2f}, {Fo1_values[1]:.2f}"
 
-    # need to store line and label of each fit
-    more_xvals = np.linspace(0, xbins[-1], 100)
-    print("LINEAR FIT VALUES")
-    print(Fo1_values)
-    ax_ratio.plot(more_xvals, user_line(more_xvals, *Fo1_values), color="blue",    label=f"1st order: {Fo1_RX2:.3f}")
-    #ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo2_values)), color="green",  label=f"2nd order: {Fo2_RX2:.3f}")
-    #ax_ratio.plot(use_midpoints, line_np(use_midpoints, (Fo3_values)), color="blue",   label=f"3rd order: {Fo3_RX2:.3f}")
-    use_midpoints = get_midpoints(make_bins(var, final_state_mode))
-    #ax_ratio.plot(use_midpoints, user_square_root(use_midpoints, *sqrt_fit.values), color="cyan", label="squareroot")
-    ax_ratio.plot(use_midpoints, user_exp(use_midpoints, *exp_fit.values), color="pink", label=exp_label)
-    ax_ratio.plot(more_xvals, user_exp(more_xvals, *exp_fit.values), color="red")
-    #if (var == "FS_t1_pt") or (var == "FS_tau_pt"): # FS_tau_pt belongs to mutau/etau, FS_t1_pt is ditau
-    #  ax_ratio.plot(tail_bins, line_np(tail_bins[0]*np.ones(np.shape(tail_bins)), (Fo1_values)), color="red")
+      exp_fit = Minuit(least_squares_exp, a=-4, b=0.2, c=6, d=0.1)
+      exp_fit.migrad()
+      FoE_values = exp_fit.values
 
-    #  print("FIT COEFFICIENTS")
-    #  print(f"1st order: {Fo1_label}")
-    #  print(f"2nd order: {Fo2_label}")
-    #  print(f"3rd order: {Fo3_label}")
-    #  print(f"high pt (≥{high_val}): {tail_ratio[0]}")
+      # check reduced chi2, goodness-of-fit estimate, should be around 1 # from Minuit manual
+      print("EXPONENTIAL FIT INFO")
+      print(exp_fit)
+      chi_squared = exp_fit.fval
+      ndof = len(use_FF_ratio) - len(exp_fit.values)
+      RX2 = chi_squared / ndof
+      print(f"RX2: {RX2}")
+      print(FoE_values)
+      func_params = {}
+      for i, val in enumerate(FoE_values):
+        func_params["abcd"[i]] = val
+      print(f"vals for dictionary: [{func_params['a']:.4f}, {func_params['b']:.4f}, {func_params['c']:.4f}, {func_params['d']:.4f}]")
 
-    spruce_up_single_plot(ax_ratio, label_dictionary[var], "Fake Factor Ratio and Fit", 
-                          title, final_state_mode, jet_mode, yrange=[0.0, 0.3])
-    plt.savefig(plot_dir + "/" + str(var) + ".png")
+      exp_label = f"exp func = a*e^-b(x-c) + d \n\
+                   a = {func_params['a']:.4f} \n\
+                   b = {func_params['b']:.4f} \n\
+                   c = {func_params['c']:.4f} \n\
+                   d = {func_params['d']:.4f}"
+
+      # piecewise fit
+      if (final_state_mode == "ditau"):
+        pw_fit = Minuit(least_squares_pw, a=-0.0003, b=0.06, c=100) # Initial vals for DiTau DRar_star
+        #pw_fit = Minuit(least_squares_pw, a=-0.0006, b=0.3, c=100) # Initial vals for DiTau DRar
+      if (final_state_mode == "mutau"):
+        pw_fit = Minuit(least_squares_pw, a=0.002, b=0.05, c=50) # Initial vals for MuTau
+      pw_fit.migrad()
+      FoPW_values = pw_fit.values
+
+      # check reduced chi2, goodness-of-fit estimate, should be around 1 # from Minuit manual
+      print("PIECEWISE FIT INFO")
+      print(pw_fit)
+      chi_squared = pw_fit.fval
+      ndof = len(use_FF_ratio) - len(pw_fit.values)
+      RX2 = chi_squared / ndof
+      print(f"RX2: {RX2}")
+      print(FoPW_values)
+      pw_func_params = {}
+      for i, val in enumerate(FoPW_values):
+        pw_func_params["abcd"[i]] = val
+      print(f"vals for dictionary: [{pw_func_params['a']:.4f}, {pw_func_params['b']:.4f}, {pw_func_params['c']:.4f}]")
+
+      pw_label = f"pw func = a*x + b if x < c, else y = a*c + b \n\
+                   a = {pw_func_params['a']:.4f} \n\
+                   b = {pw_func_params['b']:.4f} \n\
+                   c = {pw_func_params['c']:.4f}"
+
+      # plotting
+      more_xvals = np.linspace(0, xbins[-1], 100)
+
+      ax_ratio.plot(more_xvals, user_line_p_const(more_xvals, *FoPW_values), color="purple", label=pw_label)
+      #if (final_state_mode == "ditau"):
+      #  ax_ratio.plot(more_xvals, user_line(more_xvals, *Fo1_values), color="red", label=linear_label)
+      #elif (final_state_mode == "mutau") or (final_state_mode == "etau"):
+      #  ax_ratio.plot(more_xvals, user_exp(more_xvals, *exp_fit.values), color="red", label=exp_label)
+      ax_ratio.legend()
+
+    plt.savefig(plot_dir + "/" + str(var) + "_ratio" + ".png")
 
   print(f"plots are in {plot_dir}")
   if hide_plots: pass
