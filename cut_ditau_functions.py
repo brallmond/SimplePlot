@@ -280,8 +280,8 @@ def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta,
   passEventJetKinems = False
   if (nJet == 0):   passEventJetKinems = True # no jet requirements in nJet=0 category
   elif (nJet == 1): passEventJetKinems = (j1_pt > 30.)
-  else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.) and (mjj > 350)) # nJet >= 2
-  #else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.)) # nJet >= 2
+  else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.)) # nJet >= 2
+  #else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.) and (mjj > 350)) # nJet >= 2
 
   passTrigTauKinems, passTrigJetKinems = False, False
   pass_ditau = False

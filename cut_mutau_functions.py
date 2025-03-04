@@ -24,7 +24,7 @@ def make_mutau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=False, t
   has_singletau_VBF = ("HLT_VBF_DiPFJet45_Mjj500_Detajj2p5_MediumDeepTauPFTauHPS45_L2NN_eta2p1" in unpack_mutau)
   has_singlemu_VBF = ("HLT_VBF_DiPFJet90_40_Mjj600_Detajj2p5_Mu3_TrkIsoVVL" in unpack_mutau)
   unpack_mutau = (event_dictionary.get(key) for key in unpack_mutau)
-  to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_mutau] # "*" unpacks a tuple
+  to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_mutau]
   # force to_check to always be the right length, even in eras where a trigger isn't available
   if (not has_singletau_VBF): to_check.append(np.zeros(len(event_dictionary["Lepton_pt"]), dtype=bool))
   if (not has_singlemu_VBF): to_check.append(np.zeros(len(event_dictionary["Lepton_pt"]), dtype=bool))
@@ -121,8 +121,6 @@ def make_mutau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=False, t
     trig_results  = np.logical_and(trig_results, [1, 1, 0, 1])
     passKinems = (True in trig_results) # kinematics are passed if any of the above triggers+kinems pass
 
-    #if (singletau_VBF_trig) and (not muon_trig) and (not single_muon):
-    #  print(trig_results)
     trig_idx = np.where(trig_results)[0][0] if passKinems else -1
 
     old_trig = passTauPtAndEta and (pass25MuPt or passMuPtCrossTrigger)
@@ -255,8 +253,6 @@ def pass_kinems_by_trigger(triggers, mu_pt, tau_pt, mu_eta, tau_eta,
   '''
   Helper function to apply different object kinematic criteria depending on trigger used
   the if blocks below are intended to be mutually exclusive, prioritizing less complicated triggers over others.
-  In 2022, the order is DiTau, DiTau+Jet, DiTau VBFRun3
-  In 2023, the order is DiTau, DiTau+Jet, VBF+SingleTau (if available, otherwise DiTau VBFRun3 is used)
   '''
 
   muon_trig, mutau_trig, singletau_VBF_trig, singlemu_VBF_trig = triggers
@@ -264,10 +260,11 @@ def pass_kinems_by_trigger(triggers, mu_pt, tau_pt, mu_eta, tau_eta,
   passEventJetKinems = False
   if (nJet == 0):   passEventJetKinems = True # no jet requirements in nJet=0 category
   elif (nJet == 1): passEventJetKinems = (j1_pt > 30.)
-  else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.) and (mjj > 350)) # nJet >= 2
+  else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.)) # nJet >= 2
+  #else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.) and (mjj > 350)) # nJet >= 2
 
-  #passEventTauKinems  = (tau_pt > 20.) and (abs(tau_eta) < 2.5) # prev 30 pT
-  passEventTauKinems  = (tau_pt > 25.) and (abs(tau_eta) < 2.5) # prev 30 pT
+  #passEventTauKinems  = (tau_pt > 20.) and (abs(tau_eta) < 2.5)
+  passEventTauKinems  = (tau_pt > 25.) and (abs(tau_eta) < 2.5)
   passEventMuonKinems = (mu_pt > 10.)  and (abs(mu_eta) < 2.4)
 
   #print("# EVENT INFORMATION IN PASS KINEM FUNCTION#")
@@ -292,14 +289,9 @@ def pass_kinems_by_trigger(triggers, mu_pt, tau_pt, mu_eta, tau_eta,
     passTrigJetKinems  = (passEventJetKinems)
     if (passTrigMuonKinems and passTrigTauKinems and passTrigJetKinems): pass_mutau = True
     if (pass_mutau): pass_single_muon = False # enforce othrogonal trigger coverage
-  #print(f" event flags: {passEventMuonKinems}, {passEventTauKinems}, {passEventJetKinems}")
-  #print(f" block trig  flags: {passTrigMuonKinems}, {passTrigTauKinems}, {passTrigJetKinems}")
-  #print(f" final trig  flags: {pass_single_muon}, {pass_mutau}")#, {pass_singletau_VBF}")
-  #print("**************************************")
 
   passTrigMuonKinems, passTrigTauKinems, passTrigJetKinems = False, False, False
   pass_singletau_VBF = False
-  #if (singletau_VBF_trig) and not (mutau_trig) and not (muon_trig):
   if (singletau_VBF_trig):
     passTrigMuonKinems = (passEventMuonKinems)
     passTrigTauKinems  = ((passEventTauKinems) and (tau_pt > 45) and (abs(tau_eta) < 2.1))
@@ -315,8 +307,6 @@ def pass_kinems_by_trigger(triggers, mu_pt, tau_pt, mu_eta, tau_eta,
     if (passTrigMuonKinems and passTrigTauKinems and passTrigJetKinems): pass_singlemu_VBF = True
 
   return [pass_single_muon, pass_mutau, pass_singletau_VBF, pass_singlemu_VBF]
-  #return [pass_single_muon, pass_mutau, pass_singletau_VBF]
-  #return [pass_single_muon, pass_mutau, False]
 
 
 def make_mutau_region(event_dictionary, new_branch_name, FS_pair_sign, pass_mu_iso_req, mu_iso_value,
@@ -340,14 +330,13 @@ def make_mutau_region(event_dictionary, new_branch_name, FS_pair_sign, pass_mu_i
     tauBranchLoc = tau_idx[l2_idx]
 
     mu_iso     = lep_iso[muFSLoc]
-    # puts mu_iso between 0.05 and 0.15 for DRsr and DRar, but makes aiso cases difficult
+    # puts mu_iso between 0.05 and 0.15 for DRsr and DRar QCD
     pass_mu_iso = (mu_iso_value[0] <= mu_iso < mu_iso_value[1])
 
     pass_DeepTau  = (vJet[tauBranchLoc] >= DeepTau_value)
 
     muPt    = lep_pt[muFSLoc]
     muPhi   = lep_phi[muFSLoc]
-    #passMT     = (calculate_mt(muPt, muPhi, MET_pt, MET_phi) < mt_value)
     passMT  = (mt < mt_value)
 
     passBTag = True
