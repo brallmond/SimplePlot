@@ -341,6 +341,7 @@ if __name__ == "__main__":
         fig_unroll, stack_n_ax, ratio_n_ax = setup_unrolled_plot(len(unrolled_bins))
   
         for ith_bin in range(len(unrolled_bins)):
+          print(unrolled_bins_data)
           h_data_ur = get_binned_data(final_state_mode, testing, data_dictionary, rolled_var, xbins, lumi,
                                         mask=unrolled_bins_data, mask_n=ith_bin)
           h_backgrounds_ur = get_binned_backgrounds(final_state_mode, testing, background_dictionary, rolled_var, xbins, lumi,

@@ -551,7 +551,7 @@ def adjust_scaling(final_state, process, scaling):
   return scaling * adjustment_factor
 
 
-def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask=[], variable=""):
+def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask={}, variable=""):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
   'scaling' is either set to 1 for data (no scaling) or retrieved from the MC_dictionary.
@@ -612,8 +612,8 @@ def get_binned_process(final_state, testing, process_dictionary, variable, xbins
     else:
       process_weights = get_MC_weights(process_dictionary, process)
     h_processes[process] = {}
-    binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable, variable,
-                                                   xbins_, process_weights, lumi_, process_mask)
+    binned_values, binned_errors = get_binned_info(final_state, testing, process, process_variable,
+                                                   xbins_, process_weights, lumi_, process_mask, variable)
     h_processes[process]["BinnedEvents"] = binned_values
     h_processes[process]["BinnedErrors"] = binned_errors
   return h_processes
@@ -663,6 +663,7 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
     }
   else:
     default_families = ["JetFakes", "TT", "ST", "VV", "NLODYGen", "NLODYLep", "NLODYJet", "Other"] # Note no WJ by default !! 
+    #default_families = ["JetFakes", "TT", "ST", "VV", "HWW", "NLODYGen", "NLODYLep", "NLODYJet", "Other"] # Note no WJ by default !! 
     default_families_WJ = ["JetFakes", "TT", "ST", "VV", "WJ", "NLODYGen", "NLODYLep", "NLODYJet", "Other"]
     #keep_separate = {"ditau" : default_families, "mutau" : default_families_WJ, 
     keep_separate = {"ditau" : default_families_WJ, "mutau" : default_families_WJ, # include WJ for ditau for FF control plots
@@ -686,12 +687,13 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
         h_MC_by_family[family_name]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family[family_name]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
         background_is_processed[MC_process] = True
-      elif ( (not background_is_processed[MC_process]) 
-            and (np.any([hww_tag in MC_process for hww_tag in ["ggH_WW", "VBF_WW", "ttH_nonbb_WW"]]))
-            and (not presentation_mode) ): # special handling for HWW when not in presentation mode
-        h_MC_by_family["HWW"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
-        h_MC_by_family["HWW"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
-        background_is_processed[MC_process] = True
+      # allowing HWW to go into VV. to undo, put HWW in family names above
+      #elif ( (not background_is_processed[MC_process]) 
+      #      and (np.any([hww_tag in MC_process for hww_tag in ["ggH_WW", "VBF_WW", "ttH_nonbb_WW"]]))
+      #      and (not presentation_mode) ): # special handling for HWW when not in presentation mode
+      #  h_MC_by_family["HWW"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+      #  h_MC_by_family["HWW"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
+      #  background_is_processed[MC_process] = True
       elif ( (not background_is_processed[MC_process]) 
             and (np.any([diboson_tag in MC_process for diboson_tag in ["WW", "WZ", "ZZ"]]))
             and (not presentation_mode) ): # special handling for VV when not in presentation mode

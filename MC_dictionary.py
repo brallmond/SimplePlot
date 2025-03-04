@@ -132,11 +132,11 @@ MC_dictionary = {
   "ST_TWminus_LNu2Q"   : {"label": "STW-LNu2Q",  "color": color_dictionary["ST"], "plot_scaling" : 1},
   "ST_TbarWplus_LNu2Q" : {"label": "STbW+LNu2Q", "color": color_dictionary["ST"], "plot_scaling" : 1},
 
-  "WJetsInc"           : {"label": "WJIncLO", "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349},
-  "WJetsToLNu_1J"      : {"label": "WJ1LO",   "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349},
-  "WJetsToLNu_2J"      : {"label": "WJ2LO",   "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349},
-  "WJetsToLNu_3J"      : {"label": "WJ3LO",   "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349},
-  "WJetsToLNu_4J"      : {"label": "WJ4LO",   "color": color_dictionary["WJ"], "plot_scaling" : 1.125552349},
+  "WJetsInc"           : {"label": "WJIncLO", "color": color_dictionary["WJ"], "plot_scaling" : WJ_LOtoNLO_kfac},
+  "WJetsToLNu_1J"      : {"label": "WJ1LO",   "color": color_dictionary["WJ"], "plot_scaling" : WJ_LOtoNLO_kfac},
+  "WJetsToLNu_2J"      : {"label": "WJ2LO",   "color": color_dictionary["WJ"], "plot_scaling" : WJ_LOtoNLO_kfac},
+  "WJetsToLNu_3J"      : {"label": "WJ3LO",   "color": color_dictionary["WJ"], "plot_scaling" : WJ_LOtoNLO_kfac},
+  "WJetsToLNu_4J"      : {"label": "WJ4LO",   "color": color_dictionary["WJ"], "plot_scaling" : WJ_LOtoNLO_kfac},
 
   "WJetsIncNLO"        : {"label": "WJIncNLO", "color": color_dictionary["WJ"], "plot_scaling" : WJ_NLOtoNNLO_kfac},
   "WJetsToLNu_0JNLO"   : {"label": "WJ0NLO",   "color": color_dictionary["WJ"], "plot_scaling" : WJ_NLOtoNNLO_kfac},
