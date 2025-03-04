@@ -5,6 +5,7 @@ import numpy as np
 # this file contains functions to perform simple calculations and return or print the result
 
 
+
 def calculate_underoverflow(events, xbins, weights, variable=""):
   '''
   Count the number of events falling outside (below and above) the specified bins. 
@@ -16,6 +17,7 @@ def calculate_underoverflow(events, xbins, weights, variable=""):
   underflow_value, overflow_value = values[0], values[-1]
   if (underflow_value > 1000) or (overflow_value > 100000):
     print(f"large under/over flow values for variable '{variable}': {underflow_value}, {overflow_value}")
+
   values_error, _ = np.histogram(events, count_bin_values, weights=weights*weights)
   underflow_error, overflow_error = values_error[0], values[-1]
   return underflow_value, overflow_value, underflow_error, overflow_error
@@ -227,6 +229,15 @@ def return_TLorentz_Jets(passingJetsPt, passingJetsEta, passingJetsPhi, passingJ
 
 def user_exp(x, a, b, c, d):
     return a*np.exp(-b*(x-c)) + d
+
+#def user_exp(x, a, b, c):
+#    return a*np.exp(-b*x) + c
+
+#def user_line_p_const(x, a, b, c d): # line + const y = a*x + b if x < c, else y = d
+#    return np.piecewise(x, [x < c], [lambda x: a * x + b, lambda x: d])
+
+def user_line_p_const(x, a, b, c): # line + const y = a*x + b if x < c, else y = a*c + b
+    return np.piecewise(x, [x < c], [lambda x: a * x + b, lambda x: a * c + b])
 
 def user_pol_np(x, par):
     '''

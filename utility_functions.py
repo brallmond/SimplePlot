@@ -5,7 +5,7 @@ import sys
 
 ### README
 # this file contains functions to support various print commands
-#
+
 # text_options is a short dictionary for adding effects to text in terminal output
 # "reset" should always be used after another text option so that output after the
 # completion of the plotting program remains normal. For example:
@@ -31,7 +31,7 @@ text_options = {
 }
 
 def log_print(text, log_file, time=False, *args, **kwargs):
-  # hack for simultaneous logging + terminal output
+  """ This function is a hack for simultaneous logging + terminal output """
   if (time==True): time_print(text)
   else: print(text, *args, **kwargs)
   if log_file:
@@ -74,12 +74,12 @@ def attention(input_string, log_file):
 def make_directory(directory_name, testing=False):
   date_and_time  = datetime.now(timezone.utc).strftime('from_%d-%m_at_%H%M')
   directory_name = directory_name + "_" + date_and_time
-  #directory_name = directory_name # TODO: uncomment above line
   if testing: directory_name += "_testing"
   if not path.isdir(directory_name):
     makedirs(directory_name)
   else:
     print("WARNING: directory already exists, wait one minute.")
+    print(f"dir name: {directory_name}")
     sys.exit()
   return directory_name
 
@@ -87,10 +87,8 @@ def make_directory(directory_name, testing=False):
 SCREEN_WIDTH = 76
 SPACER = "-"
 def print_setup_info(setup):
-  # how do you specify class types with pylint? 
-  
   testing, final_state_mode, jet_mode, era, lumi, tau_pt_cut = setup.state_info
-  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time = setup.file_info
+  using_directory, plot_dir, log_file, use_NLO, file_map, one_file_at_a_time, _ = setup.file_info
 
   hide_plots, hide_yields, DeepTau_version, do_JetFakes, semilep_mode, _, _ = setup.misc_info
 
