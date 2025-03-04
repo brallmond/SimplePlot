@@ -14,7 +14,7 @@ def set_branches(final_state_mode, era, DeepTau_version, process="None", temp_ve
     "PV_npvs", "Pileup_nPU",
     "HTT_H_pt", "HTT_mT_l1l2met",
     #"HTT_DiJet_dEta_fromHighestMjj", "HTT_DiJet_MassInv_fromHighestMjj",
-    #"HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
+    "HTT_DiJet_dEta_fromLeadingJets", "HTT_DiJet_MassInv_fromLeadingJets",
     #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
     #"StitchWeight_WJets_NLO",
   ]

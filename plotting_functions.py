@@ -551,7 +551,6 @@ def adjust_scaling(final_state, process, scaling):
   return scaling * adjustment_factor
 
 
-
 def get_binned_info(final_state, testing, process_name, process_variable, xbins, process_weights, luminosity, mask=[], variable=""):
   '''
   Take in a list of events and produce a histogram (values binned in a numpy array).
@@ -686,6 +685,12 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
       if   (not background_is_processed[MC_process]) and (family_name in MC_process):
         h_MC_by_family[family_name]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family[family_name]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
+        background_is_processed[MC_process] = True
+      elif ( (not background_is_processed[MC_process]) 
+            and (np.any([hww_tag in MC_process for hww_tag in ["ggH_WW", "VBF_WW", "ttH_nonbb_WW"]]))
+            and (not presentation_mode) ): # special handling for HWW when not in presentation mode
+        h_MC_by_family["HWW"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+        h_MC_by_family["HWW"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
         background_is_processed[MC_process] = True
       elif ( (not background_is_processed[MC_process]) 
             and (np.any([diboson_tag in MC_process for diboson_tag in ["WW", "WZ", "ZZ"]]))
@@ -854,6 +859,8 @@ def set_vars_to_plot(final_state_mode, jet_mode="none"):
                   "PuppiMET_pt", "PuppiMET_phi", "PV_npvs",
                   "HTT_H_pt", "HTT_mT_l1l2met",
                  ]
+  # Just added for the sake of have this variable available in "make_fitter_shapes.py"
+  vars_to_plot += ["HTT_DiJet_MassInv_fromLeadingJets"]
   FS_vars_to_add = final_state_vars[final_state_mode]
   for var in FS_vars_to_add:
     vars_to_plot.append(var)

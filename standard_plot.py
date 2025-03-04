@@ -35,6 +35,8 @@ from binning_dictionary    import label_dictionary
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print, print_processing_info
 
+from make_fitter_shapes    import save_fitter_shapes
+
 def make_masks_per_bin(input_dictionary, var, binning):
   passing_var_bins_dict = {}
   for process in input_dictionary.keys():
@@ -451,5 +453,7 @@ if __name__ == "__main__":
   print(f"Plots are in {plot_dir}")
   if hide_plots: pass
   else: plt.show()
+
+  save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, FF_dictionary, fakesLabel, testing, lumi)
 
 
