@@ -18,13 +18,12 @@ def set_branches(final_state_mode, era, DeepTau_version, process="None", temp_ve
     #"HTT_DiJet_j1index", "HTT_DiJet_j2index",
     #"StitchWeight_WJets_NLO",
   ]
-
   branches = common_branches
   branches = add_final_state_branches(branches, final_state_mode)
   if final_state_mode != ["emu","dimuon"]: branches = add_DeepTau_branches(branches, DeepTau_version)
   branches = add_trigger_branches(branches, era, final_state_mode)
-  if ("Data" in process): branches.append("FFweight")
-  if ("DY" in process): branches = add_Zpt_branches(branches)
+  if ("_TauTau" in process): branches = add_signal_branches(branches)
+
   return branches
 
 
@@ -74,6 +73,7 @@ def add_trigger_branches(branches_, era, final_state_mode):
   era_year = "2022" if "2022" in era else "2023"
   for trigger in triggers_dictionary[era_year][final_state_mode]:
     branches_.append(trigger)
+
   return branches_
 
 
@@ -93,13 +93,23 @@ def add_DeepTau_branches(branches_, DeepTauVersion):
   return branches_
 
 
-def add_Zpt_branches(branches_,):
-  ''' Helper function to add branches for Zpt calculation '''
-  Zpt_weight_branches = [
-    "nGenPart", "GenPart_pdgId", "GenPart_status", "GenPart_statusFlags",
-    "GenPart_pt", "GenPart_eta", "GenPart_phi", "GenPart_mass",
+def add_signal_branches(branches_):
+  gen_signal_branches = [
+    "Gen_HTT_FS",
+    "Gen_pT_l1", "Gen_eta_l1", "Gen_phi_l1",
+    "Gen_pT_l2", "Gen_eta_l2", "Gen_phi_l2",
+    "Gen_H_pT", "Gen_H_pT_fidMET",
+    "Gen_pT_ll", "Gen_m_ll",
+    "Gen_mT", "Gen_mT_fidMET",
+    "Gen_DZeta", "Gen_DZeta_fidMET", 
+    "Gen_deltaR_ll", "Gen_deltaEta_ll", "Gen_deltaPhi_ll",
+    "Gen_nCleanJet",
+    "Gen_pT_j1", "Gen_eta_j1", "Gen_phi_j1",
+    "Gen_pT_j2", "Gen_eta_j2", "Gen_phi_j2",
+    "Gen_pT_j3", "Gen_eta_j3", "Gen_phi_j3",
+    "Gen_mjj", "Gen_deltaEta_jj",
   ]
-  for branch in Zpt_weight_branches:
+  for branch in gen_signal_branches:
     branches_.append(branch)
 
   return branches_

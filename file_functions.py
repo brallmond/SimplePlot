@@ -50,6 +50,10 @@ def load_process_from_file(process, file_directory, file_map, log_file,
       branches = [branch for branch in branches if branch != missing_branch]
   if "WJets" not in process:
     branches = [branch for branch in branches if not branch.startswith("StitchWeight_WJets")]
+  #if (process not in ["ggH_TauTau", "VBF_TauTau", "WpH_TauTau", "WmH_TauTau", "ZH_TauTau"]):
+  #  branches_only_in_signal = [""
+  #  for missing_branch in branches_only_in_signal:
+  #    branches = [branch for branch in branches if branch != missing_branch]
   try:
     processed_events = uproot.concatenate([file_string], branches, cut=good_events, library="np")
   except FileNotFoundError:
