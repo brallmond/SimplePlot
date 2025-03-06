@@ -86,25 +86,46 @@ def make_fraction_fakes(axis, xbins, h_data, h_backgrounds, fake_processes=["TT"
   axis.stackplot(xbins[0:-1], fakes_percent, step="post", edgecolor="black", colors=color_array, labels=label_array)
  
 
-def make_two_dimensional_plot(input_dictionary, final_state, x_var, y_var, 
-                              add_to_title="", alt_x_bins=[], alt_y_bins=[]):
-  fig, axis = plt.subplots()
+def make_two_dimensional_plot(input_dictionary, final_state, x_var, y_var, title, normalization="None",
+                              alt_x_bins=[], alt_y_bins=[]):
+  fig, axis = plt.subplots(figsize=(7,4))
+
   x_array = input_dictionary[x_var]
   y_array = input_dictionary[y_var]
-  x_bins  = binning_dictionary[final_state][x_var] if len(alt_x_bins) == 0 else alt_x_bins
-  y_bins  = binning_dictionary[final_state][y_var] if len(alt_y_bins) == 0 else alt_y_bins
+  x_bins  = make_bins(x_var, final_state) if len(alt_x_bins) == 0 else alt_x_bins
+  y_bins  = make_bins(y_var, final_state) if len(alt_y_bins) == 0 else alt_y_bins
   h2d, xbins, ybins = np.histogram2d(x_array, y_array, bins=(x_bins, y_bins))
   h2d = h2d.T # transpose from image coordinates to data coordinates
-  cmesh = axis.pcolormesh(xbins, ybins, h2d) #pcolormesh uses data coordinates by default, imshow uses array of 1x1 squares
-  axis.set_title(f"{final_state} :" + f" {add_to_title}")
+  normalization = normalization.lower()
+  if (normalization != "none"):
+    print(f"Normalizing the 2D plot using method '{normalization}'") 
+    if   (normalization == "total"):   h2d = h2d/np.sum(h2d)
+    elif (normalization == "highest"): h2d = h2d/np.max(h2d)
+    elif (normalization == "row"):     h2d = [row/np.sum(row) for row in h2d]
+    elif (normalization == "column"):
+      h2d = h2d.T # untranspose so your rows are your columns, easier to iterate over
+      h2d = np.array([col/np.sum(col) for col in h2d]).T # retranspose back so you can plot normally
+    else:
+      print(f"Sorry, '{normalization}' isn't a valid method. Plotting without normalizing!")
+
+  cmesh = axis.pcolormesh(xbins, ybins, h2d, cmap="copper") #pcolormesh uses data coordinates by default, imshow uses array of 1x1 squares
+  axis.set_title(f"{final_state} :" + f" {title}")
   axis.set_xlabel(label_dictionary[x_var])
   axis.set_ylabel(label_dictionary[y_var])
   plt.colorbar(cmesh)
 
+  #plt.scatter(xbins[:-1], ybins[:-1], s=h2d[0]*30, marker='s', color='red', facecolor='none')
+
+  # add values to 2D plot
+  for i, xbin in enumerate(xbins[:-1]): # skips final entry
+    for j, ybin in enumerate(ybins[:-1]):
+      xloc = xbin + ((xbins[i+1] - xbin)/2) # add half the distance to the next bin
+      yloc = ybin + ((ybins[j+1] - ybin)/2)
+      axis.text(xloc, yloc, f"{h2d[j][i]:.2f}", ha="center", va="center", fontsize=8, color="white")
+
 def make_two_dimensional_ratio_plot(numerator_dictionary, denominator_dictionary,
                                     final_state, x_var, y_var,
                                     add_to_title="", alt_x_bins=[], alt_y_bins=[]):
-  fig, axis = plt.subplots()
 
   from matplotlib.colors import ListedColormap
   cmap = ListedColormap(["#f9f954", "#f7e752", "#f6d453", "#edc756", "#ddc15f", "#cdbc67", "#b5bc70", 
@@ -113,19 +134,14 @@ def make_two_dimensional_ratio_plot(numerator_dictionary, denominator_dictionary
 
   x_bins  = make_bins(x_var, final_state) if len(alt_x_bins) == 0 else alt_x_bins
   y_bins  = make_bins(y_var, final_state) if len(alt_y_bins) == 0 else alt_y_bins
-  # TODO: remove all exposed calls to binning dictionary in preference of the helper function :)
-  #x_bins  = binning_dictionary[final_state][x_var] if len(alt_x_bins) == 0 else alt_x_bins
-  #y_bins  = binning_dictionary[final_state][y_var] if len(alt_y_bins) == 0 else alt_y_bins
 
   num_keys = [*numerator_dictionary.keys()] # python for 1) put in a list [], 2) unpack *, 3) dict keys .keys
   num1_x_array = numerator_dictionary[num_keys[0]]["PlotEvents"][x_var]
   num1_y_array = numerator_dictionary[num_keys[0]]["PlotEvents"][y_var]
   num1_h2d, xbins, ybins = np.histogram2d(num1_x_array, num1_y_array, bins=(x_bins, y_bins))
-  num1_h2d = num1_h2d/100. # unscale signal
   num2_x_array = numerator_dictionary[num_keys[1]]["PlotEvents"][x_var]
   num2_y_array = numerator_dictionary[num_keys[1]]["PlotEvents"][y_var]
   num2_h2d, xbins, ybins = np.histogram2d(num2_x_array, num2_y_array, bins=(x_bins, y_bins))
-  num2_h2d = num2_h2d/100. # unscale signal
   num_h2d = num1_h2d + num2_h2d
 
   den_keys = [*denominator_dictionary.keys()]
@@ -162,15 +178,16 @@ def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mo
                              "CleanJetGT30_eta_1", "CleanJetGT30_phi_1", add_to_title=label_suffix)
 
 
-def plot_raw(histogram_axis, xbins, input_vals, luminosity,
+def plot_raw(histogram_axis, xbins, input_vals,
              color="black", label="Data", marker="o", fillstyle="full"):
-  """ Plotting function for raw values, usually made by pre-processing data/background """
-  stat_error = np.sqrt(input_vals) # TODO: this is only correct for data or single MC processes with no SFs
+  ''' Plotting function for raw values, usually made by pre-processing data/background '''
+  stat_error = np.sqrt(input_vals)/np.sum(input_vals)
+  print("Plotted error bars are only correct for data or single MC processes with no SFs")
   midpoints   = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2 # only works for uniform bin widths
   histogram_axis.errorbar(midpoints, input_vals, xerr=bin_width, yerr=stat_error,
                           color=color, marker=marker, fillstyle=fillstyle, label=label,
-                          linestyle='none', markersize=3)
+                          linestyle='none', markersize=5)
 
 def blind_region(input_array, allbins, blind_range):
   """ replace anything in the blind range with zeros """
@@ -302,11 +319,6 @@ def setup_ratio_plot():
 def setup_side_by_side_plot():
   fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(14, 5))
   return ax_left, ax_right
-
-
-def setup_single_plot():
-  fig, ax = plt.subplots()
-  return ax
 
 
 def setup_unrolled_plot(n_ax):
