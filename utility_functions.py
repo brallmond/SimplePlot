@@ -74,13 +74,7 @@ def attention(input_string, log_file):
 def make_directory(directory_name, testing=False):
   date_and_time  = datetime.now(timezone.utc).strftime('from_%d-%m_at_%H%M')
   directory_name = directory_name + "_" + date_and_time
-  if testing: directory_name += "_testing"
-  if not path.isdir(directory_name):
-    makedirs(directory_name)
-  else:
-    print("WARNING: directory already exists, wait one minute.")
-    print(f"dir name: {directory_name}")
-    sys.exit()
+  makedirs(directory_name, exist_ok=True) # if dir exists, don't remake it, just overwrite what's there
   return directory_name
 
 
