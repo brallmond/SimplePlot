@@ -1,6 +1,29 @@
 # SimplePlot
 A repo collecting and combining simple plotting methods using python
 
+# Versioning (ignore this if you can run the plotting fine right now)
+This repo uses python, numpy, matplotlib, ROOT, and uproot. Only some combination of these package versions will work
+together, so it is recommended to create a location where package management is easy. For this, I would recommend conda
+(venv won't work because ROOT doesn't have pip wheels yet, and configuring globally with homebrew is challenging because
+uproot doesn't have a brew). You can go
+[here](https://www.anaconda.com/docs/getting-started/miniconda/install#quickstart-install-instructions) to install miniconda, and then use the following commands to get a running
+configuration.
+
+```
+conda create --name HTTv2 python=3.11
+conda activate HTTv2
+conda install numpy matplotlib
+conda install -c conda-forge root
+pip install uproot --upgrade
+```
+
+The resulting configuration should have the following version numbers.
+numpy | 1.26.4
+matplotlib | 3.10.0
+uproot | 5.6.0
+ROOT | 6.28/04
+
+
 # Libraries
 This repo uses numpy, uproot, and matplotlib. It is recommended to use the following up to date versions (other
 combinations might work too, but these definitely do).
@@ -106,3 +129,5 @@ Maybe this will change as the library evolves.
 Quote from Wikipedia about Code Smell:
 https://en.wikipedia.org/wiki/Code_smell
 Factors such as the understandability of code, how easy it is to be modified, the ease in which it can be enhanced to support functional changes, the code's ability to be reused in different settings, how testable the code is, and code reliability are factors that can be used to identify code smells.
+
+
