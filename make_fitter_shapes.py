@@ -1,7 +1,7 @@
 import ROOT
 import uproot
 import numpy as np
-from plotting_functions import make_bins, get_binned_data, get_binned_backgrounds, get_binned_signals
+from plotting_functions import make_bins, get_binned_data, get_binned_backgrounds, get_binned_signals, get_summed_backgrounds
 from file_functions     import sort_combined_processes
 from FF_functions       import set_JetFakes_process
 
@@ -53,9 +53,10 @@ def apply_single_cut(input_dict, cut):
         output_dict[process][key] = np.array(output_dict[process][key])
   return output_dict
 
-def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, FF_dictionary, fakesLabel, testing, lumi):
+def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi):
   # PUT SETTINGS HERE: disciminating_variables and categories
   # Discriminating variables are required to have been plotted before
+  MC_families = ["NLODYGen", "NLODYLep", "NLODYJet", "ST", "TT", "VV", "WJ", "HWW"]
   disciminating_variables = {"FastMTT_mass" : "mtt",
                              "HTT_m_vis"    : "mttvis"}
   categories = {"incl"    : "1",
@@ -70,8 +71,6 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   elif era=="2023 C": era = "2023_preBPix"
   elif era=="2023 D": era = "2023_postBPix"
   dicts = {}
-  FF_dictionary[fakesLabel]['Cuts'] = {'pass_cuts': np.array(list(range(len(FF_dictionary[fakesLabel]['FF_weight']))))} # JetFakes for some reason missing "Cuts" key. Make an arbitrary one
-  combined_process_dictionary[fakesLabel] = FF_dictionary[fakesLabel]
   for category,cut in categories.items():
     dicts[category] = apply_single_cut(combined_process_dictionary, cut)
   rootfilename = f"HTauTau_{era}_{final_state_mode}_VARIABLE.inputs.root"
@@ -82,17 +81,31 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
     output_file = uproot.recreate(f"{plot_dir}/{rootfilename.replace('VARIABLE', disciminating_variables[var])}")
     for category in categories:
       data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(dicts[category])
+      data_dictionaryFakes, background_dictionaryFakes, signal_dictionaryFakes = sort_combined_processes(combined_process_dictionaryFakes, fakes=True)
       h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
-      h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
+      h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi, userMC=MC_families)
       h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi)
-      # TODO: "JetFakes" must be manually included into h_backgrouds
-      # Must be able to add additional cuts (from subcategories) in "apply_AR_cut" function in "cut_and_study_functions.py"
+      h_dataFakes = get_binned_data(final_state_mode, testing, data_dictionaryFakes, var, xbins, lumi)
+      h_backgroundsFakes = get_binned_backgrounds(final_state_mode, testing, background_dictionaryFakes, var, xbins, lumi)
+      h_summed_backgrounds = get_summed_backgrounds(h_backgroundsFakes)
+      h_signalsFakes = get_binned_signals(final_state_mode, testing, signal_dictionaryFakes, var, xbins, lumi)
+      h_summed_signals = get_summed_backgrounds(h_signalsFakes)
+      jetFakes_background = h_dataFakes["Data"]["BinnedEvents"] - h_summed_backgrounds["Bkgd"]["BinnedEvents"] - (h_summed_signals["Bkgd"]["BinnedEvents"]/100)
+      h_JetFakes = {"JetFakes": {}}
+      h_JetFakes["JetFakes"]["BinnedEvents"] = jetFakes_background
+      h_JetFakes["JetFakes"]["BinnedErrors"] = np.nan_to_num(np.sqrt(jetFakes_background))
+      
       root_histograms = {}
       h_sum = dict(h_data)
       h_sum.update(h_backgrounds)
+      h_sum.update(h_JetFakes)
       h_sum.update(h_signals)
       for process in h_sum:
-        process_name = process if process!="Data" else "data_obs"
+        if process=="Data": process_name = "data_obs"
+        elif process=="NLODYGen": process_name = "ZTT"
+        elif process=="NLODYLep": process_name = "ZL"
+        elif process=="NLODYJet": process_name = "ZJ"
+        else: process_name = process
         root_histograms[process] = ROOT.TH1D(process_name, process_name, xbins.size-1, xbins)
         for i in range(xbins.size-1):
           root_histograms[process].SetBinContent(i+1, h_sum[process]['BinnedEvents'][i])

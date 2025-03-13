@@ -645,7 +645,7 @@ def get_binned_data(final_state, testing, data_dictionary, variable, xbins_, lum
 
 
 def get_binned_backgrounds(final_state_mode, testing, background_dictionary, variable, xbins_, lumi_, 
-                           presentation_mode=False, mask={}, mask_n=999):
+                           presentation_mode=False, mask={}, mask_n=999, userMC=[]):
   '''
   Treat each MC process, then group the output by family into flat dictionaries.
   Relies on all family names being mutually exclusive and no processes containing "Other" in their names :)
@@ -681,6 +681,8 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
     keep_separate = {"ditau" : default_families_WJ, "mutau" : default_families_WJ, # include WJ for ditau for FF control plots
                      "etau"  : default_families_WJ, "emu"   : default_families}
   MC_by_family = keep_separate[final_state_mode]
+  if userMC!=[]: MC_by_family = userMC
+  if "Other" not in MC_by_family: MC_by_family.append("Other")
 
   # initialize empty family entries here
   first_key = list(h_MC_by_process)[0]
@@ -699,28 +701,28 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
         h_MC_by_family[family_name]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family[family_name]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
         background_is_processed[MC_process] = True
-      # allowing HWW to go into VV. to undo, put HWW in family names above
-      #elif ( (not background_is_processed[MC_process]) 
-      #      and (np.any([hww_tag in MC_process for hww_tag in ["ggH_WW", "VBF_WW", "ttH_nonbb_WW"]]))
-      #      and (not presentation_mode) ): # special handling for HWW when not in presentation mode
-      #  h_MC_by_family["HWW"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
-      #  h_MC_by_family["HWW"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
-      #  background_is_processed[MC_process] = True
+      # allowing HWW to go into Other, if "HWW" is not a valid family name.
+      elif ( (not background_is_processed[MC_process]) and family_name=="HWW" 
+            and (np.any([hww_tag in MC_process for hww_tag in ["ggH_WW", "VBF_WW", "ttH_nonbb_WW"]]))
+            and (not presentation_mode) ): # special handling for HWW when not in presentation mode
+        h_MC_by_family["HWW"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+        h_MC_by_family["HWW"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
+        background_is_processed[MC_process] = True
       elif ( (not background_is_processed[MC_process]) 
-            and (np.any([diboson_tag in MC_process for diboson_tag in ["WW", "WZ", "ZZ"]]))
+            and (np.any([diboson_tag in MC_process for diboson_tag in ["WW", "WZ", "ZZ"] if "_WW" not in MC_process]))
             and (not presentation_mode) ): # special handling for VV when not in presentation mode
         h_MC_by_family["VV"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family["VV"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
-        background_is_processed[MC_process] = True
-      elif (not background_is_processed[MC_process]) and (not np.any([family_name in MC_process for family_name in MC_by_family])):
-        h_MC_by_family["Other"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
-        h_MC_by_family["Other"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"] # TODO: add in quadrature
         background_is_processed[MC_process] = True
       else: 
         pass
         # background_is_processed[MC_process] == True OR 
         # current family name doesn't match sample, but a later one does
         # for example, MC_process = DY0JNLO , but it has to go through families JetFakes, TT, ST, VV before DY
+    if (not background_is_processed[MC_process]) and (not np.any([family_name in MC_process for family_name in MC_by_family])):
+      h_MC_by_family["Other"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
+      h_MC_by_family["Other"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"] # TODO: add in quadrature
+      background_is_processed[MC_process] = True
       #print(background_is_processed) # DEBUG
   for process_key, is_processed in background_is_processed.items():
     if (not is_processed): print(f"Warning! {process_key} wasn't processed! It's not part of the plot!")
