@@ -28,7 +28,7 @@ from luminosity_dictionary import luminosities_with_normtag as luminosities
 from plotting_functions    import get_midpoints, make_eta_phi_plot
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals, get_summed_backgrounds
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
-from plotting_functions    import setup_single_plot, spruce_up_single_plot
+from plotting_functions    import spruce_up_single_plot
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_pie_chart, plot_raw
 
 from binning_dictionary import label_dictionary
