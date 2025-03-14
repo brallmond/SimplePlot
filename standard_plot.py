@@ -152,13 +152,15 @@ if __name__ == "__main__":
         background_jet_deepcopy = apply_cut(background_jet_deepcopy, "pass_flavor_cut", protected_branches)
         if background_jet_deepcopy == None: continue
 
-        if ("NLO" in process): process += "temp"
-        combined_process_dictionary = append_to_combined_processes(process.replace("temp","DYGen"), background_gen_deepcopy, 
+        combined_process_dictionary = append_to_combined_processes(process+"DYGen", background_gen_deepcopy, 
                                              vars_to_plot, combined_process_dictionary, one_file_at_a_time)
-        combined_process_dictionary = append_to_combined_processes(process.replace("temp","DYLep"), background_lep_deepcopy, 
+        combined_process_dictionary = append_to_combined_processes(process+"DYLep", background_lep_deepcopy, 
                                              vars_to_plot, combined_process_dictionary, one_file_at_a_time)
-        combined_process_dictionary = append_to_combined_processes(process.replace("temp","DYJet"), background_jet_deepcopy, 
+        combined_process_dictionary = append_to_combined_processes(process+"DYJet", background_jet_deepcopy, 
                                              vars_to_plot, combined_process_dictionary, one_file_at_a_time)
+        del background_gen_deepcopy
+        del background_lep_deepcopy
+        del background_jet_deepcopy
       else:
         combined_process_dictionary = append_to_combined_processes(process, cut_events, vars_to_plot, 
                                                                    combined_process_dictionary, one_file_at_a_time)
@@ -194,63 +196,75 @@ if __name__ == "__main__":
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionaryFakes = {}
   for process in file_map: 
-    gc.collect()
     if (process in reject_datasets): continue
+    if ("WJ" in process) and (("WJ" in semilep_mode) or ("Full" in semilep_mode)): continue
 
-    new_process_dictionary = load_process_from_file(process, using_directory, file_map, log_file,
+    if not one_file_at_a_time:
+      input_files = [file_map[process]]
+    else:
+      input_files = glob.glob( using_directory + "/" + file_map[process] + ".root")
+      input_files = sorted([f.replace(using_directory+"/","")[:-5] for f in input_files])
+
+    for input_file in input_files:
+      this_file_map = {process: input_file}
+      new_process_dictionary = load_process_from_file(process, using_directory, this_file_map, log_file,
                                             branches, good_events, final_state_mode,
                                             data=("Data" in process), testing=testing)
-    event_dictionary = new_process_dictionary[process]["info"]
-    if (event_dictionary == None): continue
+      event_dictionary = new_process_dictionary[process]["info"]
+      if (event_dictionary == None): continue
 
-    protected_branches = ["None"]
-    from cut_and_study_functions import append_lepton_indices, append_flavor_indices
-    event_dictionary = append_lepton_indices(event_dictionary)
-    if ("Data" not in process):
-      protected_branches = ["FS_t1_flav", "FS_t2_flav", "pass_gen_cuts", "event_flavor"]
-      from file_functions import load_and_store_NWEvents
-      load_and_store_NWEvents(process, event_dictionary)
-      # Remove fakes from MC if they come from TT or WJ samples.
-      # We do this because we assume their jetFakes are not well-modeled
-      # and so we replace them with the JetFakes estimate from Data.
-      # For other MC, we use the fakes from MC, meaning those should be subtracted from Data
-      # during the estimate.
-      keep_fakes = False if (("TT" in process) or ("WJ" in process)) else True
-      event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=keep_fakes)
-      event_dictionary = apply_cut(event_dictionary, "pass_gen_cuts", protected_branches)
+      protected_branches = ["None"]
+      from cut_and_study_functions import append_lepton_indices, append_flavor_indices
+      event_dictionary = append_lepton_indices(event_dictionary)
+      if ("Data" not in process):
+        protected_branches = ["FS_t1_flav", "FS_t2_flav", "pass_gen_cuts", "event_flavor"]
+        from file_functions import load_and_store_NWEvents
+        load_and_store_NWEvents(process, event_dictionary)
+        # Remove fakes from MC if they come from TT or WJ samples.
+        # We do this because we assume their jetFakes are not well-modeled
+        # and so we replace them with the JetFakes estimate from Data.
+        # For other MC, we use the fakes from MC, meaning those should be subtracted from Data
+        # during the estimate.
+        keep_fakes = False if (("TT" in process) or ("WJ" in process)) else True
+        event_dictionary = append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=keep_fakes)
+        event_dictionary = apply_cut(event_dictionary, "pass_gen_cuts", protected_branches)
+        if (event_dictionary==None or len(event_dictionary["run"])==0): continue
+
+      event_dictionary = FF_control_flow(final_state_mode, semilep_mode, region, event_dictionary, DeepTau_version)
+      event_dictionary = apply_cut(event_dictionary, "pass_"+region+"_cuts", protected_branches)
+
+      if (event_dictionary==None or len(event_dictionary["run"])==0): continue
+      from cut_and_study_functions import apply_jet_cut
+      event_dictionary   = apply_jet_cut(event_dictionary, jet_mode)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
-    event_dictionary = FF_control_flow(final_state_mode, semilep_mode, region, event_dictionary, DeepTau_version)
-    event_dictionary = apply_cut(event_dictionary, "pass_"+region+"_cuts", protected_branches)
+      skip_DeepTau = True
+      if (final_state_mode == "ditau"):
+        from cut_ditau_functions import make_ditau_cut
+        event_dictionary   = make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+        if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
-    if (event_dictionary==None or len(event_dictionary["run"])==0): continue
-    from cut_and_study_functions import apply_jet_cut
-    event_dictionary   = apply_jet_cut(event_dictionary, jet_mode)
-    if (event_dictionary==None or len(event_dictionary["run"])==0): continue
+      if (final_state_mode == "mutau"):
+        from cut_mutau_functions import make_mutau_cut
+        event_dictionary   = make_mutau_cut(era, event_dictionary, DeepTau_version)
+        if (event_dictionary==None or len(event_dictionary["run"])==0): continue
 
-    skip_DeepTau = True
-    if (final_state_mode == "ditau"):
-      from cut_ditau_functions import make_ditau_cut
-      event_dictionary   = make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau, tau_pt_cut)
+      if (final_state_mode == "etau"):
+        from cut_etau_functions import make_etau_cut
+        event_dictionary   = make_etau_cut(era, event_dictionary, DeepTau_version)
+        if (event_dictionary==None or len(event_dictionary["run"])==0): continue
+
+      protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
+      event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
+      # then skip DY splitting stuff because we subtract MC from Data later where the MC is all combined anyways
 
-    if (final_state_mode == "mutau"):
-      from cut_mutau_functions import make_mutau_cut
-      event_dictionary   = make_mutau_cut(era, event_dictionary, DeepTau_version)
-      if (event_dictionary==None or len(event_dictionary["run"])==0): continue
-
-    if (final_state_mode == "etau"):
-      from cut_etau_functions import make_etau_cut
-      event_dictionary   = make_etau_cut(era, event_dictionary, DeepTau_version)
-      if (event_dictionary==None or len(event_dictionary["run"])==0): continue
-
-    protected_branches = set_protected_branches(final_state_mode=final_state_mode, jet_mode="none")
-    event_dictionary   = apply_cut(event_dictionary, "pass_cuts", protected_branches)
-    if (event_dictionary==None or len(event_dictionary["run"])==0): continue
-    # then skip DY splitting stuff because we subtract MC from Data later where the MC is all combined anyways
-
-    combined_process_dictionaryFakes = append_to_combined_processes(process, event_dictionary, vars_to_plot, 
+      combined_process_dictionaryFakes = append_to_combined_processes(process, event_dictionary, vars_to_plot, 
                                                              combined_process_dictionaryFakes, one_file_at_a_time)
+
+      del new_process_dictionary
+      del event_dictionary
+      gc.collect()
 
   # after loop, sort big dictionary into three smaller ones
   data_dictionaryFakes, background_dictionaryFakes, signal_dictionaryFakes = sort_combined_processes(combined_process_dictionaryFakes, fakes=True)
@@ -455,6 +469,7 @@ if __name__ == "__main__":
   if hide_plots: pass
   else: plt.show()
 
-  #save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, FF_dictionary, fakesLabel, testing, lumi)
+
+  save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi)
 
 
