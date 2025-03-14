@@ -25,7 +25,7 @@ from luminosity_dictionary import luminosities_with_normtag as luminosities
 from plotting_functions    import get_midpoints, make_eta_phi_plot
 from plotting_functions    import get_binned_data, get_binned_backgrounds, get_binned_signals, get_summed_backgrounds
 from plotting_functions    import setup_ratio_plot, make_ratio_plot, spruce_up_plot, spruce_up_legend
-from plotting_functions    import setup_single_plot, spruce_up_single_plot
+from plotting_functions    import spruce_up_single_plot
 from plotting_functions    import plot_data, plot_MC, plot_signal, make_bins, make_two_dimensional_plot
 from plotting_functions    import make_pie_chart, make_fraction_all_events, make_fraction_fakes
 
@@ -205,7 +205,7 @@ if __name__ == "__main__":
       log_print(f"Plotting {var}", log_file, time=True)
 
       xbins = make_bins(var, final_state_mode)
-      hist_ax = setup_single_plot()
+      fig, hist_ax = plt.subplot()
 
       h_data               = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
       h_backgrounds        = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi)
@@ -230,12 +230,12 @@ if __name__ == "__main__":
       if (var == "HTT_m_vis") and (plot_fractions): 
         make_pie_chart(h_data, h_backgrounds)
         # fraction should be of fakes only, not including genuine background
-        new_ax = setup_single_plot()
+        fig2, new_ax = plt.subplots()
         make_fraction_all_events(new_ax, xbins, h_data, h_backgrounds)
         spruce_up_single_plot(new_ax, label_dictionary[var], "Fraction of All Events", title, final_state_mode, jet_mode)
         plt.savefig(plot_dir + "/" + str(var) + "_" + semilep_mode + "_" + region + "_pie.png")
 
-        newer_ax = setup_single_plot()
+        fig3, newer_ax = plt.subplots()
         fake_processes = ["TT", "WJ"]
         make_fraction_fakes(newer_ax, xbins, h_data, h_backgrounds, fake_processes)
         spruce_up_single_plot(newer_ax, label_dictionary[var], "Fraction of All Jet Fakes", title, final_state_mode, jet_mode)

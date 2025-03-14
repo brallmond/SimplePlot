@@ -179,14 +179,14 @@ def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mo
 
 
 def plot_raw(histogram_axis, xbins, input_vals,
-             color="black", label="Data", marker="o", fillstyle="full"):
+             color="black", label="Data", alpha=1, marker="o", fillstyle="full"):
   ''' Plotting function for raw values, usually made by pre-processing data/background '''
   stat_error = np.sqrt(input_vals)/np.sum(input_vals)
   print("Plotted error bars are only correct for data or single MC processes with no SFs")
   midpoints   = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2 # only works for uniform bin widths
   histogram_axis.errorbar(midpoints, input_vals, xerr=bin_width, yerr=stat_error,
-                          color=color, marker=marker, fillstyle=fillstyle, label=label,
+                          color=color, marker=marker, fillstyle=fillstyle, label=label, alpha=alpha,
                           linestyle='none', markersize=5)
 
 def blind_region(input_array, allbins, blind_range):

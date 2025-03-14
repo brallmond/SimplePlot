@@ -74,7 +74,10 @@ def make_mutau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=False, t
     mt_diff = mt - mt_branch
     acoplan = calculate_acoplan(muPhi, tauPhi)
 
-    dphi_mutau = np.acos(np.cos(muPhi - tauPhi))
+    try:
+      dphi_mutau = np.acos(np.cos(muPhi - tauPhi))
+    except AttributeError:
+      dphi_mutau = np.arccos(np.cos(muPhi - tauPhi))
     deta_mutau = abs(muEta - tauEta)
     dpt_mutau  = muPt - tauPt
 

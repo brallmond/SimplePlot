@@ -64,7 +64,7 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
     t2_eta = lep_eta[l2_idx]
     t1_phi = lep_phi[l1_idx]
     t2_phi = lep_phi[l2_idx]
-    j1_pt, j2_pt, mjj = -999, -999, -999 # dummy values to check kinem function
+    j1_pt, j2_pt, j1_eta, j2_eta, mjj = -999, -999, -999, -999, -999 # dummy values to check kinem function
     deta_jj, avg_eta_jj, zepp = -999, -999, -999
     ST = False # special tag
     if nJet == 0: pass
@@ -80,7 +80,8 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
       zepp       =  -999 if deta_jj==0 else ( ( t1_eta - avg_eta_jj) + (t2_eta - avg_eta_jj) ) / (2 * deta_jj)
 
     triggers = [ditau_trig, ditau_jet_trig, ditau_VBFRun3_trig, singletau_VBF_trig]
-    trig_results = pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta, j1_pt, j2_pt, mjj, ST, nJet)
+    #trig_results = pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta, j1_pt, j2_pt, mjj, ST, nJet)
+    trig_results = pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta, j1_pt, j1_eta, j2_pt, j2_eta, mjj, ST, nJet)
     # veto trigger decisions depending on what is available in data
     # for 2022, veto VBFSingleTau since it's not yet available
     # for 2023, veto VBFRun3 since VBFSingleTau takes precedence over that trigger
@@ -140,7 +141,10 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
     mt_t2_MET = calculate_mt(t2_pt, t2_phi, MET_pt, MET_phi) 
     mt_TOT    = np.sqrt(mt_t1t2 + mt_t1_MET + mt_t2_MET)
 
-    dphi_t1t2 = np.acos(np.cos(t1_phi - t2_phi))
+    try: # catch versioning differnece between numpy 1 and 2
+      dphi_t1t2 = np.acos(np.cos(t1_phi - t2_phi))
+    except AttributeError: 
+      dphi_t1t2 = np.arccos(np.cos(t1_phi - t2_phi))
     deta_t1t2 = abs(t1_eta - t2_eta)
     dpt_t1t2  = t1_pt - t2_pt
 
@@ -267,7 +271,8 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
 
 
 def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta, 
-                           j1_pt, j2_pt, mjj, special_tag, nJet):
+                           j1_pt, j1_eta, j2_pt, j2_eta, mjj, special_tag, nJet):
+                           #j1_pt, j2_pt, mjj, special_tag, nJet):
   '''
   Helper function to apply different object kinematic criteria depending on trigger used
   the if blocks below are intended to be mutually exclusive, prioritizing less complicated triggers over others.
@@ -279,8 +284,11 @@ def pass_kinems_by_trigger(triggers, t1_pt, t2_pt, t1_eta, t2_eta,
 
   passEventJetKinems = False
   if (nJet == 0):   passEventJetKinems = True # no jet requirements in nJet=0 category
-  elif (nJet == 1): passEventJetKinems = (j1_pt > 30.)
-  else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.)) # nJet >= 2
+  #elif (nJet == 1): passEventJetKinems = (j1_pt > 30.)
+  #else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.)) # nJet >= 2
+  elif (nJet == 1): passEventJetKinems = ((j1_pt > 50.) or ((j1_pt > 30) and (abs(j1_eta) < 2.5)))
+  else:             passEventJetKinems = ( ((j1_pt > 50.) or ((j1_pt > 30) and (abs(j1_eta) < 2.5))) and 
+                                           ((j2_pt > 50.) or ((j2_pt > 30) and (abs(j2_eta) < 2.5))) ) # nJet >= 2
   #else:             passEventJetKinems = ((j1_pt > 30.) and (j2_pt > 30.) and (mjj > 350)) # nJet >= 2
 
   passTrigTauKinems, passTrigJetKinems = False, False
