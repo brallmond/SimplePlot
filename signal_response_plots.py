@@ -153,87 +153,171 @@ if __name__ == "__main__":
   title_era = [key for key in luminosities.items() if key[1] == lumi][0][0]
   title = f"{title_era}, {lumi:.2f}" + r"$fb^{-1}$"
 
-  #varY, varX  = "Gen_H_pT", "HTT_H_pt"
-  #make_two_dimensional_plot(signal_dictionary[process]["PlotEvents"], final_state_mode,
-  #                          varX, varY, add_to_title=process)
-  
-  _, diff_ax = plt.subplots()
-  _, diff_ax2 = plt.subplots()
+  _, ax_h_compare = plt.subplots()
+  _, ax_normed_diff = plt.subplots()
+  _, ax_normed_diff_unrolled = plt.subplots()
+  _, ax_raw_ratio = plt.subplots()
+  _, ax_binned_ratio = plt.subplots()
+  _, ax_normed_corr = plt.subplots()
   process_colors = {"ggH_TauTau" : "blue", "VBF_TauTau" : "red"}
   process_labels = {"ggH_TauTau" : "ggH", "VBF_TauTau" : "qqH"}
+  bin_colors = ["black", "red", "blue", "green", "pink", "purple", "orange", "grey", "brown", "olive", "cyan","#00FF0F0F"]
+  marker_list = ["o", "v", "s", "*", "P", "d", "p", "o", "v", "s", "*", "P", "d", "p"]
+  marker_face = ["full"]*7 + ["none"]*7
   for process in signal_processes: 
     # 1D plot 
     xbins = make_bins("HTT_H_pt", final_state_mode)
-    h_signal_reco = get_binned_signals(final_state_mode, testing, signal_dictionary, "HTT_H_pt", xbins, lumi) 
-    h_signal_gen  = get_binned_signals(final_state_mode, testing, signal_dictionary, "Gen_H_pT", xbins, lumi) 
-    reco = h_signal_reco[process]["BinnedEvents"]
-    gen  = h_signal_gen[process]["BinnedEvents"]
-    #plot_raw(diff_ax, xbins, reco, 
-    #                  color=process_colors[process], label=f"{process_labels[process]} Reco", marker="v")
-    #plot_raw(diff_ax, xbins, gen, 
-    #                  color=process_colors[process], label=f"{process_labels[process]} Gen", fillstyle="none")
-    #plot_raw(diff_ax, xbins, reco/gen, 
-    #                  color=process_colors[process], label=f"{process_labels[process]} Gen Ratio", fillstyle="none")
-    plot_raw(diff_ax, xbins, 1/(reco/gen), 
-                      color=process_colors[process], label=f"{process_labels[process]} Gen Ratio", fillstyle="none")
+    #binning = np.array([0, 45, 80, 120, 200, 350, 450, 600])
+    binning = np.array([0, 10, 20, 30, 40, 60, 80, 120, 200, 350, 450, 600])
 
-    spruce_up_single_plot(diff_ax, "H_pT", "Events", title, final_state_mode, jet_mode)
+    do_standard_comparison = True
+    if (do_standard_comparison == True):
+      h_signal_reco = get_binned_signals(final_state_mode, testing, signal_dictionary, "HTT_H_pt", xbins, lumi) 
+      h_signal_gen  = get_binned_signals(final_state_mode, testing, signal_dictionary, "Gen_H_pT", xbins, lumi) 
+      reco = h_signal_reco[process]["BinnedEvents"]
+      gen  = h_signal_gen[process]["BinnedEvents"]
+      # standard comparison
+      plot_raw(ax_h_compare, xbins, reco, 
+                        color=process_colors[process], label=f"{process_labels[process]} Reco", marker="v")
+      plot_raw(ax_h_compare, xbins, gen, 
+                        color=process_colors[process], label=f"{process_labels[process]} Gen", fillstyle="none")
+      # ratio plot
+      #plot_raw(ax_h_compare, xbins, gen/reco, 
+      #                  color=process_colors[process], label=f"{process_labels[process]} Ratio (Gen/Reco)", fillstyle="none")
+
+      spruce_up_single_plot(ax_h_compare, "H_pT", "Events", title, final_state_mode, jet_mode)
 
     raw_gen  = signal_dictionary[process]["PlotEvents"]["Gen_H_pT"]
     raw_reco = signal_dictionary[process]["PlotEvents"]["HTT_H_pt"]
-    #raw_reco = raw_reco[raw_gen > 200]
-    #raw_gen  = raw_gen[raw_gen > 200]
-    temp_bins = np.linspace(-1, 1, 60)
-    vals = (raw_reco-raw_gen)/raw_gen # make this 2D with H_pT
-    temp_hist, _ = np.histogram(vals, temp_bins)
-    temp_hist = temp_hist/np.max(temp_hist) # normed
-    from scipy import stats
-    print(process)
-    print(stats.describe(vals))
 
-    mean = np.average(vals)
-    std  = np.std(vals)
-    print(mean, std)
+    do_normed_diff_comparison = True
+    reco_gen_normed_diffs = {}
+    if (do_normed_diff_comparison == True):
+      normed_gen_diff = (raw_reco-raw_gen)/raw_gen
+      normed_gen_diff_bins = np.linspace(-2, 2, 120)
 
-    #new_hist, _ = np.histogram(vals+mean, temp_bins)
-    #new_hist, _ = np.histogram(vals*mean/std, temp_bins)
-    new_hist, _ = np.histogram(vals*mean, temp_bins)
+      normed_gen_diff_hist, _ = np.histogram(normed_gen_diff, normed_gen_diff_bins)
+      normed_gen_diff_hist = normed_gen_diff_hist/np.max(normed_gen_diff_hist) # normed by highest yield
 
-    fig, axis = plt.subplots(figsize=(7,4))
-    h2d, xbins, ybins = np.histogram2d(raw_reco, vals, bins=(xbins, temp_bins))
-    h2d = h2d.T # transpose from image coordinates to data coordinates
-    cmesh = axis.pcolormesh(xbins, ybins, h2d, cmap="copper") #pcolormesh uses data coordinates by default, imshow uses array of 1x1 squares
-    plt.colorbar(cmesh)
+      plot_raw(ax_normed_diff, normed_gen_diff_bins, normed_gen_diff_hist, color=process_colors[process], 
+                         label=process_labels[process])
+      ax_normed_diff.vlines(0, 0, 1.1, linestyle="--", color="grey")
+
+      spruce_up_single_plot(ax_normed_diff, "H_pT (Reco - Gen) / Gen", "Normalized Events", "Response", 
+                            final_state_mode, jet_mode, yrange=[0.0, 1.1])
+
+      # plot uncorrected normed_diff by binning region
+      for i in range(len(binning)):
+        if (i != len(binning) - 1):
+          mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+          label_i = f"[{binning[i]} - {binning[i+1]}]"
+        else:
+          mask = raw_reco >= binning[i]
+          label_i = f"[>{binning[i]}]"
+        # apply mask to both and save result
+        reco_gen_normed_diff = (raw_reco[mask] - raw_gen[mask])/raw_gen[mask]
+        reco_gen_normed_diffs[binning[i]] = reco_gen_normed_diff
+
+        reco_gen_normed_diff_hist, _ = np.histogram(reco_gen_normed_diff, normed_gen_diff_bins)
+        reco_gen_normed_diff_hist = reco_gen_normed_diff_hist/np.max(reco_gen_normed_diff_hist) # normed by highest yield
+
+        plot_raw(ax_normed_diff_unrolled, normed_gen_diff_bins, reco_gen_normed_diff_hist, 
+                          color=bin_colors[i], label=f"{process_labels[process]} {label_i}")
+                          #alpha=(1 - i*0.1), marker=marker_list[i], fillstyle=marker_face[i])
+      ax_normed_diff.vlines(0, 0, 1.1, linestyle="--", color="grey")
+
+      spruce_up_single_plot(ax_normed_diff_unrolled, "H_pT (Reco - Gen) / Gen", "Normalized Events", "", 
+                            final_state_mode, jet_mode, yrange=[0.0, 1.1])
+
+   
+      # 2D plot of reco val against the normalized generator difference
+      fig, ax_2D = plt.subplots(figsize=(7,4))
+      h2d, xbins, ybins = np.histogram2d(raw_reco, normed_gen_diff, bins=(xbins, normed_gen_diff_bins))
+      h2d = h2d.T # transpose from image coordinates to data coordinates
+      cmesh = ax_2D.pcolormesh(xbins, ybins, h2d, cmap="copper") #pcolormesh uses data coordinates by default, imshow uses array of 1x1 squares
+      ax_2D.set_title(f"{final_state_mode} : {process}")
+      ax_2D.set_xlabel("Reco H_pT")
+      ax_2D.set_ylabel("H_pT (Reco - Gen) / Gen")
+      plt.colorbar(cmesh)
+
+      # raw value by value comparison
+      raw_ratio = raw_gen/raw_reco
+      raw_ratio_bins = np.linspace(0, 5, 50+1)
+      raw_ratio_hist, _ = np.histogram(raw_ratio, raw_ratio_bins)
+      plot_raw(ax_raw_ratio, raw_ratio_bins, raw_ratio_hist, color=process_colors[process],
+                      label=process_labels[process])
+      spruce_up_single_plot(ax_raw_ratio, "H_pT Gen/Reco", "Events", "",
+                            final_state_mode, jet_mode)
 
 
-    #plot_raw(diff_ax, temp_bins, temp_hist, color=process_colors[process], label=process_labels[process])
-    #diff_ax.vlines(0, 0, 1.1, linestyle="--", color="grey")
-    plot_raw(diff_ax2, temp_bins, new_hist, color=process_colors[process], 
-                       label=process_labels[process]+" transformed!")
+    do_correction = True
+    reco_gen_ratios = {}
+    if (do_correction == True):
+      for i in range(len(binning)):
+        if (i != len(binning) - 1):
+          mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+        else:
+          mask = raw_reco >= binning[i]
+        # apply mask to both and save result
+        reco_gen_ratios[binning[i]] = np.mean(raw_gen[mask]) / np.mean(raw_reco[mask])
+        reco_gen_normed_diffs[binning[i]] = (raw_reco[mask] - raw_gen[mask])/raw_gen[mask]
+      # plot binned correction values
+      xvals = reco_gen_ratios.keys()
+      yvals = reco_gen_ratios.values()
+      ax_binned_ratio.plot(xvals, yvals, marker="o", linestyle="none",
+                           color=process_colors[process], label=f"{process_labels[process]}")
+      ax_binned_ratio.legend()
+      ax_binned_ratio.set_xlabel("Reco H_pT")
+      ax_binned_ratio.set_ylabel("Gen / Reco (Correction)")
 
-    #spruce_up_single_plot(diff_ax, "H_pT (Reco - Gen) / Gen", "Normalized Events", "Response", 
-    #                      final_state_mode, jet_mode, yrange=[0.0, 1.1])
-    spruce_up_single_plot(diff_ax2, "Normalized H_pT (Reco - Gen) / Gen", "Normalized Events", "Response", 
-                          final_state_mode, jet_mode)
- 
+      # plot with correction applied
+      reco_gen_ratio_vals = np.array(list(reco_gen_ratios.values()))
+      ratio_bin_index = np.digitize(raw_reco, binning) # simply does exactly what you want..
+      corrected_raw_reco = raw_reco*reco_gen_ratio_vals[ratio_bin_index - 1]
+
+      normed_corr_gen_diff = (corrected_raw_reco-raw_gen)/raw_gen
+      normed_corr_gen_diff_bins = np.linspace(-2, 2, 120)
+
+      normed_corr_gen_diff_hist, _ = np.histogram(normed_corr_gen_diff, normed_corr_gen_diff_bins)
+      normed_corr_gen_diff_hist = normed_corr_gen_diff_hist/np.max(normed_corr_gen_diff_hist) # normed by highest yield
+
+      plot_raw(ax_normed_corr, normed_corr_gen_diff_bins, normed_corr_gen_diff_hist, color=process_colors[process], 
+                         label=process_labels[process])
+      ax_normed_corr.vlines(0, 0, 1.1, linestyle="--", color="grey")
+
+      spruce_up_single_plot(ax_normed_corr, "H_pT (Reco*Correction - Gen) / Gen", "Normalized Events", "Corrected Response", 
+                            final_state_mode, jet_mode, yrange=[0.0, 1.1])
+   
+      # 2D plot of reco val against the normalized generator difference
+      fig, ax_2D = plt.subplots(figsize=(7,4))
+      h2d, xbins, ybins = np.histogram2d(raw_reco, normed_corr_gen_diff, bins=(xbins, normed_corr_gen_diff_bins))
+      h2d = h2d.T # transpose from image coordinates to data coordinates
+      cmesh = ax_2D.pcolormesh(xbins, ybins, h2d, cmap="copper") #pcolormesh uses data coordinates by default, imshow uses array of 1x1 squares
+      ax_2D.set_title(f"{final_state_mode} : {process}")
+      ax_2D.set_xlabel("Reco H_pT")
+      ax_2D.set_ylabel("H_pT (Reco*Correction - Gen) / Gen")
+      plt.colorbar(cmesh)
+
     
   plt.savefig("signal_response_plots/" + final_state_mode + "_H_pT_response.png", dpi=200)
 
-  for process in signal_processes: 
-    # 2D plots
-    recoVars = ["HTT_H_pt", "nCleanJetGT30"]#, "CleanJetGT30_pt_1"]
-    genVars  = ["Gen_H_pT", "Gen_nCleanJet"]#, "Gen_pT_j1"]
-    varAltBins = [np.array([0, 45, 80, 120, 200, 350, 450, 600]), #H_pT
-                  np.array([0, 1, 2, 3, 4])] # nJets
-    norm_methods = ["total", "row", "column"]
-    for norm_method in norm_methods:
-      for bins, varY, varX in zip(varAltBins, recoVars, genVars):
-        make_two_dimensional_plot(signal_dictionary[process]["PlotEvents"], final_state_mode,
-                                  varX, varY, title=process + f" {norm_method} Unity Normalization Response",
-                                  normalization = norm_method,
-                                  alt_x_bins=bins, alt_y_bins=bins)
-        name = "_".join([process, final_state_mode, norm_method, varX])
-        plt.savefig("signal_response_plots/" + name + ".png", dpi=200)
+  do_2D_plots = True
+  if (do_2D_plots == True):
+    for process in signal_processes: 
+      # 2D plots
+      recoVars = ["HTT_H_pt", "nCleanJetGT30"]#, "CleanJetGT30_pt_1"]
+      genVars  = ["Gen_H_pT", "Gen_nCleanJet"]#, "Gen_pT_j1"]
+      varAltBins = [np.array([0, 45, 80, 120, 200, 350, 450, 600]), #H_pT
+                    np.array([0, 1, 2, 3, 4])] # nJets
+      norm_methods = ["total", "row", "column"]
+      for norm_method in norm_methods:
+        for bins, varY, varX in zip(varAltBins, recoVars, genVars):
+          make_two_dimensional_plot(signal_dictionary[process]["PlotEvents"], final_state_mode,
+                                    varX, varY, title=process + f" {norm_method} Unity Normalization Response",
+                                    normalization = norm_method,
+                                    alt_x_bins=bins, alt_y_bins=bins)
+          name = "_".join([process, final_state_mode, norm_method, varX])
+          plt.savefig("signal_response_plots/" + name + ".png", dpi=200)
   
   if hide_plots: pass
   else: plt.show()
