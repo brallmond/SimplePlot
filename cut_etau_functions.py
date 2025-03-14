@@ -69,7 +69,10 @@ def make_etau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=False, ta
     mt      = calculate_mt(elPt, elPhi, MET_pt, MET_phi)
     acoplan = calculate_acoplan(elPhi, tauPhi)
 
-    dphi_etau = np.acos(np.cos(elPhi - tauPhi))
+    try:
+      dphi_etau = np.acos(np.cos(elPhi - tauPhi))
+    except AttributeError:
+      dphi_etau = np.arccos(np.cos(elPhi - tauPhi))
     deta_etau = abs(elEta - tauEta)
     dpt_etau  = elPt - tauPt
 
