@@ -469,7 +469,7 @@ if __name__ == "__main__":
   if hide_plots: pass
   else: plt.show()
 
-
+  print("Making fitter shapes!")
   save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi)
 
 
