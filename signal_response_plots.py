@@ -209,10 +209,12 @@ if __name__ == "__main__":
       # plot uncorrected normed_diff by binning region
       for i in range(len(binning)):
         if (i != len(binning) - 1):
-          mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+          #mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+          mask = np.logical_and(raw_gen >= binning[i], raw_gen < binning[i+1])
           label_i = f"[{binning[i]} - {binning[i+1]}]"
         else:
-          mask = raw_reco >= binning[i]
+          #mask = raw_reco >= binning[i]
+          mask = raw_gen >= binning[i]
           label_i = f"[>{binning[i]}]"
         # apply mask to both and save result
         reco_gen_normed_diff = (raw_reco[mask] - raw_gen[mask])/raw_gen[mask]
@@ -255,9 +257,11 @@ if __name__ == "__main__":
     if (do_correction == True):
       for i in range(len(binning)):
         if (i != len(binning) - 1):
-          mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+          #mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+          mask = np.logical_and(raw_gen >= binning[i], raw_gen < binning[i+1])
         else:
-          mask = raw_reco >= binning[i]
+          #mask = raw_reco >= binning[i]
+          mask = raw_gen >= binning[i]
         # apply mask to both and save result
         reco_gen_ratios[binning[i]] = np.mean(raw_gen[mask]) / np.mean(raw_reco[mask])
         reco_gen_normed_diffs[binning[i]] = (raw_reco[mask] - raw_gen[mask])/raw_gen[mask]
@@ -301,7 +305,7 @@ if __name__ == "__main__":
     
   plt.savefig("signal_response_plots/" + final_state_mode + "_H_pT_response.png", dpi=200)
 
-  do_2D_plots = True
+  do_2D_plots = False
   if (do_2D_plots == True):
     for process in signal_processes: 
       # 2D plots
