@@ -73,7 +73,8 @@ if __name__ == "__main__":
 
   _, reject_datasets = set_dataset_info(final_state_mode)
 
-  signal_processes = ["ggH_TauTau", "VBF_TauTau"]
+  #signal_processes = ["ggH_TauTau", "VBF_TauTau"]
+  signal_processes = ["ggH_TauTau"]
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
@@ -161,7 +162,9 @@ if __name__ == "__main__":
   _, ax_normed_corr = plt.subplots()
   process_colors = {"ggH_TauTau" : "blue", "VBF_TauTau" : "red"}
   process_labels = {"ggH_TauTau" : "ggH", "VBF_TauTau" : "qqH"}
-  bin_colors = ["black", "red", "blue", "green", "pink", "purple", "orange", "grey", "brown", "olive", "cyan","#00FF0F0F"]
+  bin_colors = ["green", "pink", "purple", "orange", "grey", "brown", "olive", "cyan","#00FF0F0F",
+                "#A52A2A", "#8F00FF", "#90EE90"]
+  #bin_colors = ["black", "red", "blue", "green", "pink", "purple", "orange", "grey", "brown", "olive", "cyan","#00FF0F0F"]
   marker_list = ["o", "v", "s", "*", "P", "d", "p", "o", "v", "s", "*", "P", "d", "p"]
   marker_face = ["full"]*7 + ["none"]*7
   for process in signal_processes: 
@@ -170,68 +173,216 @@ if __name__ == "__main__":
     #binning = np.array([0, 45, 80, 120, 200, 350, 450, 600])
     binning = np.array([0, 10, 20, 30, 40, 60, 80, 120, 200, 350, 450, 600])
 
-    do_standard_comparison = True
+    do_standard_comparison = False
     if (do_standard_comparison == True):
       h_signal_reco = get_binned_signals(final_state_mode, testing, signal_dictionary, "HTT_H_pt", xbins, lumi) 
       h_signal_gen  = get_binned_signals(final_state_mode, testing, signal_dictionary, "Gen_H_pT", xbins, lumi) 
       reco = h_signal_reco[process]["BinnedEvents"]
       gen  = h_signal_gen[process]["BinnedEvents"]
       # standard comparison
-      plot_raw(ax_h_compare, xbins, reco, 
+      plot_raw(ax_h_compare, xbins, reco, show_errors=True,
                         color=process_colors[process], label=f"{process_labels[process]} Reco", marker="v")
-      plot_raw(ax_h_compare, xbins, gen, 
+      plot_raw(ax_h_compare, xbins, gen, show_errors=True,
                         color=process_colors[process], label=f"{process_labels[process]} Gen", fillstyle="none")
       # ratio plot
-      #plot_raw(ax_h_compare, xbins, gen/reco, 
+      #plot_raw(ax_h_compare, xbins, gen/reco, show_errors=True,
       #                  color=process_colors[process], label=f"{process_labels[process]} Ratio (Gen/Reco)", fillstyle="none")
 
       spruce_up_single_plot(ax_h_compare, "H_pT", "Events", title, final_state_mode, jet_mode)
 
     raw_gen  = signal_dictionary[process]["PlotEvents"]["Gen_H_pT"]
     raw_reco = signal_dictionary[process]["PlotEvents"]["HTT_H_pt"]
+    #mask = raw_reco > 200
+    #raw_gen = raw_gen[mask]
+    #raw_reco = raw_reco[mask]
+
+    do_peak_corrections = False
+    if (do_peak_corrections):
+      # plot Reco with lines at bin boundaries + black point at max in each bin
+      _, ax_c_reco = plt.subplots()
+      fine_binning = np.linspace(0, binning[-1], 120+1) # 5 GeV bins
+      raw_reco_fine, fine_bins = np.histogram(raw_reco, fine_binning)
+      xdata_c_reco, ydata_c_reco = plot_raw(ax_c_reco, fine_binning, raw_reco_fine, show_errors=True,
+               color=process_colors[process], label=f"{process_labels[process]} Reco", marker="v")
+      ax_c_reco.vlines(binning, 0, ax_c_reco.get_ylim()[-1], linestyle="--", color="grey")
+
+      max_vals_reco = []
+      max_val_locs_reco = []
+      #for i in range(len(binning)): # should really make this into a function :)
+      for i in range(len(binning)-1): # should really make this into a function :)
+        if (i != len(binning) - 1):
+          mask = np.logical_and(xdata_c_reco >= binning[i], xdata_c_reco < binning[i+1])
+          #mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+          #mask = np.logical_and(raw_gen >= binning[i], raw_gen < binning[i+1])
+        #else:
+        #  mask = xdata_c_reco >= binning[i]
+        #  mask = -1
+          #mask = raw_reco >= binning[i]
+          #mask = raw_gen >= binning[i]
+        #print(ydata_c_reco[mask])
+        max_val = max(ydata_c_reco[mask])
+        all_loc = np.where(ydata_c_reco == max_val)
+        loc = all_loc[0][-1] 
+        max_vals_reco.append(max_val)
+        max_val_locs_reco.append(xdata_c_reco[loc])
+
+      max_vals_reco = np.array(max_vals_reco)
+      max_val_locs_reco = np.array(max_val_locs_reco)
+      ax_c_reco.errorbar(max_val_locs_reco, max_vals_reco,
+                          color="black", marker="*", label = "Max Value",
+                          linestyle='none', markersize=10)
+      spruce_up_single_plot(ax_c_reco, "Reco H_pT", "Events", title, final_state_mode, jet_mode)
+      ax_c_reco.set_ylim(0, None)
+
+      # plot Gen from each Reco bin + point at max in each bin
+      max_vals_gen = []
+      max_val_locs_gen = []
+      _, ax_c_gen = plt.subplots()
+      for i in range(len(binning)-1):
+        if (i != len(binning) - 1):
+          mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+          #mask = np.logical_and(raw_gen >= binning[i], raw_gen < binning[i+1])
+          label_i = f"[{binning[i]} - {binning[i+1]}]"
+        #else: # don't do final bin
+        #  mask = raw_reco >= binning[i]
+        #  #mask = raw_gen >= binning[i]
+        #  label_i = f"[>{binning[i]}]"
+
+        raw_gen_hist, _ = np.histogram(raw_gen[mask], fine_binning)
+
+        xdata_c_gen, ydata_c_gen = plot_raw(ax_c_gen, fine_binning, raw_gen_hist, show_errors=True,
+                          color=bin_colors[i], label=f"{process_labels[process]} {label_i}")
+
+        max_gen = max(ydata_c_gen)
+        all_locs = np.where(ydata_c_gen == max_gen)
+        loc = all_locs[0][-1]
+        max_vals_gen.append(max_gen)
+        max_val_locs_gen.append(xdata_c_gen[loc])
+      max_vals_gen = np.array(max_vals_gen)
+      max_val_locs_gen = np.array(max_val_locs_gen)
+
+      ax_c_gen.errorbar(max_val_locs_gen, max_vals_gen,
+                          color="black", marker="*", label = "Max Value", markerfacecolor="none",
+                          linestyle='none', markersize=10)
+
+      spruce_up_single_plot(ax_c_gen, "Gen H_pT", "Events", title, final_state_mode, jet_mode)
+      ax_c_gen.set_ylim(0, None)
+
+      # plot ratio of max Gen / Reco (why is this better than an average?)
+      # start by plotting them, then get the ratio
+      # use process color, and filled/non filled
+
+      _, ax_c_compare = plt.subplots()
+      # plot points
+      ax_c_compare.errorbar(max_val_locs_reco, max_vals_reco,
+                          color=process_colors[process], label=f"{process_labels[process]}: Reco Peaks",
+                          linestyle='none', marker='*', markersize=10)
+      ax_c_compare.errorbar(max_val_locs_gen, max_vals_gen,
+                          color=process_colors[process], label=f"{process_labels[process]}: Gen Peaks",
+                          linestyle='none', marker='*', markersize=10, markerfacecolor="none")
+      # plot lines connecting reco val to gen val 
+      
+      for i in range(len(max_val_locs_reco)):
+      #for i in range(len(max_val_locs_gen)):
+        ax_c_compare.plot([max_val_locs_reco[i],  max_val_locs_gen[i]], [max_vals_reco[i], max_vals_gen[i]], 
+                          marker='none', color='grey', linestyle='dotted')
+      spruce_up_single_plot(ax_c_compare, "H_pT", "Events (Max Values)", title, final_state_mode, jet_mode)
+      ax_c_compare.set_ylim(0, None)
+
+      _, ax_c_ratio = plt.subplots()
+      ax_c_ratio.errorbar(binning[:-1], max_vals_reco/max_vals_gen,
+                          color=process_colors[process], label=f"{process_labels[process]}",
+                          linestyle="dashed", marker="o", markersize=10)
+      spruce_up_single_plot(ax_c_ratio, "H_pT", "Correction (reco/gen peaks)", title, final_state_mode, jet_mode)
+      ax_c_ratio.set_ylim(0, None)
 
     do_normed_diff_comparison = True
     reco_gen_normed_diffs = {}
-    if (do_normed_diff_comparison == True):
+    if (do_normed_diff_comparison):
       normed_gen_diff = (raw_reco-raw_gen)/raw_gen
-      normed_gen_diff_bins = np.linspace(-2, 2, 120)
+      normed_gen_diff_bins = np.linspace(-2, 2, 100)
 
       normed_gen_diff_hist, _ = np.histogram(normed_gen_diff, normed_gen_diff_bins)
       normed_gen_diff_hist = normed_gen_diff_hist/np.max(normed_gen_diff_hist) # normed by highest yield
 
-      plot_raw(ax_normed_diff, normed_gen_diff_bins, normed_gen_diff_hist, color=process_colors[process], 
-                         label=process_labels[process])
+      plot_raw(ax_normed_diff, normed_gen_diff_bins, normed_gen_diff_hist, show_errors=True,
+                         color=process_colors[process], label=process_labels[process])
       ax_normed_diff.vlines(0, 0, 1.1, linestyle="--", color="grey")
 
       spruce_up_single_plot(ax_normed_diff, "H_pT (Reco - Gen) / Gen", "Normalized Events", "Response", 
                             final_state_mode, jet_mode, yrange=[0.0, 1.1])
 
       # plot uncorrected normed_diff by binning region
+      peaks = []
+      bin_centers = []
+      peak_locs = []
       for i in range(len(binning)):
         if (i != len(binning) - 1):
-          #mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
-          mask = np.logical_and(raw_gen >= binning[i], raw_gen < binning[i+1])
+          mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+          #mask = np.logical_and(raw_gen >= binning[i], raw_gen < binning[i+1])
           label_i = f"[{binning[i]} - {binning[i+1]}]"
-        else:
-          #mask = raw_reco >= binning[i]
-          mask = raw_gen >= binning[i]
-          label_i = f"[>{binning[i]}]"
+        if (i == len(binning) - 1): continue
+        #else:
+        #  mask = raw_reco >= binning[i]
+        #  #mask = raw_gen >= binning[i]
+        #  label_i = f"[>{binning[i]}]"
         # apply mask to both and save result
         reco_gen_normed_diff = (raw_reco[mask] - raw_gen[mask])/raw_gen[mask]
         reco_gen_normed_diffs[binning[i]] = reco_gen_normed_diff
 
-        reco_gen_normed_diff_hist, _ = np.histogram(reco_gen_normed_diff, normed_gen_diff_bins)
+        reco_gen_normed_diff_hist, bin_edges = np.histogram(reco_gen_normed_diff, normed_gen_diff_bins)
+        bin_size = bin_edges[2] - bin_edges[1]
+        if (i != len(binning) - 1):
+          binning_range = binning[i+1] - binning[i]
         reco_gen_normed_diff_hist = reco_gen_normed_diff_hist/np.max(reco_gen_normed_diff_hist) # normed by highest yield
+        #reco_gen_normed_diff_hist = reco_gen_normed_diff_hist/np.sum(reco_gen_normed_diff_hist) # normed by sum
+        #reco_gen_normed_diff_hist = reco_gen_normed_diff_hist/bin_size # divided by plot bin size
+        #reco_gen_normed_diff_hist = reco_gen_normed_diff_hist/binning_range # normed by range of reco bin
 
-        plot_raw(ax_normed_diff_unrolled, normed_gen_diff_bins, reco_gen_normed_diff_hist, 
-                          color=bin_colors[i], label=f"{process_labels[process]} {label_i}")
+        # store peak values
+        peaks.append(max(reco_gen_normed_diff_hist))
+        loc = np.where(reco_gen_normed_diff_hist == max(reco_gen_normed_diff_hist))[0][0]
+        bin_val = bin_edges[loc] + (bin_edges[loc+1] - bin_edges[loc])/2
+        peak_locs.append(bin_val)
+        if (i != len(binning) - 1):
+          bin_centers.append( binning[i] + (binning[i+1] - binning[i])/2 )
+        else:
+          bin_centers.append(binning[i])
+
+        #if ((i == 0) or (i == 5)):
+        if (True):
+          plot_raw(ax_normed_diff_unrolled, normed_gen_diff_bins, reco_gen_normed_diff_hist, show_errors=False,
+                            color=bin_colors[i], label=f"{process_labels[process]} {label_i}")
                           #alpha=(1 - i*0.1), marker=marker_list[i], fillstyle=marker_face[i])
-      ax_normed_diff.vlines(0, 0, 1.1, linestyle="--", color="grey")
 
+      #spruce_up_single_plot(ax_normed_diff_unrolled, "H_pT (Reco - Gen) / Gen", "Normalized Events", "", 
       spruce_up_single_plot(ax_normed_diff_unrolled, "H_pT (Reco - Gen) / Gen", "Normalized Events", "", 
-                            final_state_mode, jet_mode, yrange=[0.0, 1.1])
+                            final_state_mode, jet_mode)
+                            #final_state_mode, jet_mode, yrange=[0.0, 1.1])
 
-   
+      # plot peaks against bin centers
+      peaks = np.array(peaks)
+      bin_centers = np.array(bin_centers)
+      inverts = np.array([1/(val+1) for val in peak_locs])
+      inverts = np.append(inverts, inverts[-1]) # add last bin twice, so it's used for overflow
+
+      invert_bin_index = np.digitize(raw_reco, binning) # documented in later lines
+      corrected_raw_reco = raw_reco*inverts[invert_bin_index - 1]
+      inverts = inverts[:-1] # remove last element (copy of second-to-last for overflow)
+    
+      # put your corrected values into the dictionary so you can use them anytime 
+      signal_dictionary[process]["PlotEvents"]["HTT_H_pt_corr_Run2"] = np.array(corrected_raw_reco)
+      
+      _, ax_peaks = plt.subplots()
+      ax_peaks.plot(bin_centers, peak_locs, linestyle="none", marker="o",
+                    color=process_colors[process], label=process_labels[process])
+      spruce_up_single_plot(ax_peaks, "H_pT", "xval at peak location", title, final_state_mode, jet_mode)
+
+      _, ax_inverts = plt.subplots()
+      ax_inverts.plot(bin_centers, inverts, linestyle="none", marker="o",
+                      color=process_colors[process], label=process_labels[process])
+      spruce_up_single_plot(ax_inverts, "H_pT", "Correction = 1/(xval+1)", title, final_state_mode, jet_mode)
+
       # 2D plot of reco val against the normalized generator difference
       fig, ax_2D = plt.subplots(figsize=(7,4))
       h2d, xbins, ybins = np.histogram2d(raw_reco, normed_gen_diff, bins=(xbins, normed_gen_diff_bins))
@@ -243,12 +394,14 @@ if __name__ == "__main__":
       plt.colorbar(cmesh)
 
       # raw value by value comparison
-      raw_ratio = raw_gen/raw_reco
+      raw_ratio = raw_reco/raw_gen
+      #raw_ratio = raw_gen/raw_reco
       raw_ratio_bins = np.linspace(0, 5, 50+1)
       raw_ratio_hist, _ = np.histogram(raw_ratio, raw_ratio_bins)
-      plot_raw(ax_raw_ratio, raw_ratio_bins, raw_ratio_hist, color=process_colors[process],
-                      label=process_labels[process])
-      spruce_up_single_plot(ax_raw_ratio, "H_pT Gen/Reco", "Events", "",
+      plot_raw(ax_raw_ratio, raw_ratio_bins, raw_ratio_hist, show_errors=True, 
+                      color=process_colors[process], label=process_labels[process])
+      spruce_up_single_plot(ax_raw_ratio, "H_pT Reco/Gen", "Events", "",
+      #spruce_up_single_plot(ax_raw_ratio, "H_pT Gen/Reco", "Events", "",
                             final_state_mode, jet_mode)
 
 
@@ -257,12 +410,13 @@ if __name__ == "__main__":
     if (do_correction == True):
       for i in range(len(binning)):
         if (i != len(binning) - 1):
-          #mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
-          mask = np.logical_and(raw_gen >= binning[i], raw_gen < binning[i+1])
+          mask = np.logical_and(raw_reco >= binning[i], raw_reco < binning[i+1])
+          #mask = np.logical_and(raw_gen >= binning[i], raw_gen < binning[i+1])
         else:
-          #mask = raw_reco >= binning[i]
-          mask = raw_gen >= binning[i]
+          mask = raw_reco >= binning[i]
+          #mask = raw_gen >= binning[i]
         # apply mask to both and save result
+        #reco_gen_ratios[binning[i]] = np.mean(raw_reco[mask]) / np.mean(raw_gen[mask])
         reco_gen_ratios[binning[i]] = np.mean(raw_gen[mask]) / np.mean(raw_reco[mask])
         reco_gen_normed_diffs[binning[i]] = (raw_reco[mask] - raw_gen[mask])/raw_gen[mask]
       # plot binned correction values
@@ -270,23 +424,28 @@ if __name__ == "__main__":
       yvals = reco_gen_ratios.values()
       ax_binned_ratio.plot(xvals, yvals, marker="o", linestyle="none",
                            color=process_colors[process], label=f"{process_labels[process]}")
-      ax_binned_ratio.legend()
-      ax_binned_ratio.set_xlabel("Reco H_pT")
-      ax_binned_ratio.set_ylabel("Gen / Reco (Correction)")
+      spruce_up_single_plot(ax_binned_ratio, "Reco H_pT", "Gen / Reco (Correction)", "",
+      #spruce_up_single_plot(ax_binned_ratio, "Reco H_pT", "Reco / Gen (Correction)", "",
+                            final_state_mode, jet_mode)
 
       # plot with correction applied
       reco_gen_ratio_vals = np.array(list(reco_gen_ratios.values()))
       ratio_bin_index = np.digitize(raw_reco, binning) # simply does exactly what you want..
+      # digitize takes in a value and a binning and returns the index of the bin the value belongs to
+      # you can use this index to then grab the associated correction
       corrected_raw_reco = raw_reco*reco_gen_ratio_vals[ratio_bin_index - 1]
+    
+      # put your corrected values into the dictionary so you can use them anytime 
+      signal_dictionary[process]["PlotEvents"]["HTT_H_pt_corr"] = np.array(corrected_raw_reco)
 
       normed_corr_gen_diff = (corrected_raw_reco-raw_gen)/raw_gen
-      normed_corr_gen_diff_bins = np.linspace(-2, 2, 120)
+      normed_corr_gen_diff_bins = np.linspace(-2, 2, 100)
 
       normed_corr_gen_diff_hist, _ = np.histogram(normed_corr_gen_diff, normed_corr_gen_diff_bins)
       normed_corr_gen_diff_hist = normed_corr_gen_diff_hist/np.max(normed_corr_gen_diff_hist) # normed by highest yield
 
-      plot_raw(ax_normed_corr, normed_corr_gen_diff_bins, normed_corr_gen_diff_hist, color=process_colors[process], 
-                         label=process_labels[process])
+      plot_raw(ax_normed_corr, normed_corr_gen_diff_bins, normed_corr_gen_diff_hist, show_errors=True,
+                         color=process_colors[process], label=process_labels[process])
       ax_normed_corr.vlines(0, 0, 1.1, linestyle="--", color="grey")
 
       spruce_up_single_plot(ax_normed_corr, "H_pT (Reco*Correction - Gen) / Gen", "Normalized Events", "Corrected Response", 
@@ -305,15 +464,17 @@ if __name__ == "__main__":
     
   plt.savefig("signal_response_plots/" + final_state_mode + "_H_pT_response.png", dpi=200)
 
-  do_2D_plots = False
-  if (do_2D_plots == True):
+  print(signal_dictionary.keys())
+  do_response_plots = True
+  if (do_response_plots):
     for process in signal_processes: 
-      # 2D plots
-      recoVars = ["HTT_H_pt", "nCleanJetGT30"]#, "CleanJetGT30_pt_1"]
-      genVars  = ["Gen_H_pT", "Gen_nCleanJet"]#, "Gen_pT_j1"]
+      recoVars = ["HTT_H_pt_corr_Run2", "HTT_H_pt_corr", "HTT_H_pt", "nCleanJetGT30"]#, "CleanJetGT30_pt_1"]
+      genVars  = ["Gen_H_pT", "Gen_H_pT", "Gen_H_pT", "Gen_nCleanJet"]#, "Gen_pT_j1"]
       varAltBins = [np.array([0, 45, 80, 120, 200, 350, 450, 600]), #H_pT
+                    np.array([0, 45, 80, 120, 200, 350, 450, 600]), #H_pT
+                    np.array([0, 45, 80, 120, 200, 350, 450, 600]), #H_pT
                     np.array([0, 1, 2, 3, 4])] # nJets
-      norm_methods = ["total", "row", "column"]
+      norm_methods = ["row", "column"] # column shows reco smearing, row shows gen contribution to reco
       for norm_method in norm_methods:
         for bins, varY, varX in zip(varAltBins, recoVars, genVars):
           make_two_dimensional_plot(signal_dictionary[process]["PlotEvents"], final_state_mode,
