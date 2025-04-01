@@ -45,6 +45,8 @@ label_dictionary = {
   "FS_dphi_t1t2" : r'$\Delta\phi_{\tau_1\tau_2}$',
   "FS_deta_t1t2" : r'$\Delta\eta_{\tau_1\tau_2}$',
   "FS_dpt_t1t2"  : r'$\Delta pT_{\tau_1\tau_2}$',
+  "FS_dphi_t1MET" : r'$\Delta\phi_{\tau_1MET}$',
+  "FS_dphi_t2MET" : r'$\Delta\phi_{\tau_2MET}$',
 
   "FS_t1_FLsig"  : r'Leading Tau Flight Significance',
   "FS_t1_FLX"    : r'Leading Tau Flight Length X',
@@ -150,7 +152,9 @@ label_dictionary = {
   "HTT_DiJet_dEta_fromLeadingJets"   : r'|$\Delta\eta$| from Leading Jets',
   "HTT_DiJet_j1index"                : r'Leading Jet Index of Highest Mjj Pair - from branch',
   "HTT_DiJet_j2index"                : r'Subleading Jet Index of Highest Mjj Pair - from branch',
-  "HTT_H_pt"                         : r'Higgs $p_T$ [GeV]',
+  "HTT_H_pt"                         : r'Reco Higgs $p_T$ [GeV]',
+  "HTT_H_pt_corr_Run2"               : r'Reco Higgs $p_T$ [GeV] (Run2-style Correction)',
+  "HTT_H_pt_corr"                    : r'Reco Higgs $p_T$ [GeV] (Run3-style Correction)',
   "HTT_mT_l1l2met"                   : r'$m_T$($\ell_1\ell_2$, MET) [GeV]',
   "HTT_dR"      : r'$\Delta$R',
   "HTT_m_vis"            : r'$m_{vis}$ [GeV]',
@@ -243,6 +247,8 @@ binning_dictionary = {
     "FS_dphi_t1t2" : np.linspace(0, 3.1416, 32+1),
     "FS_deta_t1t2" : np.linspace(0, 4, 32+1),
     "FS_dpt_t1t2"  : np.linspace(-100, 100, 50+1),
+    "FS_dphi_t1MET" : np.linspace(0, 3.1416, 32+1),
+    "FS_dphi_t2MET" : np.linspace(0, 3.1416, 32+1),
 
     "FS_t1_FLsig"  : np.linspace(-5, 20, 50+1),
     "FS_t1_FLX"    : np.linspace(-0.01, 0.01, 20+1),
