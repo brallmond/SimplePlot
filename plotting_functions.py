@@ -178,16 +178,20 @@ def make_eta_phi_plot(process_dictionary, process_name, final_state_mode, jet_mo
                              "CleanJetGT30_eta_1", "CleanJetGT30_phi_1", add_to_title=label_suffix)
 
 
-def plot_raw(histogram_axis, xbins, input_vals,
+def plot_raw(histogram_axis, xbins, input_vals, show_errors=True,
              color="black", label="Data", alpha=1, marker="o", fillstyle="full"):
   ''' Plotting function for raw values, usually made by pre-processing data/background '''
   stat_error = np.sqrt(input_vals)/np.sum(input_vals)
+  if (not show_errors): stat_error = np.zeros(np.shape(input_vals))
   print("Plotted error bars are only correct for data or single MC processes with no SFs")
   midpoints   = get_midpoints(xbins)
   bin_width  = abs(xbins[0:-1]-xbins[1:])/2 # only works for uniform bin widths
-  histogram_axis.errorbar(midpoints, input_vals, xerr=bin_width, yerr=stat_error,
+  line2D, _, _ = histogram_axis.errorbar(midpoints, input_vals, xerr=bin_width, yerr=stat_error,
                           color=color, marker=marker, fillstyle=fillstyle, label=label, alpha=alpha,
                           linestyle='none', markersize=5)
+  #histogram_axis.set_ylim(0, histogram_axis.get_ylim()[-1])
+  xdata, ydata = line2D.get_data()
+  return xdata, ydata
 
 def blind_region(input_array, allbins, blind_range):
   """ replace anything in the blind range with zeros """
@@ -806,6 +810,7 @@ final_state_vars = {
                 "FS_trig_idx", "FS_pair_DM",
                 "FS_mt_t1t2", "FS_mt_t1_MET", "FS_mt_t2_MET", "FS_mt_TOT", 
                 "FS_dphi_t1t2", "FS_deta_t1t2", "FS_dpt_t1t2",
+                "FS_dphi_t1MET", "FS_dphi_t2MET",
                 #"FS_t1_FLsig", "FS_t1_FLX", "FS_t1_FLY", "FS_t1_FLZ", "FS_t1_FLmag",
                 #"FS_t1_ipLsig", "FS_t1_ip3d", "FS_t1_tk_lambda", "FS_t1_tk_qoverp",
                 #"FS_t2_FLsig", "FS_t2_FLX", "FS_t2_FLY", "FS_t2_FLZ", "FS_t2_FLmag",
