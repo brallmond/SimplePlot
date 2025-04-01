@@ -45,6 +45,7 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
   FS_trig_idx, pair_decayMode = [], []
   FS_mt_t1t2, FS_mt_t1_MET, FS_mt_t2_MET, FS_mt_TOT = [], [], [], []
   FS_dphi_t1t2, FS_deta_t1t2, FS_dpt_t1t2 = [], [], []
+  FS_dphi_t1MET, FS_dphi_t2MET = [], []
   FS_t1_FLsig, FS_t1_FLX, FS_t1_FLY, FS_t1_FLZ, FS_t1_FLmag = [], [], [], [], []
   FS_t1_ipLsig, FS_t1_ip3d, FS_t1_tk_lambda, FS_t1_tk_qoverp = [], [], [], []
   FS_t2_FLsig, FS_t2_FLX, FS_t2_FLY, FS_t2_FLZ, FS_t2_FLmag = [], [], [], [], []
@@ -142,9 +143,13 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
     mt_TOT    = np.sqrt(mt_t1t2 + mt_t1_MET + mt_t2_MET)
 
     try: # catch versioning differnece between numpy 1 and 2
-      dphi_t1t2 = np.acos(np.cos(t1_phi - t2_phi))
+      dphi_t1t2  = np.acos(np.cos(t1_phi - t2_phi))
+      dphi_t1MET = np.acos(np.cos(t1_phi - MET_phi))
+      dphi_t2MET = np.acos(np.cos(t2_phi - MET_phi))
     except AttributeError: 
-      dphi_t1t2 = np.arccos(np.cos(t1_phi - t2_phi))
+      dphi_t1t2  = np.arccos(np.cos(t1_phi - t2_phi))
+      dphi_t1MET = np.arccos(np.cos(t1_phi - MET_phi))
+      dphi_t2MET = np.arccos(np.cos(t2_phi - MET_phi))
     deta_t1t2 = abs(t1_eta - t2_eta)
     dpt_t1t2  = t1_pt - t2_pt
 
@@ -186,6 +191,8 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
       FS_dphi_t1t2.append(dphi_t1t2)
       FS_deta_t1t2.append(deta_t1t2)
       FS_dpt_t1t2.append(dpt_t1t2) 
+      FS_dphi_t1MET.append(dphi_t1MET)
+      FS_dphi_t2MET.append(dphi_t2MET)
 
       #FS_t1_FLsig.append(t1_FLsig) 
       #FS_t1_FLX.append(t1_FLX) 
@@ -245,6 +252,8 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
   event_dictionary["FS_dphi_t1t2"]       = np.array(FS_dphi_t1t2)
   event_dictionary["FS_deta_t1t2"]       = np.array(FS_deta_t1t2)
   event_dictionary["FS_dpt_t1t2"]        = np.array(FS_dpt_t1t2)
+  event_dictionary["FS_dphi_t1MET"]      = np.array(FS_dphi_t1MET)
+  event_dictionary["FS_dphi_t2MET"]      = np.array(FS_dphi_t2MET)
   #event_dictionary["FS_t1_FLsig"]        = np.array(FS_t1_FLsig)
   #event_dictionary["FS_t1_FLX"]          = np.array(FS_t1_FLX)
   #event_dictionary["FS_t1_FLY"]          = np.array(FS_t1_FLY)
