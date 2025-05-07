@@ -231,6 +231,7 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
   event_dictionary["FS_t1_DeepTauVSmu"]  = np.array(FS_t1_DeepTau_v_mu)
   event_dictionary["FS_t1_DeepTauVSe"]   = np.array(FS_t1_DeepTau_v_ele)
   event_dictionary["FS_t2_pt"]  = np.array(FS_t2_pt)
+  event_dictionary["FS_tau_pt"]  = np.array(FS_t2_pt) # copy for fitting purposes
   event_dictionary["FS_t2_eta"] = np.array(FS_t2_eta)
   event_dictionary["FS_t2_phi"] = np.array(FS_t2_phi)
   event_dictionary["FS_t2_dxy"] = np.array(FS_t2_dxy)

@@ -368,6 +368,7 @@ binning_dictionary = {
 
   "common" : {
     # calculated on the fly
+    "FS_tau_pt"  : np.linspace(0, 180, 36+1), # redundant key to be used by fitter in ditau
     "FS_trig_idx" : np.linspace(0, 4, 4+1),
     "FS_mt"         : np.linspace(0, 200, 40+1),
     "FS_mt_branch"  : np.linspace(0, 200, 40+1),
