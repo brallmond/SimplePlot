@@ -278,9 +278,13 @@ def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity, presentati
     if (("WpH" in signal) or ("WmH" in signal) or ("ZH" in signal)):
       signal_dictionary["VH"]["BinnedEvents"] += signal_dictionary[signal]["BinnedEvents"]
     else: pass
-  del signal_dictionary["WpH_TauTau"]
-  del signal_dictionary["WmH_TauTau"]
-  del signal_dictionary["ZH_TauTau"]
+  try:
+    del signal_dictionary["WpH_TauTau"]
+    del signal_dictionary["WmH_TauTau"]
+    del signal_dictionary["ZH_TauTau"]
+  except KeyError:
+    print("Did not find VH_TauTau samples, assuming you are in testing mode.")
+    pass
   # end VH combining, now normal plotting
   for signal in signal_dictionary:
     if custom == True:
@@ -802,6 +806,7 @@ final_state_vars = {
     "none"   : [],
     "ditau"  : ["FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_dxy", "FS_t1_dz", "FS_t1_chg", "FS_t1_DM", "FS_t1_mass",
                 "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_dxy", "FS_t2_dz", "FS_t2_chg", "FS_t2_DM", "FS_t2_mass",
+                "FS_tau_pt", # copy of FS_t2_pt for fitting purposes
                 #"FS_t1_flav", "FS_t2_flav", 
                 "FS_t1_rawPNetVSjet", "FS_t1_rawPNetVSmu", "FS_t1_rawPNetVSe",
                 "FS_t2_rawPNetVSjet", "FS_t2_rawPNetVSmu", "FS_t2_rawPNetVSe",

@@ -122,6 +122,9 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
   for var in vars_to_plot:
     if ("Data" in process) and (("flav" in var) or ("Generator" in var)): continue
     combined_processes[process]["PlotEvents"][var] = cut_events[var]
+    if ("_TauTau" in process) and ("Fakes" not in process): # keep some gen vars just for signal
+      for extra_var in ["Gen_H_pT", "Gen_pT_j1", "Gen_pT_l1"]:
+        combined_processes[process]["PlotEvents"][extra_var] = cut_events[extra_var]
 
   for cut in ["pass_cuts", "event_flavor",
               "pass_0j_cuts", "pass_1j_cuts", "pass_2j_cuts", "pass_3j_cuts",

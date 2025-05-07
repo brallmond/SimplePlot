@@ -35,23 +35,7 @@ from binning_dictionary    import label_dictionary
 from calculate_functions   import calculate_signal_background_ratio, yields_for_CSV
 from utility_functions     import time_print, make_directory, print_setup_info, log_print, print_processing_info
 
-from make_fitter_shapes    import save_fitter_shapes
-
-def make_masks_per_bin(input_dictionary, var, binning):
-  passing_var_bins_dict = {}
-  for process in input_dictionary.keys():
-    passing_var_bins = []
-    input_array = input_dictionary[process]["PlotEvents"][var]
-    for i in range(len(binning)):
-      if (i != len(binning) - 1):
-        premask1 = input_array >= binning[i]
-        premask2 = input_array < binning[i+1]
-        mask = np.logical_and(premask1, premask2)
-      else:
-        mask = input_array >= binning[i]
-      passing_var_bins.append(mask)
-    passing_var_bins_dict[process] = passing_var_bins
-  return passing_var_bins_dict # dictionary of list of masks
+from make_fitter_shapes    import save_fitter_shapes, make_masks_per_bin
 
 
 if __name__ == "__main__":
@@ -196,6 +180,9 @@ if __name__ == "__main__":
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionaryFakes = {}
   for process in file_map: 
+
+    branches     = set_branches(final_state_mode, era, DeepTau_version, process, temp_version=temp_version)
+
     if (process in reject_datasets): continue
     if ("WJ" in process) and (("WJ" in semilep_mode) or ("Full" in semilep_mode)): continue
 
@@ -283,13 +270,18 @@ if __name__ == "__main__":
     h_signals            = get_binned_signals(final_state_mode, testing, signal_dictionaryFakes, var, xbins, lumi) 
 
     # FF background = h_data(already mult. by FF) - h_summed_backgrounds(ditto) - h_signals(ditto)
-    jetFakes_background = h_data["Data"]["BinnedEvents"] - \
-                          h_summed_backgrounds["Bkgd"]["BinnedEvents"] - \
-                          (h_signals["ggH_TauTauFakes"]["BinnedEvents"]/100) - \
-                          (h_signals["VBF_TauTauFakes"]["BinnedEvents"]/100) - \
-                          (h_signals["WmH_TauTauFakes"]["BinnedEvents"]/100) - \
-                          (h_signals["WpH_TauTauFakes"]["BinnedEvents"]/100) - \
-                          (h_signals["ZH_TauTauFakes"]["BinnedEvents"]/100)
+    if testing:
+      jetFakes_background = h_data["Data"]["BinnedEvents"] - \
+                            h_summed_backgrounds["Bkgd"]["BinnedEvents"] - \
+                            (h_signals["VBF_TauTauFakes"]["BinnedEvents"]/100)
+    else:
+      jetFakes_background = h_data["Data"]["BinnedEvents"] - \
+                            h_summed_backgrounds["Bkgd"]["BinnedEvents"] - \
+                            (h_signals["ggH_TauTauFakes"]["BinnedEvents"]/100) - \
+                            (h_signals["VBF_TauTauFakes"]["BinnedEvents"]/100) - \
+                            (h_signals["WmH_TauTauFakes"]["BinnedEvents"]/100) - \
+                            (h_signals["WpH_TauTauFakes"]["BinnedEvents"]/100) - \
+                            (h_signals["ZH_TauTauFakes"]["BinnedEvents"]/100)
 
     binned_JetFakes_var_dictionary[var] = {}
     binned_JetFakes_var_dictionary[var]["BinnedEvents"] = jetFakes_background
@@ -333,6 +325,7 @@ if __name__ == "__main__":
     #rolled_vars = ["FastMTT_mass"]
     #rolled_vars = ["FS_t1_mass", "FS_t2_mass"]
     #rolled_vars = ["FS_tau_mass"]
+    #rolled_vars = ["FS_t1_eta"]
     rolled_vars  = ["HTT_m_vis"]
     unrolled_vars = {
       "HTT_pT_l1l2" : [0, 25, 50, 100],
