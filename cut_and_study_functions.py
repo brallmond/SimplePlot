@@ -101,6 +101,21 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
   event_dictionary["event_flavor"]  = np.array(event_flavor)
   return event_dictionary
 
+def make_temp_jet_cut(event_dictionary, jet_mode):
+  nEvents_precut = len(event_dictionary["Lepton_pt"])
+  unpack_jetVars = ["nTightCleanJet", "TightCleanJet_pt", "TightCleanJet_cjetIdx"]
+  unpack_jetVars = (event_dictionary.get(key) for key in unpack_jetVars)
+  to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_jetVars] # "*" unpacks a tuple
+  nCleanJetGT30 = []
+  for i, nJet, jet_pt, jet_idx in zip(*to_check):
+    nCleanJetGT30.append(nJet)
+
+  event_dictionary["nCleanJetGT30"]   = np.array(nCleanJetGT30)
+
+  if jet_mode == "Inclusive":
+    pass
+
+  return event_dictionary
 
 def make_jet_cut(event_dictionary, jet_mode):
   nEvents_precut = len(event_dictionary["Lepton_pt"])
@@ -117,9 +132,6 @@ def make_jet_cut(event_dictionary, jet_mode):
   mjj_array, detajj_array = [], []
   j1_idxs_array, j2_idxs_array, dijet_idxs_array_calc, dijet_idxs_array_HTT = [], [], [], []
   from ROOT import TLorentzVector 
-  # TODO : this is the only place ROOT is used, removing it would speed things up
-  # replace with python vector library
-  #for i, nJet, jet_pt, jet_eta, jet_phi, jet_mass, HTT_j1idx, HTT_j2idx in zip(*to_check):
   for i, nJet, jet_pt, jet_eta, jet_phi, jet_mass in zip(*to_check):
     passingJets = 0
     passingJetsPt, passingJetsEta, passingJetsPhi, passingJetsMass = [], [], [], []

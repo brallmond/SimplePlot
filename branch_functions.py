@@ -6,6 +6,7 @@ def set_branches(final_state_mode, era, DeepTau_version, process="None", temp_ve
     "FFweight", "FFweight_QCD", "FFweight_WJ", "FFweight_FractionQCD",
     "FSLeptons", "Lepton_pt", "Lepton_eta", "Lepton_phi", "Lepton_iso",
     "Tau_genPartFlav", "Tau_decayMode",
+    #"nTightCleanJet", "TightCleanJet_pt", "TightCleanJet_cjetIdx",
     "nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass",
     "HTT_m_vis", "HTT_dR", "HTT_pT_l1l2", 
     "FastMTT_mT", "FastMTT_mass",
