@@ -78,19 +78,12 @@ def update_data_filemap(luminosity_key, file_map):
     file_map["DataEMu"]      = "Data/MuonEG_Run2023*"
   return file_map 
 
-
 testing_file_map = {
-  "DYJetsToLL_M10to50NLO" : "DY/DYJetsToLL_M-10to50_NLO*",
-  "DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO*",
-  "DYJetsToLL_M-50_1JNLO" : "DY/DY1JetsToLL_M-50_NLO*",
-  "DYJetsToLL_M-50_2JNLO" : "DY/DY2JetsToLL_M-50_NLO*",
+  "DYJetsToLL_M-50_0JNLO" : "DY/DY0JetsToLL_M-50_NLO_HTauTau_*_Hlep",
 
   "WZTo3LNu"  : "VV/WZTo3LNu*",
-  "WZTo2L2Q"  : "VV/WZTo2L2Q*",
-  "WZToLNu2Q" : "VV/WZToLNu2Q*",
 
-  "VBF_TauTau" : "Signal/VBF_TauTau_Filtered*",
-  "ggH_TauTau" : "Signal/ggH_TauTau_Filtered*",
+  "VBF_TauTau"            : "Signal/VBF_TauTau_Filtered_HTauTau_*_Hlep_part1",
 }
 
 
