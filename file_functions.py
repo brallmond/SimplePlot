@@ -73,7 +73,7 @@ def sort_combined_processes(combined_processes_dictionary, fakes=False):
     newProcess = process + "Fakes" if fakes==True else process
     if "Data" in newProcess:
       data_dictionary[newProcess]       = combined_processes_dictionary[process]
-    elif "_TauTau" in newProcess: #puts HWW in backgrounds
+    elif ("_TauTau" in newProcess): #keeps signal only
       signal_dictionary[newProcess]     = combined_processes_dictionary[process]
     else:
       background_dictionary[newProcess] = combined_processes_dictionary[process]
@@ -123,7 +123,7 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
     if ("Data" in process) and (("flav" in var) or ("Generator" in var)): continue
     combined_processes[process]["PlotEvents"][var] = cut_events[var]
     if ("_TauTau" in process) and ("Fakes" not in process): # keep some gen vars just for signal
-      for extra_var in ["Gen_H_pT", "Gen_pT_j1", "Gen_pT_l1"]:
+      for extra_var in ["Gen_H_pT", "Gen_pT_j1", "Gen_pT_l1", "Gen_nCleanJet"]:
         combined_processes[process]["PlotEvents"][extra_var] = cut_events[extra_var]
 
   for cut in ["pass_cuts", "event_flavor",
