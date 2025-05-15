@@ -174,16 +174,16 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
 
   # adding low, mid, high categories split by bins of nTightJet, HpT, and j1pT, both Reco and Gen
   for tauName, tauCategory in zip(namesTauPts, tauPts):
-    # nJet
-    for jetName, jetCategory in zip(namesJets, nJets):
-      #categories["_".join((tauName, jetName))] = " and ".join((tauCategory, jetCategory))
-      categories["_".join((tauName, jetName))] = "*".join((tauCategory, jetCategory))
+    # nJet # toggle
+    #for jetName, jetCategory in zip(namesJets, nJets):
+    #  #categories["_".join((tauName, jetName))] = " and ".join((tauCategory, jetCategory))
+    #  categories["_".join((tauName, jetName))] = "*".join((tauCategory, jetCategory))
     #for jetNameGen, jetCategoryGen in zip(namesGenJets, nGenJets):
     #  signal_categories["_".join((tauName, jetNameGen))] = " and ".join((tauCategory, jetCategoryGen))
     # HpT
-    #for HpTName, HpTCategory in zip(namesHpTs, HpTs):
+    for HpTName, HpTCategory in zip(namesHpTs, HpTs):
       #categories["_".join((tauName, HpTName))] = " and ".join((tauCategory, HpTCategory))
-    #  categories["_".join((tauName, HpTName))] = "*".join((tauCategory, HpTCategory))
+      categories["_".join((tauName, HpTName))] = "*".join((tauCategory, HpTCategory))
     #for GenHpTName, GenHpTCategory in zip(namesGenHpTs, GenHpTs):
     #  signal_categories["_".join((tauName, GenHpTName))] = " and ".join((tauCategory, GenHpTCategory))
     # leading jet pT
@@ -218,11 +218,11 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
       # "Gen_H_pT",      [0, 45, 80, 120, 200, 350, 450], namesGenHpTs
       # "Gen_nCleanjet", [0, 1, 2, 3, 4],                 namesGenJets
       
-      #unrolled_bins = [0, 45, 80, 120, 200, 350, 450] # H_pT
-      unrolled_bins = [0, 1, 2, 3, 4] # nJet
+      unrolled_bins = [0, 45, 80, 120, 200, 350, 450] # H_pT
+      #unrolled_bins = [0, 1, 2, 3, 4] # nJet # toggle
 
-      #unrolled_bins_signal = make_masks_per_bin(signal_dictionary, "Gen_H_pT", unrolled_bins)
-      unrolled_bins_signal = make_masks_per_bin(signal_dictionary, "Gen_nCleanJet", unrolled_bins)
+      unrolled_bins_signal = make_masks_per_bin(signal_dictionary, "Gen_H_pT", unrolled_bins)
+      #unrolled_bins_signal = make_masks_per_bin(signal_dictionary, "Gen_nCleanJet", unrolled_bins) # toggle
 
       h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
       h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi, userMC=MC_families)
@@ -243,8 +243,8 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
               del(h_signals_unrolled[signal])
  
           for process in h_signals_unrolled.keys():
-            #updated_name = process + "_" + namesGenHpTs[ith_bin]
-            updated_name = process + "_" + namesGenJets[ith_bin]
+            updated_name = process + "_" + namesGenHpTs[ith_bin]
+            #updated_name = process + "_" + namesGenJets[ith_bin] # toggle
             h_signals[updated_name] = h_signals_unrolled[process]
       else:
         h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi)
