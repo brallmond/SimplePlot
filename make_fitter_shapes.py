@@ -95,7 +95,7 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   fourOrMoreJet = "nCleanJetGT30>=4"
   #fourOrMoreJet = "nTightCleanJet>=4"
   nJets = [zeroJet, oneJet, twoJet, threeJet, fourOrMoreJet]
-  namesJets = ["0j", "1j", "2j", "3j", "GT4j"]
+  namesJets = ["nJets_0j", "nJets_1j", "nJets_2j", "nJets_3j", "nJets_GT4j"]
 
   # should be tight instead!
   zeroGenJet, oneGenJet, twoGenJet, threeGenJet = "Gen_nCleanJet==0", "Gen_nCleanJet==1", "Gen_nCleanJet==2", "Gen_nCleanJet==3"
@@ -103,7 +103,7 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   fourOrMoreGenJet = "Gen_nCleanJet>=4"
   #fourOrMoreJet = "nTightCleanJet>=4"
   nGenJets = [zeroJet, oneJet, twoJet, threeJet, fourOrMoreJet]
-  namesGenJets = ["Gen_0j", "Gen_1j", "Gen_2j", "Gen_3j", "Gen_GT4j"]
+  namesGenJets = ["nGenJet_0j", "nGenJet_1j", "nGenJet_2j", "nGenJet_3j", "nGenJet_GT4j"]
 
   # HpT
   HpT_0_45, HpT_45_80      = "(HTT_H_pt > 0) and (HTT_H_pt <= 45)", "(HTT_H_pt > 45) and (HTT_H_pt <= 80)"
@@ -175,14 +175,15 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   # adding low, mid, high categories split by bins of nTightJet, HpT, and j1pT, both Reco and Gen
   for tauName, tauCategory in zip(namesTauPts, tauPts):
     # nJet
-    #for jetName, jetCategory in zip(namesJets, nJets):
-    #  categories["_".join((tauName, jetName))] = " and ".join((tauCategory, jetCategory))
+    for jetName, jetCategory in zip(namesJets, nJets):
+      #categories["_".join((tauName, jetName))] = " and ".join((tauCategory, jetCategory))
+      categories["_".join((tauName, jetName))] = "*".join((tauCategory, jetCategory))
     #for jetNameGen, jetCategoryGen in zip(namesGenJets, nGenJets):
     #  signal_categories["_".join((tauName, jetNameGen))] = " and ".join((tauCategory, jetCategoryGen))
     # HpT
-    for HpTName, HpTCategory in zip(namesHpTs, HpTs):
+    #for HpTName, HpTCategory in zip(namesHpTs, HpTs):
       #categories["_".join((tauName, HpTName))] = " and ".join((tauCategory, HpTCategory))
-      categories["_".join((tauName, HpTName))] = "*".join((tauCategory, HpTCategory))
+    #  categories["_".join((tauName, HpTName))] = "*".join((tauCategory, HpTCategory))
     #for GenHpTName, GenHpTCategory in zip(namesGenHpTs, GenHpTs):
     #  signal_categories["_".join((tauName, GenHpTName))] = " and ".join((tauCategory, GenHpTCategory))
     # leading jet pT
@@ -200,10 +201,8 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   for category,cut in categories.items():
     dicts[category] = apply_single_cut(combined_process_dictionary, cut)
   rootfilename = f"HTauTau_{era}_{final_state_mode}_VARIABLE.inputs.root"
-  #dicts["Gen_HpT_0_45"] = apply_single_cut(single_process_dictionary, GenHpT_0_45) # wrong, it's not a category
 
   unrolling = True
-
   for var in vars_to_plot:
     if var not in disciminating_variables: continue
     xbins = make_bins(var, final_state_mode)
@@ -212,10 +211,19 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
       data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(dicts[category])
       data_dictionaryFakes, background_dictionaryFakes, signal_dictionaryFakes = sort_combined_processes(combined_process_dictionaryFakes, fakes=True)
 
+      # function with
+      # binning info, Gen Variable name, Gen Variable names array
+
       # split signal dictionary
-      unrolled_bins = [0, 45, 80, 120, 200, 350, 450]
-      #unrolled_bins_signal = make_masks_per_bin(signal_dictionary, "HTT_H_pt", unrolled_bins) # works
-      unrolled_bins_signal = make_masks_per_bin(signal_dictionary, "Gen_H_pT", unrolled_bins) # does not...
+      # "Gen_H_pT",      [0, 45, 80, 120, 200, 350, 450], namesGenHpTs
+      # "Gen_nCleanjet", [0, 1, 2, 3, 4],                 namesGenJets
+      
+      #unrolled_bins = [0, 45, 80, 120, 200, 350, 450] # H_pT
+      unrolled_bins = [0, 1, 2, 3, 4] # nJet
+
+      #unrolled_bins_signal = make_masks_per_bin(signal_dictionary, "Gen_H_pT", unrolled_bins)
+      unrolled_bins_signal = make_masks_per_bin(signal_dictionary, "Gen_nCleanJet", unrolled_bins)
+
       h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
       h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi, userMC=MC_families)
       if (unrolling):
@@ -223,8 +231,20 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
         for ith_bin in range(len(unrolled_bins)):
           h_signals_unrolled = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi,
                                                   mask=unrolled_bins_signal, mask_n=ith_bin)
+          # combine non ggH signals into xH
+          first_key = list(signal_dictionary)[0]
+          h_signals_unrolled["xH"] = {}
+          h_signals_unrolled["xH"]["BinnedEvents"] = np.zeros(len(h_signals_unrolled[first_key]["BinnedEvents"]))
+          h_signals_unrolled["xH"]["BinnedErrors"] = np.zeros(len(h_signals_unrolled[first_key]["BinnedErrors"]))
+          for signal in signal_dictionary:
+            if ("ggH" not in signal):
+              h_signals_unrolled["xH"]["BinnedEvents"] += h_signals_unrolled[signal]["BinnedEvents"]
+              h_signals_unrolled["xH"]["BinnedErrors"] += h_signals_unrolled[signal]["BinnedErrors"]
+              del(h_signals_unrolled[signal])
+ 
           for process in h_signals_unrolled.keys():
-            updated_name = process + "_" + namesGenHpTs[ith_bin]
+            #updated_name = process + "_" + namesGenHpTs[ith_bin]
+            updated_name = process + "_" + namesGenJets[ith_bin]
             h_signals[updated_name] = h_signals_unrolled[process]
       else:
         h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi)
@@ -239,12 +259,23 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
       h_JetFakes = {"JetFakes": {}}
       h_JetFakes["JetFakes"]["BinnedEvents"] = jetFakes_background
       h_JetFakes["JetFakes"]["BinnedErrors"] = np.nan_to_num(np.sqrt(jetFakes_background))
-      
+     
       root_histograms = {}
       h_sum = dict(h_data)
       h_sum.update(h_backgrounds)
       h_sum.update(h_JetFakes)
       h_sum.update(h_signals)
+
+      # add empty entries for any channel that isn't present
+      check_names = ["Data", "NLODYGen", "NLODYLep", "NLODYJet", "ST", "TT", "VV", "HWW", "JetFakes"] # no check for signal
+      for process in check_names:
+        try:
+          h_sum[process]["BinnedEvents"]
+        except KeyError:
+          h_sum[process] = {}
+          h_sum[process]["BinnedEvents"] = np.zeros(len(h_sum["Data"]["BinnedEvents"]))
+          h_sum[process]["BinnedErrors"] = np.zeros(len(h_sum["Data"]["BinnedErrors"]))
+
       for process in h_sum:
         if process=="Data": process_name = "data_obs"
         elif process=="NLODYGen": process_name = "ZTT"
