@@ -101,6 +101,7 @@ def append_flavor_indices(event_dictionary, final_state_mode, keep_fakes=False):
   event_dictionary["event_flavor"]  = np.array(event_flavor)
   return event_dictionary
 
+#def make_jet_cut(event_dictionary, jet_mode):
 def make_temp_jet_cut(event_dictionary, jet_mode):
   nEvents_precut = len(event_dictionary["Lepton_pt"])
   unpack_jetVars = ["nTightCleanJet", "TightCleanJet_pt", "TightCleanJet_cjetIdx"]
@@ -117,6 +118,7 @@ def make_temp_jet_cut(event_dictionary, jet_mode):
 
   return event_dictionary
 
+#def make_old_jet_cut(event_dictionary, jet_mode):
 def make_jet_cut(event_dictionary, jet_mode):
   nEvents_precut = len(event_dictionary["Lepton_pt"])
   unpack_jetVars = ["nCleanJet", "CleanJet_pt", "CleanJet_eta", "CleanJet_phi", "CleanJet_mass", 
@@ -136,7 +138,8 @@ def make_jet_cut(event_dictionary, jet_mode):
     passingJets = 0
     passingJetsPt, passingJetsEta, passingJetsPhi, passingJetsMass = [], [], [], []
     for ijet in range(0, nJet):
-      if (jet_pt[ijet] > 30.0) and (jet_eta[ijet] < 4.7):
+      if (jet_pt[ijet] > 0.0) and (abs(jet_eta[ijet]) < 4.7):
+      #if (jet_pt[ijet] > 30.0) and (abs(jet_eta[ijet]) < 4.7):
         passingJets += 1
         passingJetsPt.append(jet_pt[ijet])
         passingJetsEta.append(jet_eta[ijet])
