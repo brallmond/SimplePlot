@@ -113,10 +113,10 @@ class setup_handler:
       #elif ("D" in era) and ("C" not in era): active_dir += "/HLepV2p3_2023postBPIX/"
       else: print("Files missing for FS")
     elif (temp_version == "V6"):
-      if   ("CD" in era):                     active_dir += "/HLepV3p0_2022preEE/"
-      elif ("EFG" in era):                    active_dir += "/HLepV3p0_2022postEE/"
-      elif ("C" in era) and ("D" not in era): active_dir += "/HLepV3p0_2023preBPIX/"
-      elif ("D" in era) and ("C" not in era): active_dir += "/HLepV3p0_2023postBPIX/"
+      if   ("CD" in era):                     active_dir += "/HLepV3p1_2022preEE/"
+      elif ("EFG" in era):                    active_dir += "/HLepV3p1_2022postEE/"
+      elif ("C" in era) and ("D" not in era): active_dir += "/HLepV3p1_2023preBPIX/"
+      elif ("D" in era) and ("C" not in era): active_dir += "/HLepV3p1_2023postBPIX/"
       else: print("Files missing for FS")
     else:
       print("not set up for that")
