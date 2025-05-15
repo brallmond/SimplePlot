@@ -47,7 +47,8 @@ MC_dictionary = {
   "ST"       : {"label": "ST",      "color": color_dictionary["ST"]},
   "WJ"       : {"label": "W+Jets",  "color": color_dictionary["WJ"]},
   "VV"       : {"label": "Diboson", "color": color_dictionary["VV"]},
-  "VH"       : {"label": "VH",      "color": color_dictionary["VH"], "plot_scaling": 100},
+  "VH"       : {"label": "VH",      "color": color_dictionary["VH"],  "plot_scaling" : 1},
+  "xH"       : {"label": "xH",      "color": color_dictionary["VBF"], "plot_scaling" : 1},
   "HWW"      : {"label": "HWW",     "color": color_dictionary["HWW"]},
   "Other"    : {"label": "Other",   "color": color_dictionary["Other"]},
 
@@ -58,11 +59,12 @@ MC_dictionary = {
 
   # the filterd samples having efficieny factors that are already in their event weight branch
   # they are written out on the right here also
-  "ggH_TauTau" : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 100}, # 0.3869
-  "VBF_TauTau" : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 100}, # 0.4216 
-  "WpH_TauTau" : {"label": "WpH", "color": color_dictionary["VH"], "plot_scaling" : 100},  # 0.3582
-  "WmH_TauTau" : {"label": "WmH", "color": color_dictionary["VH"], "plot_scaling" : 100},  # 0.3869
-  "ZH_TauTau"  : {"label": "ZH",  "color": color_dictionary["VH"], "plot_scaling" : 100},  # 0.4030
+  "ggH_TauTau" : {"label": "ggH", "color": color_dictionary["ggH"], "plot_scaling" : 1}, # 0.3869
+  "VBF_TauTau" : {"label": "VBF", "color": color_dictionary["VBF"], "plot_scaling" : 1}, # 0.4216 
+  "WpH_TauTau" : {"label": "WpH", "color": color_dictionary["VH"],  "plot_scaling" : 1}, # 0.3582
+  "WmH_TauTau" : {"label": "WmH", "color": color_dictionary["VH"],  "plot_scaling" : 1}, # 0.3869
+  "ZH_TauTau"  : {"label": "ZH",  "color": color_dictionary["VH"],  "plot_scaling" : 1}, # 0.4030
+  "ttH_nonbb_TauTau"  : {"label": "ttH", "color": color_dictionary["HWW"], "plot_scaling" : 1},
 
   #### LO DY
   "DYInc"              : {"label": "DYIncLO", "color": color_dictionary["DY"], "plot_scaling" : DY_LOtoNLO_kfac},
@@ -160,7 +162,6 @@ MC_dictionary = {
   # WW (Higgs WW, an SM Higgs background to our analysis)
   "ggH_WW"             : {"label": "ggH_WW",  "color": color_dictionary["HWW"], "plot_scaling" : 1},
   "VBF_WW"             : {"label": "VBF_HWW", "color": color_dictionary["HWW"], "plot_scaling" : 1},
-  "ttH_nonbb_WW"       : {"label": "ttH_WW",  "color": color_dictionary["HWW"], "plot_scaling" : 1},
 
   # XSecMCweight is defined here for JetFakes process because it isn't set autmatically elsewhere
   "myQCD"              : {"label": "Jet Fakes", "color": color_dictionary["QCD"], "plot_scaling" : 1, "XSecMCweight" : 1},
