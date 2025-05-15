@@ -269,28 +269,47 @@ def plot_signal(histogram_axis, xbins, signal_dictionary, luminosity, presentati
   Similar to plot_MC, except signals are not stacked, and the 'stair' method
   of matplotlib DOES expect histogram data, so no adjustment to xbins is necessary.
   '''
-  # combine VH processes
+  # if presentation mode combine all non ggH processes
   first_key = list(signal_dictionary)[0]
-  signal_dictionary["VH"] = {}
-  signal_dictionary["VH"]["BinnedEvents"] = np.zeros(len(signal_dictionary[first_key]["BinnedEvents"]))
-  signal_dictionary["VH"]["BinnedErrors"] = np.zeros(len(signal_dictionary[first_key]["BinnedErrors"]))
-  for signal in signal_dictionary:
-    if (("WpH" in signal) or ("WmH" in signal) or ("ZH" in signal)):
-      signal_dictionary["VH"]["BinnedEvents"] += signal_dictionary[signal]["BinnedEvents"]
-    else: pass
-  try:
-    del signal_dictionary["WpH_TauTau"]
-    del signal_dictionary["WmH_TauTau"]
-    del signal_dictionary["ZH_TauTau"]
-  except KeyError:
-    print("Did not find VH_TauTau samples, assuming you are in testing mode.")
-    pass
-  # end VH combining, now normal plotting
+  if presentation_mode:
+    signal_dictionary["xH"] = {}
+    signal_dictionary["xH"]["BinnedEvents"] = np.zeros(len(signal_dictionary[first_key]["BinnedEvents"]))
+    signal_dictionary["xH"]["BinnedErrors"] = np.zeros(len(signal_dictionary[first_key]["BinnedErrors"]))
+    for signal in signal_dictionary:
+      if ("ggH" not in signal):
+        signal_dictionary["xH"]["BinnedEvents"] += signal_dictionary[signal]["BinnedEvents"]
+      else: pass
+    try:
+      del signal_dictionary["VBF_TauTau"]
+      del signal_dictionary["WpH_TauTau"]
+      del signal_dictionary["WmH_TauTau"]
+      del signal_dictionary["ZH_TauTau"]
+      del signal_dictionary["ttH_nonbb_TauTau"]
+    except KeyError:
+      print("Did not find some signal samples, assuming you are in testing mode.")
+      pass
+  else: # combine VH and ttH processes
+    signal_dictionary["VH"] = {}
+    signal_dictionary["VH"]["BinnedEvents"] = np.zeros(len(signal_dictionary[first_key]["BinnedEvents"]))
+    signal_dictionary["VH"]["BinnedErrors"] = np.zeros(len(signal_dictionary[first_key]["BinnedErrors"]))
+    for signal in signal_dictionary:
+      if (("WpH" in signal) or ("WmH" in signal) or ("ZH" in signal) or ("ttH" in signal)):
+        signal_dictionary["VH"]["BinnedEvents"] += signal_dictionary[signal]["BinnedEvents"]
+      else: pass
+    try:
+      del signal_dictionary["WpH_TauTau"]
+      del signal_dictionary["WmH_TauTau"]
+      del signal_dictionary["ZH_TauTau"]
+      del signal_dictionary["ttH_nonbb_TauTau"]
+    except KeyError:
+      print("Did not find VH_TauTau samples, assuming you are in testing mode.")
+      pass
+  # end combining, now normal plotting
   for signal in signal_dictionary:
     if custom == True:
       pass
     else:
-      # scaling has already been applied in this case, so we just get the color and label, turing scaling off
+      # scaling has already been applied by now, so we just get the color and label, turning scaling off
       color, label, _ = set_MC_process_info(signal, luminosity, scaling=False, signal=True)
     current_hist = signal_dictionary[signal]["BinnedEvents"]
     label += "" if presentation_mode else f" [{np.sum(current_hist):>.0f}]"
@@ -711,7 +730,7 @@ def get_binned_backgrounds(final_state_mode, testing, background_dictionary, var
         background_is_processed[MC_process] = True
       # allowing HWW to go into Other, if "HWW" is not a valid family name.
       elif ( (not background_is_processed[MC_process]) and family_name=="HWW" 
-            and (np.any([hww_tag in MC_process for hww_tag in ["ggH_WW", "VBF_WW", "ttH_nonbb_WW"]]))
+            and (np.any([hww_tag in MC_process for hww_tag in ["ggH_WW", "VBF_WW"]]))
             and (not presentation_mode) ): # special handling for HWW when not in presentation mode
         h_MC_by_family["HWW"]["BinnedEvents"] += h_MC_by_process[MC_process]["BinnedEvents"]
         h_MC_by_family["HWW"]["BinnedErrors"] += h_MC_by_process[MC_process]["BinnedErrors"]
