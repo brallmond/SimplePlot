@@ -175,8 +175,10 @@ def make_mutau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=False, t
         pass_bTag = False
         nbJet += 1
 
-    #if (True):
-    if (passKinems and passTauDTLep and subtau_req and jet_reqs):
+    if (True):
+    #if (passKinems and passTauDTLep and subtau_req and jet_reqs):
+    #if (passKinems and subtau_req and jet_reqs):
+    #if (passKinems):
 
     #if  (passTauPtAndEta and (pass25MuPt or passMuPtCrossTrigger) 
     #     and passTauDTLep and restrictTauDM and subtau_req and jet_reqs):
@@ -318,13 +320,13 @@ def make_mutau_region(event_dictionary, new_branch_name, FS_pair_sign, pass_mu_i
   unpack_mutau_vars = ["event", "Lepton_tauIdx", "Lepton_muIdx", "Lepton_iso", 
                        "l1_indices", "l2_indices", "HTT_pdgId",
                        "Lepton_pt", "Lepton_phi", "PuppiMET_pt", "PuppiMET_phi", 
-                       "CleanJet_btagWP", "HTT_mT_lmet"]
+                       "nCleanJet", "CleanJet_btagWP", "HTT_mT_lmet"]
   unpack_mutau_vars = add_DeepTau_branches(unpack_mutau_vars, DeepTau_version)
   unpack_mutau_vars = (event_dictionary.get(key) for key in unpack_mutau_vars)
   to_check = [range(len(event_dictionary["Lepton_pt"])), *unpack_mutau_vars]
   pass_cuts = []
   for i, event, tau_idx, mu_idx, lep_iso, l1_idx, l2_idx, signed_pdgId,\
-      lep_pt, lep_phi, MET_pt, MET_phi, btag, mt,\
+      lep_pt, lep_phi, MET_pt, MET_phi, nJet, btag, mt,\
       vJet, vMu, vEle in zip(*to_check):
 
     muFSLoc      = l1_idx
@@ -343,8 +345,9 @@ def make_mutau_region(event_dictionary, new_branch_name, FS_pair_sign, pass_mu_i
     passMT  = (mt < mt_value)
 
     passBTag = True
-    for value in btag:
-      if (value > 1): passBTag = False
+    if nJet > 0:
+      for value in btag:
+        if (value > 1): passBTag = False
 
     if ( (np.sign(signed_pdgId) == FS_pair_sign) and 
          (pass_mu_iso == pass_mu_iso_req) and (pass_DeepTau == pass_DeepTau_req) and 
