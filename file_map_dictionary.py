@@ -101,7 +101,7 @@ full_file_map = {
   "WpH_TauTau" : "Signal/WplusH_TauTau_Filtered*",
   "WmH_TauTau" : "Signal/WminusH_TauTau_Filtered*",
   "ZH_TauTau"  : "Signal/ZH_TauTau_Filtered*", 
-  "ttH_nonbb_TauTau" : "Signal/ttH_nonbb*",
+  "ttH_nonbb_TauTau" : "WW/ttH_nonbb*",
 
   # DY
   #"DYJetsToLL_M10to50"    : "DY/DYJetsToLL_M-10to50_LO_*",
