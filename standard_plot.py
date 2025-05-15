@@ -464,5 +464,6 @@ if __name__ == "__main__":
 
   print("Making fitter shapes!")
   save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi)
-
-
+  _, f_ax = plt.subplots()
+  f_ax.text(x=0.5, y=0.5, s="Finished!", fontsize=20, ha="center", va="center")
+  plt.show()
