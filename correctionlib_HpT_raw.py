@@ -37,10 +37,8 @@ postBPix_VBF_Inc   = [5.847, 2.684, 1.997, 1.717, 1.543, 1.474, 1.426, 1.375, 1.
 postBPix_VBF_0j    = [5.537, 2.533, 1.747, 1.391, 1.200, 1.241, 1.429, 1.455, 1.465, 1.276, 1.561, 1.000]
 postBPix_VBF_GTE1j = [6.262, 2.823, 2.123, 1.809, 1.574, 1.481, 1.426, 1.375, 1.360, 1.369, 1.347, 1.333]
 
-
+# example correction, without all of the nesting required by the multiple categories.
 simple_recoHpTCorrection = cs.Correction(
-#simple_recoHpTCorrection = cs.CorrectionSet(
-#    schema_version=2,
     name="recoHpTFactor",
     version=1,
     inputs=[
@@ -58,9 +56,9 @@ simple_recoHpTCorrection = cs.Correction(
         flow="clamp",
     ),
 )
-rich.print(simple_recoHpTCorrection)
+# end example, begin real deal below
 
-lesssimple_recoHpTCorrection = cs.Correction(
+recoHpTCorrection = cs.Correction(
     name="recoHpTFactor",
     version=1,
     inputs=[
@@ -426,14 +424,22 @@ lesssimple_recoHpTCorrection = cs.Correction(
     ), # closes "data", which is the largest container for the correciton data
 ) # closes correction object
 
-rich.print(lesssimple_recoHpTCorrection)
+rich.print(recoHpTCorrection)
 
-with open("mycorrections.json", "w") as fout:
-    fout.write(lesssimple_recoHpTCorrection.json(exclude_unset=True))
+cset = cs.CorrectionSet(
+    schema_version=2,
+    description="HpT Gen/Reco Corrections",
+    corrections=[
+        recoHpTCorrection,
+    ],
+)
+
+with open("HpT_Gen_Reco_corr.json", "w") as fout:
+    fout.write(cset.json(exclude_unset=True))
 
 import gzip
 
-with gzip.open("mycorrections.json.gz", "wt") as fout:
-    fout.write(lesssimple_recoHpTCorrection.json(exclude_unset=True))
+with gzip.open("HpT_Gen_Reco_corr.json.gz", "wt") as fout:
+    fout.write(cset.json(exclude_unset=True))
 
 
