@@ -50,10 +50,6 @@ def load_process_from_file(process, file_directory, file_map, log_file,
       branches = [branch for branch in branches if branch != missing_branch]
   if "WJets" not in process:
     branches = [branch for branch in branches if not branch.startswith("StitchWeight_WJets")]
-  #if (process not in ["ggH_TauTau", "VBF_TauTau", "WpH_TauTau", "WmH_TauTau", "ZH_TauTau"]):
-  #  branches_only_in_signal = [""
-  #  for missing_branch in branches_only_in_signal:
-  #    branches = [branch for branch in branches if branch != missing_branch]
   try:
     processed_events = uproot.concatenate([file_string], branches, cut=good_events, library="np")
   except FileNotFoundError:
@@ -118,7 +114,9 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
 
   #if "WJets" in process:
   #  combined_processes[process]["StitchWeight_WJets_NLO"] = cut_events["StitchWeight_WJets_NLO"]
-    
+  
+  if ("HTT_H_pt_corr" not in vars_to_plot): vars_to_plot.append("HTT_H_pt_corr") 
+
   for var in vars_to_plot:
     if ("Data" in process) and (("flav" in var) or ("Generator" in var)): continue
     combined_processes[process]["PlotEvents"][var] = cut_events[var]

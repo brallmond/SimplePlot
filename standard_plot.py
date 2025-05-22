@@ -7,6 +7,7 @@ import sys
 import matplotlib.pyplot as plt
 import gc
 import copy
+import correctionlib
 
 # explicitly import used functions from user files, grouped roughly by call order and relatedness
 # import statements for setup
@@ -37,6 +38,23 @@ from utility_functions     import time_print, make_directory, print_setup_info, 
 
 from make_fitter_shapes    import save_fitter_shapes, make_masks_per_bin
 
+def add_HpT_correction(process, cut_events):
+  # add H_pT correction to all samples
+  # for signal, use ggH or VBF as necessary. For others, average the correction.
+  recoHpT = cut_events["HTT_H_pt"]
+  nCleanJet = cut_events["nCleanJet"]
+  correctionJetMode = np.array([0 if nJet == 0 else 1 for nJet in nCleanJet])
+  if ("_TauTau" in process):
+    if ("ggH" in process):
+      val = cevalHpT["recoHpTFactor"].evaluate(recoHpT, correctionJetMode, correctionEra, "ggH")
+    else: # VBF or VH or ttH
+      val = cevalHpT["recoHpTFactor"].evaluate(recoHpT, correctionJetMode, correctionEra, "VBF")
+  else:
+    val1 = cevalHpT["recoHpTFactor"].evaluate(recoHpT, correctionJetMode, correctionEra, "ggH")
+    val2 = cevalHpT["recoHpTFactor"].evaluate(recoHpT, correctionJetMode, correctionEra, "VBF")
+    val = (val1+val2)/2
+  cut_events["HTT_H_pt_corr"] = recoHpT*val
+  return cut_events
 
 if __name__ == "__main__":
   '''
@@ -80,6 +98,17 @@ if __name__ == "__main__":
 
   # make and apply cuts to any loaded events, store in new dictionaries for plotting
   combined_process_dictionary = {}
+  # load corrections to apply
+  cevalHpT = correctionlib.CorrectionSet.from_file("HpT_Gen_Reco_corr.json")
+
+  eraConversionMap = {
+   "2022 CD"  : "2022preEE",
+   "2022 EFG" : "2022postEE",
+   "2023 C"   : "2023preBPix",
+   "2023 D"   : "2023postBPix",
+  }
+  correctionEra = eraConversionMap[era]
+
   for process in file_map: 
 
     # being reset each run, but they're literally strings so who cares
@@ -110,6 +139,8 @@ if __name__ == "__main__":
                                                 DeepTau_version, tau_pt_cut)
 
       if cut_events == None: continue
+
+      cut_events = add_HpT_correction(process, cut_events)
 
       if ("DY" in process) and (final_state_mode != "dimuon"):
         # def split_DY_by_gen, return combined_process_dictionary
@@ -246,6 +277,8 @@ if __name__ == "__main__":
       if (event_dictionary==None or len(event_dictionary["run"])==0): continue
       # then skip DY splitting stuff because we subtract MC from Data later where the MC is all combined anyways
 
+      event_dictionary = add_HpT_correction(process, event_dictionary)
+
       combined_process_dictionaryFakes = append_to_combined_processes(process, event_dictionary, vars_to_plot, 
                                                              combined_process_dictionaryFakes, one_file_at_a_time)
 
@@ -302,6 +335,7 @@ if __name__ == "__main__":
   # idea: give plot_MC an optional argument, which contains a histogram that gets put on the bottom of the stack
  
   vars_to_plot = [var for var in vars_to_plot if "flav" not in var]
+  vars_to_plot.append("HTT_H_pt_corr")
   CUSTOM_VARS = False
   if (presentation_mode == True): CUSTOM_VARS = False # always overwrite, you'll want all the plots in this mode
   if CUSTOM_VARS == True:
@@ -310,14 +344,14 @@ if __name__ == "__main__":
                     "FS_t1_pt", "FS_t1_eta", "FS_t1_phi", "FS_t1_DM", "FS_t1_mass",
                     "FS_t2_pt", "FS_t2_eta", "FS_t2_phi", "FS_t2_DM", "FS_t2_mass",
                     "FS_dphi_t1t2", "FS_deta_t1t2",
-                    "PuppiMET_pt", "HTT_H_pt",
+                    "PuppiMET_pt", "HTT_H_pt", "HTT_H_pt_corr",
                     "nCleanJetGT30"]
     if (final_state_mode == "mutau"):
       vars_to_plot = ["HTT_m_vis", 
                     "FS_tau_pt", "FS_tau_eta", "FS_tau_phi", "FS_tau_mass", "FS_tau_DM",
                     "FS_mu_pt", "FS_mu_eta", "FS_mu_phi", 
                     "FS_dphi_mutau", "FS_deta_mutau",
-                    "PuppiMET_pt", "HTT_H_pt",
+                    "PuppiMET_pt", "HTT_H_pt", "HTT_H_pt_corr",
                     "FS_mt", "nCleanJetGT30"]
   plots_unrolled = False
   #if (presentation_mode == True): plots_unrolled = True
@@ -374,7 +408,7 @@ if __name__ == "__main__":
           spruce_up_unrolled_plot(fig_unroll, stack_n_ax, ratio_n_ax, label_dictionary[rolled_var], title+" Unrolled", 
                                   final_state_mode, jet_mode, tau_pt_cut, set_x_log=False, set_y_log=False) # True 
           text = ""
-          if (unrolled_var == "HTT_H_pt"):
+          if (unrolled_var == "HTT_H_pt") or (unrolled_var == "HTT_H_pt_corr"):
             try:               text = f"{unrolled_bins[ith_bin]} ≤ H_pT < {unrolled_bins[ith_bin+1]}"
             except IndexError: text = f"H_pT > {unrolled_bins[ith_bin]}"
           elif (unrolled_var == "nCleanJetGT30"):

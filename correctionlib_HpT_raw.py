@@ -63,7 +63,8 @@ recoHpTCorrection = cs.Correction(
     version=1,
     inputs=[
             cs.Variable(name="Reco. HpT", type="real", description="Reco. Higgs Transverse Momentum"),
-            cs.Variable(name="nJet", type="string", description="number of jets: Inclusive (combined 0j, GTE1j), 0j, GTE1j"),
+            #cs.Variable(name="nJet", type="string", description="number of jets: Inclusive (combined 0j, GTE1j), 0j, GTE1j"),
+            cs.Variable(name="nJet", type="int", description="number of jets: 0, 1, -1 (-1 is inclusive mode)"),
             cs.Variable(name="era", type="string", description="Era: 2022preEE, 2022postEE, 2023preBPix, 2023postBPix"),
             cs.Variable(name="process", type="string", description="ggH, VBF (for VH and ttH use VBF)"),
            ],
@@ -85,7 +86,7 @@ recoHpTCorrection = cs.Correction(
                   input="nJet",
                   content=[
                     cs.CategoryItem(
-                      key="Inclusive",
+                      key=-1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -95,7 +96,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="0j",
+                      key=0,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -105,7 +106,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="GTE1j",
+                      key=1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -124,7 +125,7 @@ recoHpTCorrection = cs.Correction(
                   input="nJet",
                   content=[
                     cs.CategoryItem(
-                      key="Inclusive",
+                      key=-1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -134,7 +135,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="0j",
+                      key=0,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -144,7 +145,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="GTE1j",
+                      key=1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -172,7 +173,7 @@ recoHpTCorrection = cs.Correction(
                   input="nJet",
                   content=[
                     cs.CategoryItem(
-                      key="Inclusive",
+                      key=-1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -182,7 +183,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="0j",
+                      key=0,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -192,7 +193,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="GTE1j",
+                      key=1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -211,7 +212,7 @@ recoHpTCorrection = cs.Correction(
                   input="nJet",
                   content=[
                     cs.CategoryItem(
-                      key="Inclusive",
+                      key=-1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -221,7 +222,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="0j",
+                      key=0,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -231,7 +232,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="GTE1j",
+                      key=1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -259,7 +260,7 @@ recoHpTCorrection = cs.Correction(
                   input="nJet",
                   content=[
                     cs.CategoryItem(
-                      key="Inclusive",
+                      key=-1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -269,7 +270,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="0j",
+                      key=0,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -279,7 +280,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="GTE1j",
+                      key=1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -298,7 +299,7 @@ recoHpTCorrection = cs.Correction(
                   input="nJet",
                   content=[
                     cs.CategoryItem(
-                      key="Inclusive",
+                      key=-1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -308,7 +309,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="0j",
+                      key=0,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -318,7 +319,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="GTE1j",
+                      key=1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -346,7 +347,7 @@ recoHpTCorrection = cs.Correction(
                   input="nJet",
                   content=[
                     cs.CategoryItem(
-                      key="Inclusive",
+                      key=-1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -356,7 +357,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="0j",
+                      key=0,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -366,7 +367,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="GTE1j",
+                      key=1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -385,7 +386,7 @@ recoHpTCorrection = cs.Correction(
                   input="nJet",
                   content=[
                     cs.CategoryItem(
-                      key="Inclusive",
+                      key=-1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -395,7 +396,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="0j",
+                      key=0,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
@@ -405,7 +406,7 @@ recoHpTCorrection = cs.Correction(
                       )
                     ),
                     cs.CategoryItem(
-                      key="GTE1j",
+                      key=1,
                       value=cs.Binning(
                         nodetype="binning",
                         input="Reco. HpT",
