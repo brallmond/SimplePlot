@@ -144,7 +144,7 @@ def make_ditau_DRar_star_cut(event_dictionary, DeepTau_version):
 
 
 mutau_DeepTauVsJet_WP = 5
-mutau_mt_value = 60 # replace with 9999 to disable temporarily
+mutau_mt_value = 65 # replace with 9999 to disable temporarily # reverted from 60 on May 21st...
 ### begin mutau region cuts
 def make_mutau_SR_cut(event_dictionary, DeepTau_version, iso_region=True):
   name = "pass_SR_cuts" if iso_region == True else "pass_SR_aiso_cuts"
