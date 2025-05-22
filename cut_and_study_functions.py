@@ -133,6 +133,8 @@ def make_jet_cut(event_dictionary, jet_mode):
   CleanJetGT30_phi_1, CleanJetGT30_phi_2, CleanJetGT30_phi_3 = [], [], []
   mjj_array, detajj_array = [], []
   j1_idxs_array, j2_idxs_array, dijet_idxs_array_calc, dijet_idxs_array_HTT = [], [], [], []
+
+  CleanJet_pt_1 = [] # desperate addition for make_fitter_shapes...
   from ROOT import TLorentzVector 
   for i, nJet, jet_pt, jet_eta, jet_phi, jet_mass in zip(*to_check):
     passingJets = 0
@@ -146,6 +148,8 @@ def make_jet_cut(event_dictionary, jet_mode):
         passingJetsPhi.append(jet_phi[ijet])
         passingJetsMass.append(jet_mass[ijet])
     nCleanJetGT30.append(passingJets)
+    temp_ = -1 if nJet == 0 else passingJetsPt[0]
+    CleanJet_pt_1.append(temp_)
 
     if passingJets == 0: 
       pass_0j_cuts.append(i)
@@ -209,7 +213,9 @@ def make_jet_cut(event_dictionary, jet_mode):
         mjj_array.append(-1)
         detajj_array.append(-1)
 
-  event_dictionary["nCleanJetGT30"]   = np.array(nCleanJetGT30)
+
+  event_dictionary["nCleanJetGT30"] = np.array(nCleanJetGT30)
+  event_dictionary["CleanJet_pt_1"] = np.array(CleanJet_pt_1)
 
   if jet_mode == "pass":
     print("debug jet mode, only filling nCleanJetGT30")
@@ -495,6 +501,8 @@ def set_protected_branches(final_state_mode, jet_mode, DeepTau_version="none"):
       # should fromHighestMjj branches be protected? it seems not
       protected_branches += clean_jet_vars[jet_mode]
       protected_branches = [var for var in protected_branches if var != "nCleanJetGT30"] # unprotect one branch
+      protected_branches = [var for var in protected_branches if var != "nCleanJet"] # unprotect one branch
+      protected_branches = [var for var in protected_branches if var != "CleanJet_pt_1"] # unprotect one branch
 
     elif jet_mode == "0j": # cutting FS branches, protecting just one jet branch
       protected_branches = ["pass_0j_cuts"]

@@ -605,6 +605,12 @@ def get_binned_info(final_state, testing, process_name, process_variable, xbins,
   if (len(mask) != 0): 
     process_variable = process_variable[mask]
     weights = weights[mask]
+  #if ("CleanJet" in variable): # DEBUG
+  #  print(process_name)
+  #  print(variable)
+  #  print(len(process_variable), len(weights))
+  #  print(process_variable)
+  #  print(weights)
   underflow, overflow, underflow_error, overflow_error = calculate_underoverflow(process_variable, xbins, weights, variable)
   binned_values, _    = np.histogram(process_variable, xbins, weights=weights)
   binned_values[0]   += underflow
@@ -873,6 +879,7 @@ final_state_vars = {
 # need to make a jet cut function folder, where this would be more at home...
 clean_jet_vars = {
     "Inclusive" : ["nCleanJetGT30",
+      "nCleanJet", "CleanJet_pt_1"
       #"CleanJetGT30_pt_1", "CleanJetGT30_eta_1",
       #"CleanJetGT30_pt_2", "CleanJetGT30_eta_2",
       #"CleanJetGT30_pt_3", "CleanJetGT30_eta_3",

@@ -133,7 +133,9 @@ label_dictionary = {
   "PuppiMET_pt"     : r'PUPPI MET [GeV]',
   "PuppiMET_phi"    : r'PUPPI MET $\phi$',
   "nCleanJetGT30"   : r'Number of Jets',
+  "nCleanJet"   : r'Number of Jets from Branch',
   "CleanJetGT30_pt_1"  : r'Leading Jet $p_T$ [GeV]',
+  "CleanJet_pt_1"  : r'Leading Jet $p_T$ [GeV] from Branch',
   "CleanJetGT30_eta_1" : r'Leading Jet $\eta$',
   "CleanJetGT30_phi_1" : r'Leading Jet $\phi$',
   "CleanJetGT30_pt_2"  : r'Sub-leading Jet $p_T$ [GeV]',
@@ -378,6 +380,7 @@ binning_dictionary = {
     "FS_acoplan"    : np.linspace(0, 1, 10+1),
     "nCleanJetGT30" : np.linspace(0, 8, 8+1), # GT(E) = Greater Than (Equal to)
     "CleanJetGT30_pt_1"  : np.linspace(0, 300, 60+1),
+    "CleanJet_pt_1"  : np.linspace(-5, 300, 61+1),
     "CleanJetGT30_pt_2"  : np.linspace(0, 300, 60+1),
     "CleanJetGT30_pt_3"  : np.linspace(0, 300, 60+1),
     "CleanJetGT30_eta_1" : np.linspace(-5, 5, 50+1),
@@ -408,6 +411,7 @@ binning_dictionary = {
     "HTT_DiJet_j1index"                : np.linspace(0, 10, 10+1),
     "HTT_DiJet_j2index"                : np.linspace(0, 10, 10+1),
     "HTT_H_pt"                         : np.linspace(0, 500, 50+1),
+    "HTT_H_pt_corr"                    : np.linspace(0, 500, 50+1),
     "HTT_mT_l1l2met"                   : np.linspace(0, 300, 30+1),
     "HTT_dR"                : np.linspace(0, 6, 60+1),
     "HTT_m_vis"             : np.linspace(0, 300, 30+1), # same as KSU binning
