@@ -29,10 +29,8 @@ varLabel = varLabels[var]
 if var == "nJets": var = "nJet"
 
 directory = "/Users/ballmond/LocalDesktop/HiggsTauTau/SimplePlot/saved_shapes_HLepV3p1/"
-plotname = "_".join([era, FSshort[final_state], var])
-filename = directory+"HTauTau_"+plotname+"_mtt.inputs.root"
-rootfile = ROOT.TFile.Open(filename,"READ")
 
+#backgrounds = ["data_obs", "JetFakes", "ZTT", "ZL", "ZJ", "ST", "TT", "VV", "HWW"] # DEBUG
 backgrounds = ["JetFakes", "ZTT", "ZL", "ZJ", "ST", "TT", "VV", "HWW"]
 colors = [ROOT.kMagenta-10, ROOT.kOrange-4, ROOT.kAzure+5, ROOT.kGreen-6, ROOT.kBlue-8, 25, 26, ROOT.kAzure]
 
@@ -63,12 +61,12 @@ elif ("nJet" in var):
 
 subdirs = [tauPt+"_"+subdir for subdir in subdirs]
 
-#c = ROOT.TCanvas("c1", "", 1600, 800)
 c = ROOT.TCanvas("c1", "", 3200, 1600) # what is the point of a default constructor if the defaults suck?
 c.SetRightMargin(0.08);
 c.SetLeftMargin(0.25);
 c.SetBottomMargin(0.15);
 c.Divide(nPads,1,0,0)
+#c.Divide(nPads,1,0.02,0.02) # DEBUG, give space to show all y axes
 
 def fill_new_pad(mydir):
   hs = ROOT.THStack(f"hs","")
@@ -80,50 +78,141 @@ def fill_new_pad(mydir):
   sigHist.SetLineWidth(0)
   scale = 10
   for signal in signals:
-      if (signal == signals[0]): continue # skip first one
-      sigHist += mydir[signal]*scale
+    if (signal == signals[0]): continue # skip first one
+    sigHist += mydir[signal]*scale
   
   otherHist = mydir[backgrounds[-1]].Clone()
   otherHist.SetFillColor(ROOT.kCyan)
   otherHist.SetLineColor(0)
   otherHist.SetLineWidth(0)
+
   for process, color in zip(backgrounds, colors):
-      hist = mydir[process]
-      if (process == "JetFakes") or (process == "ZTT"):      
-        hist.SetFillColor(color)
-        hist.SetLineColor(0)
-        hist.SetLineWidth(0)
-        hs.Add(hist)
-      else:
-        otherHist += hist
+    hist = mydir[process]
+    #if (process == "JetFakes"): # DEBUG
+    #  print(hist.Integral())
+    if (process == "JetFakes") or (process == "ZTT"):      
+      hist.SetFillColor(color)
+      hist.SetLineColor(0)
+      hist.SetLineWidth(0)
+      hs.Add(hist)
+    elif (process == "HWW"): pass # counted in Clone above
+    else:
+      otherHist += hist
  
   otherHist.SetName("Other")
   hs.Add(otherHist)
   sigHist.SetName(f"Signal x{scale}")
   hs.Add(sigHist)
- 
-  #hs.Draw("HIST") # "HIST" option must be set for fill colors to be visible  - though this contradicts the THStack documentation
   return hs
 
-hslist = [] # interestingly, python's garbage collection will automatically remove hs's if you don't put them in a list
-            # outside of your loop. Try removing hslist and making the plot to see what I mean.
-i = 1
-for singledir in subdirs:
-  c.cd(i)
-  hs = fill_new_pad(rootfile[singledir])
-  if i == 1: hs.Draw("HIST")
-  else: hs.Draw("A HIST") # remove axis
-  hslist.append(hs)
-  label = ROOT.TLatex()
-  label.SetNDC(True)
-  label.SetTextSize(0.070)
-  label.DrawLatex(0.50, 0.85, f"{singledir.split(tauPt)[-1]}")
-  c.Draw("SAME")
-  i += 1
+borderLineList = [] # make border lines persistent... python's garbage collection is a nightmare with ROOT
+def style_plot(hslist):
+  i = 1
+  ymax = -1
+  for hs in hslist:
+    c.cd(i)
+    hs.SetMinimum(0.5)
+    if (i != 1): hs.SetMaximum(ymax)
+    # "HIST" option must be set for fill colors to be visible  - though this contradicts the THStack documentation
+    hs.Draw("HIST")
+  
+    if (i == 1): ymax = hs.GetMaximum() * 1.05
+    else: 
+      # remove intermediate y-axes and leave only left most x-axis
+      hs.GetYaxis().SetTickLength(0)
+      hs.GetXaxis().SetLabelOffset(999)
+    hs.GetYaxis().SetLabelSize(0.06)
+    hs.GetXaxis().SetLabelSize(0.06)
+  
+    label = ROOT.TLatex()
+    label.SetNDC(True)
+    label.SetTextSize(0.070)
+    label.DrawLatex(0.50, 0.85, f"{subdirs[i-1].split(tauPt)[-1]}")
+  
+    borderLine=ROOT.TLine(300,0,300,ymax)
+    borderLine.SetLineStyle(ROOT.kDashed)
+    borderLine.SetLineWidth(4)
+    borderLine.Draw("SAME")
+    borderLineList.append(borderLine)
+   
+    i += 1
+
+plotname = "_".join([era, FSshort[final_state], var])
+if (era == "2022") or (era == "2023") or (era == "All"):
+  if   (era == "2022"):
+    file1name = "_".join(["2022_preEE", FSshort[final_state], var])
+    file1 = directory+"HTauTau_"+file1name+"_mtt.inputs.root"
+    file2name = "_".join(["2022_postEE", FSshort[final_state], var])
+    file2 = directory+"HTauTau_"+file2name+"_mtt.inputs.root"
+    files = [file1, file2]
+  elif (era == "2023"):
+    file1name = "_".join(["2023_preBPix", FSshort[final_state], var])
+    file1 = directory+"HTauTau_"+file1name+"_mtt.inputs.root"
+    file2name = "_".join(["2023_postBPix", FSshort[final_state], var])
+    file2 = directory+"HTauTau_"+file2name+"_mtt.inputs.root"
+    files = [file1, file2]
+  elif (era == "All"):
+    all_eras = ["2022_preEE", "2022_postEE", "2023_preBPix", "2023_postBPix"]
+    files = []
+    for era_name in all_eras:
+      filename_ = "_".join([era_name, FSshort[final_state], var])
+      file_ = directory+"HTauTau_"+filename_+"_mtt.inputs.root"
+      files.append(file_)
+  else:
+    print("Wrong era key, exiting.")
+    sys.exit()
+  one_file = False
+else:
+  filename = directory+"HTauTau_"+plotname+"_mtt.inputs.root"
+  rootfile = ROOT.TFile.Open(filename,"READ")
+  one_file = True
+
+def fill_one_hslist(rootfile, subdirs):
+  hslist_ = []
+  # interestingly, python's garbage collection will automatically remove hs's if you don't put them in a list
+  # outside of your loop. Try removing hslist and making the plot to see what I mean.
+  for singledir in subdirs:
+    hs = fill_new_pad(rootfile[singledir])
+    hslist_.append(hs)
+  return hslist_
+
+hslist_of_lists = []
+if one_file:
+  hslist = fill_one_hslist(rootfile, subdirs)
+else: # more than one file, e.g., 2022, 2023, All
+  rootfiles = [ROOT.TFile.Open(file, "READ") for file in files] # this keeps all files open 
+  for rootfile in rootfiles:
+    hslist = fill_one_hslist(rootfile, subdirs)
+    hslist_of_lists.append(hslist)
+  # all hslists processed, now combine contents
+  # do this by cloning the first hslist (which has 7 hs's)
+  # and then adding the contents of remaining hslists to the clone
+  combined_hslist = []
+  # hs's technically have a "Merge" function which should do exactly what I want, but I can't get it to work
+  for i, hslist in enumerate(hslist_of_lists): # this goes over one era (and its associated pads)
+    for j, hs_ in enumerate(hslist): # this goes over pads
+      if i == 0: combined_hslist.append(hs_.Clone())
+      else: # i > 0
+        for k in range(hs_.GetNhists()):
+          combined_hslist[j].GetHists()[k] += hs_.GetHists()[k]
+
+if one_file: style_plot(hslist)
+else:        style_plot(combined_hslist)
+  
+# hs is a histogram stack. essentially a list of histograms with some additional handling
+# hs is what I plot to a pad
+# since we have nPads, i make a list of hs's called "hslist"
+# when i plot, i iterate over hslist, plotting one hs to one pad
+# above, if we are combining eras, i make a list of hslists called "hslist_of_lists"
+# there, we have all the hslists for each era
+# the idea is to combine the hslists, which we do at the level of the histograms in the hs
+# to do that, we make a brand new hslist with brand new hs's which combine the contents of previous hs's
+
+# more styling
 
 # only need one legend since colors and labels are the same among cuts
 legend = ROOT.TLegend(0.45,0.55,0.95,0.7);
-for entry in hs:
+for entry in hslist[0]:
   legend.AddEntry(entry, f"{entry.GetName()}","f")
 legend.SetTextSize(0.070)
 legend.Draw()
@@ -168,13 +257,13 @@ CMSlabel.SetNDC(True)
 CMSlabel.SetTextSize(0.040)
 CMSlabel.DrawLatex(0.02, 0.92, "#bf{CMS} #it{Preliminary}")
 
-# draw everything, and make a log version too (doesn't seem to work)
-c.Draw()
+# save canvas, and save a log version too 
 c.SaveAs(f"plots/{tauPt}_{plotname}.png")
 print(f"plotted plots/{tauPt}_{plotname}.png")
 
-#ROOT.gPad.SetLogy(True) # why isn't this working :(
-#c.Draw()
-#c.SaveAs(f"plots/{tauPt}_{plotname}_log.pdf")
-#print(f"plotted plots/{tauPt}_{plotname}_log.pdf")
+for i in range(1, len(subdirs)+1):
+  c.cd(i)
+  ROOT.gPad.SetLogy(True)
+c.SaveAs(f"plots/{tauPt}_{plotname}_log.png")
+print(f"plotted plots/{tauPt}_{plotname}_log.png")
 
