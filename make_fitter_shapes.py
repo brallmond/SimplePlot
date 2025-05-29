@@ -71,15 +71,14 @@ def apply_single_cut(input_dict, cut):
         output_dict[process][key] = np.array(output_dict[process][key])
   return output_dict
 
-def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi):
+def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi, fitter_mode):
   # PUT SETTINGS HERE: disciminating_variables and categories
   # Discriminating variables are required to have been plotted before
   MC_families = ["NLODYGen", "NLODYLep", "NLODYJet", "ST", "TT", "VV", "WJ", "HWW"]
   disciminating_variables = {"FastMTT_mass" : "mtt",
                              "HTT_m_vis"    : "mttvis"}
 
-  # TODO: should this be reco or gen tau pt?
-  lowTauPt  = "(FS_tau_pt >= 40.) and (FS_tau_pt < 50)"
+  lowTauPt  = "(FS_tau_pt >= 25.) and (FS_tau_pt < 50)" if final_state_mode == "ditau" else "(FS_tau_pt >= 30.) and (FS_tau_pt < 50)"
   midTauPt  = "(FS_tau_pt >= 50.) and (FS_tau_pt < 70)"
   highTauPt = "(FS_tau_pt >= 70.)"
   tauPts = [lowTauPt, midTauPt, highTauPt]
@@ -98,48 +97,41 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   }
   fiducialSelection = fiducialSelectionDictionary[final_state_mode]
 
-  # define reco and gen strings and names to build categories later
   # nJet
-  # should be tight instead!
   zeroJet, oneJet, twoJet, threeJet = "nCleanJetGT30==0", "nCleanJetGT30==1", "nCleanJetGT30==2", "nCleanJetGT30==3"
-  #zeroJet, oneJet, twoJet, threeJet = "nTightCleanJet==0", "nTightCleanJet==1", "nTightCleanJet==2", "nTightCleanJet==3"
   fourOrMoreJet = "nCleanJetGT30>=4"
+  #zeroJet, oneJet, twoJet, threeJet = "nTightCleanJet==0", "nTightCleanJet==1", "nTightCleanJet==2", "nTightCleanJet==3"
   #fourOrMoreJet = "nTightCleanJet>=4"
   nJets = [zeroJet, oneJet, twoJet, threeJet, fourOrMoreJet]
   namesJets = ["nJets_0j", "nJets_1j", "nJets_2j", "nJets_3j", "nJets_GT4j"]
 
-  # should be tight instead!
   zeroGenJet, oneGenJet, twoGenJet, threeGenJet = "Gen_nCleanJet==0", "Gen_nCleanJet==1", "Gen_nCleanJet==2", "Gen_nCleanJet==3"
-  #zeroGenJet, oneGenJet, twoGenJet, threeGenJet = "Gen_nCleanJet==0", "Gen_nCleanJet==1", "Gen_nCleanJet==2", "Gen_nCleanJet==3"
   fourOrMoreGenJet = "Gen_nCleanJet>=4"
+  #zeroGenJet, oneGenJet, twoGenJet, threeGenJet = "Gen_nCleanJet==0", "Gen_nCleanJet==1", "Gen_nCleanJet==2", "Gen_nCleanJet==3"
   #fourOrMoreJet = "nTightCleanJet>=4"
   nGenJets = [zeroJet, oneJet, twoJet, threeJet, fourOrMoreJet]
   namesGenJets = ["nGenJet_0j", "nGenJet_1j", "nGenJet_2j", "nGenJet_3j", "nGenJet_GTE4j"]
 
-  # HpT
-  HpT_0_45, HpT_45_80      = "(HTT_H_pt > 0) and (HTT_H_pt <= 45)", "(HTT_H_pt > 45) and (HTT_H_pt <= 80)"
-  HpT_80_120, HpT_120_200  = "(HTT_H_pt > 80) and (HTT_H_pt <= 120)", "(HTT_H_pt > 120) and (HTT_H_pt <= 200)"
-  HpT_200_350, HpT_350_450 = "(HTT_H_pt > 200) and (HTT_H_pt <= 350)", "(HTT_H_pt > 350) and (HTT_H_pt <= 450)"
-  HpT_450_inf              = "(HTT_H_pt > 450)"
+  # uncorrected HpT
+  #HpT_0_45, HpT_45_80      = "(HTT_H_pt > 0) and (HTT_H_pt <= 45)", "(HTT_H_pt > 45) and (HTT_H_pt <= 80)"
+  #HpT_80_120, HpT_120_200  = "(HTT_H_pt > 80) and (HTT_H_pt <= 120)", "(HTT_H_pt > 120) and (HTT_H_pt <= 200)"
+  #HpT_200_350, HpT_350_450 = "(HTT_H_pt > 200) and (HTT_H_pt <= 350)", "(HTT_H_pt > 350) and (HTT_H_pt <= 450)"
+  #HpT_450_inf              = "(HTT_H_pt > 450)"
 
+  # HpT
   HpT_0_45, HpT_45_80      = "(HTT_H_pt_corr > 0) and (HTT_H_pt_corr <= 45)", "(HTT_H_pt_corr > 45) and (HTT_H_pt_corr <= 80)"
   HpT_80_120, HpT_120_200  = "(HTT_H_pt_corr > 80) and (HTT_H_pt_corr <= 120)", "(HTT_H_pt_corr > 120) and (HTT_H_pt_corr <= 200)"
   HpT_200_350, HpT_350_450 = "(HTT_H_pt_corr > 200) and (HTT_H_pt_corr <= 350)", "(HTT_H_pt_corr > 350) and (HTT_H_pt_corr <= 450)"
   HpT_450_inf              = "(HTT_H_pt_corr > 450)"
-
-  #HpT_0_45, HpT_45_80      = "(HTT_H_pt > 0)*(HTT_H_pt <= 45)", "(HTT_H_pt > 45)*(HTT_H_pt <= 80)"
-  #HpT_80_120, HpT_120_200  = "(HTT_H_pt > 80)*(HTT_H_pt <= 120)", "(HTT_H_pt > 120)*(HTT_H_pt <= 200)"
-  #HpT_200_350, HpT_350_450 = "(HTT_H_pt > 200)*(HTT_H_pt <= 350)", "(HTT_H_pt > 350)*(HTT_H_pt <= 450)"
-  #HpT_450_inf              = "(HTT_H_pt > 450)"
   HpTs      = [HpT_0_45, HpT_45_80, HpT_80_120, HpT_120_200, HpT_200_350, HpT_350_450, HpT_450_inf]
   namesHpTs = ["HpT_0_45", "HpT_45_80", "HpT_80_120", "HpT_120_200", "HpT_200_350", "HpT_350_450", "HpT_450_inf"]
 
-  GenHpT_0_45, GenHpT_45_80      = "and (Gen_H_pT > 0) and (Gen_H_pT <= 45)", "and (Gen_H_pT > 45) and (Gen_H_pT <= 80)"
-  GenHpT_80_120, GenHpT_120_200  = "and (Gen_H_pT > 80) and (Gen_H_pT <= 120)", "and (Gen_H_pT > 120) and (Gen_H_pT <= 200)"
-  GenHpT_200_350, GenHpT_350_450 = "and (Gen_H_pT > 200) and (Gen_H_pT <= 350)", "and (Gen_H_pT > 350) and (Gen_H_pT <= 450)"
-  GenHpT_450_inf                  = "and (Gen_H_pT > 450)"
+  GenHpT_0_45, GenHpT_45_80      = "(Gen_H_pT > 0) and (Gen_H_pT <= 45)", "and (Gen_H_pT > 45) and (Gen_H_pT <= 80)"
+  GenHpT_80_120, GenHpT_120_200  = "(Gen_H_pT > 80) and (Gen_H_pT <= 120)", "and (Gen_H_pT > 120) and (Gen_H_pT <= 200)"
+  GenHpT_200_350, GenHpT_350_450 = "(Gen_H_pT > 200) and (Gen_H_pT <= 350)", "and (Gen_H_pT > 350) and (Gen_H_pT <= 450)"
+  GenHpT_450_inf                  = "(Gen_H_pT > 450)"
   GenHpTs      = [GenHpT_0_45, GenHpT_45_80, GenHpT_80_120, GenHpT_120_200, GenHpT_200_350, GenHpT_350_450, GenHpT_450_inf]
-  GenHpTs = [fiducialSelection + GenHpT for GenHpT in GenHpTs]
+  #GenHpTs = [fiducialSelection + " and " + GenHpT for GenHpT in GenHpTs]
   namesGenHpTs = ["GenHpT_0_45", "GenHpT_45_80", "GenHpT_80_120", "GenHpT_120_200", "GenHpT_200_350", "GenHpT_350_450", "GenHpT_450_inf"]
 
   # leading jet pT
@@ -151,7 +143,6 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   #jetPt_200_350 = "(nCleanJetGT30 >= 1) and (CleanJetGT30_pt[0] > 200) and (CleanJetGT30_pt[0] <= 350)"
   #jetPt_350_inf = "(nCleanJetGT30 >= 1) and (CleanJetGT30_pt[0] >= 350)"
 
-  # "nCleanJet", "CleanJet_pt"
   jetPt_0_30    = "(nCleanJet == 0) or (CleanJet_pt_1 <= 30)"
   jetPt_30_60   = "(nCleanJet >= 1) and (CleanJet_pt_1 > 30) and (CleanJet_pt_1 <= 60)"
   jetPt_60_120  = "(nCleanJet >= 1) and (CleanJet_pt_1 > 60) and (CleanJet_pt_1 <= 120)"
@@ -160,8 +151,6 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   jetPt_350_inf = "(nCleanJet >= 1) and (CleanJet_pt_1 >= 350)"
   jetPts        = [jetPt_0_30, jetPt_30_60, jetPt_60_120, jetPt_120_200, jetPt_200_350, jetPt_350_inf] 
   namesJetPts   = ["j1pT_0_30", "j1pT_30_60", "j1pT_60_120", "j1pT_120_200", "j1pT_200_350", "j1pT_350_inf"]
-
-
 
   GenJetPt_0_30    = "(Gen_nCleanJet == 0) or (Gen_pT_j1 <= 30)"
   GenJetPt_30_60   = "(Gen_nCleanJet >= 1) and (Gen_pT_j1 > 30) and (Gen_pT_j1 <= 60)"
@@ -184,7 +173,7 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
                }
 
   # adding low, mid, high categories split by bins of nTightJet, HpT, and j1pT, both Reco and Gen
-  binning_mode = "HpT" # HpT, nJet, j1pT
+  binning_mode = fitter_mode # HpT, nJet, j1pT
   for tauName, tauCategory in zip(namesTauPts, tauPts):
     if (binning_mode == "nJet"):
       for jetName, jetCategory in zip(namesJets, nJets):
@@ -201,13 +190,14 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   elif era=="2023 C":   era = "2023_preBPix"
   elif era=="2023 D":   era = "2023_postBPix"
   dicts = {}
+  dictsFakes = {}
   for category,cut in categories.items():
     dicts[category] = apply_single_cut(combined_process_dictionary, cut)
+    dictsFakes[category] = apply_single_cut(combined_process_dictionaryFakes, cut)
     # cut applied here, so category has event restrictions applied already
-  rootfilename = f"HTauTau_{era}_{final_state_mode}_VARIABLE.inputs.root"
+  rootfilename = f"HTauTau_{era}_{final_state_mode}_{binning_mode}_VARIABLE.inputs.root"
 
   unrolling = True
-  # binning_mode was set previously as HpT or nJet or j1pT
   unrolling_dictionary = {
     "HpT"  : ("Gen_H_pT",      [0, 45, 80, 120, 200, 350, 450], namesGenHpTs),
     "nJet" : ("Gen_nCleanJet", [0, 1, 2, 3, 4],                 namesGenJets),
@@ -223,7 +213,9 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
     for category in categories:
       #print(category) #DEBUG
       data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(dicts[category])
-      data_dictionaryFakes, background_dictionaryFakes, signal_dictionaryFakes = sort_combined_processes(combined_process_dictionaryFakes, fakes=True)
+
+      #data_dictionaryFakes, background_dictionaryFakes, signal_dictionaryFakes = sort_combined_processes(combined_process_dictionaryFakes, fakes=True)
+      data_dictionaryFakes, background_dictionaryFakes, signal_dictionaryFakes = sort_combined_processes(dictsFakes[category], fakes=True)
 
       unrolled_bins_signal = make_masks_per_bin(signal_dictionary, unrolled_bins_var, unrolled_bins)
 
@@ -250,7 +242,7 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
               h_signals_unrolled[process] = {}
               h_signals_unrolled[process]["BinnedEvents"] = np.zeros(len(h_signals_unrolled["ggH_TauTau"]["BinnedEvents"]))
               h_signals_unrolled[process]["BinnedErrors"] = np.zeros(len(h_signals_unrolled["ggH_TauTau"]["BinnedErrors"]))
-          #
+          # combine non-ggH signal processes
           for signal in signal_dictionary:
             if ("ggH" not in signal):
               h_signals_unrolled["xH_TauTau"]["BinnedEvents"] += h_signals_unrolled[signal]["BinnedEvents"]
