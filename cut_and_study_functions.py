@@ -298,37 +298,13 @@ def apply_cut(event_dictionary, cut_branch, protected_branches=[]):
     delete_sample = True
     return None
  
-  #if ("cut" in cut_branch):
-  #  nEvents_precut  = len(event_dictionary["Lepton_pt"])
-  #  nEvents_postcut = len(event_dictionary[cut_branch])
-  #  log_print(f"nEvents before and after selection cut = {nEvents_precut}, {nEvents_postcut}", open('outputfile.log', 'w'))
-
   if DEBUG: print(f"cut branch: {cut_branch}")
   if DEBUG: print(f"protected branches: {protected_branches}")
   for branch in event_dictionary:
     if delete_sample:
       pass
 
-    # TODO: fix this
-    # special handling, will need to be adjusted by hand for exactly 2j or 3j studies
-    # this only works for GTE2j, not Inclusive because the "apply_cut" method for jets is never called there
-    #if (("pass_GTE2j_cuts" in event_dictionary) and ("dijet" in branch.lower())):
-    if (("pass_GTE2j_cuts" in event_dictionary) and ("dijet" in branch.lower()) and (branch != "FS_dijet_pair_calc")):
-    #if (("pass_GTE2j_cuts" in event_dictionary) and ("dijet" in branch.lower()) and (branch not in protected_branches)):
-      print("very special GTE2j handling underway") # DEBUG
-      print(branch)
-      cut_len    = len(event_dictionary["pass_GTE2j_cuts"])
-      branch_len = len(event_dictionary[branch])
-      print(f" pass_GTE2j_cuts len : {cut_len}")
-      print(f" branch len          : {branch_len}")
-      if ( cut_len == branch_len):
-        pass
-      else:
-        event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary["pass_GTE2j_cuts"])
-      #if (branch == "CleanJetGT30_pt_3" or branch == "CleanJetGT30_eta_3"):
-      #  event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary["pass_3j_cuts"])
-
-    elif ((branch != cut_branch) and (branch not in protected_branches)):
+    if ((branch != cut_branch) and (branch not in protected_branches)):
       if DEBUG: print(f"{len(event_dictionary[branch])} \t\t = pre cut len({branch})")
       event_dictionary[branch] = np.take(event_dictionary[branch], event_dictionary[cut_branch])
       if DEBUG: print(f"{len(event_dictionary[branch])} \t\t = post cut len({branch})")
