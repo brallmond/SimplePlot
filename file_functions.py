@@ -117,11 +117,16 @@ def append_to_combined_processes(process, cut_events, vars_to_plot, combined_pro
   
   if ("HTT_H_pt_corr" not in vars_to_plot): vars_to_plot.append("HTT_H_pt_corr") 
 
+  keep_extra_signal_branches = [
+    "Gen_H_pT", "Gen_nCleanJet", "Gen_HTT_FS",
+    "Gen_pT_l1", "Gen_pT_l2", "Gen_pT_j1", "Gen_pT_j2", "Gen_mjj",
+    "Gen_eta_l1", "Gen_eta_l2", "Gen_mT", "Gen_DZeta"
+  ]
   for var in vars_to_plot:
     if ("Data" in process) and (("flav" in var) or ("Generator" in var)): continue
     combined_processes[process]["PlotEvents"][var] = cut_events[var]
     if ("_TauTau" in process) and ("Fakes" not in process): # keep some gen vars just for signal
-      for extra_var in ["Gen_H_pT", "Gen_pT_j1", "Gen_pT_l1", "Gen_nCleanJet"]:
+      for extra_var in keep_extra_signal_branches:
         combined_processes[process]["PlotEvents"][extra_var] = cut_events[extra_var]
 
   for cut in ["pass_cuts", "event_flavor",

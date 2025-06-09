@@ -28,6 +28,7 @@ def apply_single_cut(input_dict, cut):
   output_dict = {}
   vars_to_cut_on = []
   for process in input_dict:
+    #print(f"process in apply_single_cut: {process}")
     output_dict[process] = {}
 
     # Get Variables to be cutted on
@@ -54,7 +55,7 @@ def apply_single_cut(input_dict, cut):
     for i in range(input_dict[process]["Cuts"]["pass_cuts"].size):
       for var in vars_to_cut_on:
         exec(f'{var} = {input_dict[process]["PlotEvents"][var][i]}')
-      if not eval(cut): continue
+      if not eval(cut): continue # this will always throw an error (?) - Braden
       for key in input_dict[process]:
         if isinstance(input_dict[process][key], dict):
           for branch in input_dict[process][key]:
@@ -84,19 +85,35 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   tauPts = [lowTauPt, midTauPt, highTauPt]
   namesTauPts = ["lowTauPt", "midTauPt", "highTauPt"]
 
-  # should it be 30 for ditau because of ditau+jet?
-  fiducialSelectionDictionary = {
-    "ditau" : "((Gen_HTT_FS==-225) and (Gen_pT_l1 >= 35) and (abs(Gen_eta_l1) <= 2.1) and"+\
-              "(Gen_pT_l2 >= 35) and (abs(Gen_eta_l2) <= 2.1) and (Gen_nCleanJet))",
-    "mutau" : "((Gen_HTT_FS==-195) and (Gen_pT_l1 >= XX) and (abs(Gen_eta_l1) <= XX) and"+\
-              "(Gen_pT_l2 >= XX) and (abs(Gen_eta_l2) <= XX) and (Gen_mT <= 65))",
-    "etau"  : "((Gen_HTT_FS==-165) and (Gen_pT_l1 >= XX) and (abs(Gen_eta_l1) <= XX) and"+\
-              "(Gen_pT_l2 >= XX) and (abs(Gen_eta_l2) <= XX) and (Gen_mT <= 65))",
-    "emu"   : "((Gen_HTT_FS==-143) and (Gen_pT_l1 >= XX) and (abs(Gen_eta_l1) <= XX) and"+\
-              "(Gen_pT_l2 >= XX) and (abs(Gen_eta_l2) <= XX) and (Gen_DZeta >= -40))",
-  }
-  fiducialSelection = fiducialSelectionDictionary[final_state_mode]
 
+  trig_hike = 0
+  ditau_gen          = f"((Gen_pT_l1 >= 35+{trig_hike}) and (Gen_pT_l2 >= 35+{trig_hike}))"
+  ditau_plus_jet_gen = f"((Gen_pT_l1 >= 30+{trig_hike}) and (Gen_pT_l2 >= 30+{trig_hike}) and "\
+                        "(Gen_nCleanJet>=1) and (Gen_pT_j1 > 60))"
+  ditau_VBF_gen      = f"((Gen_pT_l1 >= 45+{trig_hike}) and (Gen_pT_l2 >= 25+{trig_hike}) and "\
+                        "(Gen_nCleanJet>=2) and (Gen_pT_j1 > 40) and (Gen_pT_j2 > 40) and (Gen_mjj > 500))"
+
+  # in our analysis "l1" is always the first lepton in the final state name, e.g., "mutau" -> l1 is muon.
+  # well, they should. they are actually unsorted here, so l1 might be tau or muon, whichever has higher pT...
+
+  fiducialSelectionDictionary = {
+    "ditau" : "((Gen_HTT_FS==-15*15) and (abs(Gen_eta_l1) <= 2.1) and (abs(Gen_eta_l2) <= 2.1) and "+\
+              "(" + ditau_gen + " or " + ditau_plus_jet_gen + " or " + ditau_VBF_gen + "))",
+
+    "mutau" : "((Gen_HTT_FS==-13*15) and (Gen_pT_l1 >= 20) and (abs(Gen_eta_l1) <= 2.4) and "+\
+              "(Gen_pT_l2 >= 25) and (abs(Gen_eta_l2) <= 2.1) and (Gen_mT <= 65))",
+              #"(Gen_pT_l2 >= 25) and (abs(Gen_eta_l2) <= 2.1) and (Gen_mT <= 100))",
+
+    "etau"  : "((Gen_HTT_FS==-11*15) and (Gen_pT_l1 >= XX) and (abs(Gen_eta_l1) <= XX) and "+\
+              "(Gen_pT_l2 >= XX) and (abs(Gen_eta_l2) <= XX) and (Gen_mT <= 65))",
+
+    "emu"   : "((Gen_HTT_FS==-11*13) and (Gen_pT_l1 >= XX) and (abs(Gen_eta_l1) <= XX) and "+\
+              "(Gen_pT_l2 >= XX) and (abs(Gen_eta_l2) <= XX) and (Gen_DZeta >= -40))",
+
+  }
+
+  fiducialSelection = fiducialSelectionDictionary[final_state_mode]
+  nonFiducialSelection = f"(not {fiducialSelection})"
   # nJet
   zeroJet, oneJet, twoJet, threeJet = "nCleanJetGT30==0", "nCleanJetGT30==1", "nCleanJetGT30==2", "nCleanJetGT30==3"
   fourOrMoreJet = "nCleanJetGT30>=4"
@@ -110,6 +127,7 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   #zeroGenJet, oneGenJet, twoGenJet, threeGenJet = "Gen_nCleanJet==0", "Gen_nCleanJet==1", "Gen_nCleanJet==2", "Gen_nCleanJet==3"
   #fourOrMoreJet = "nTightCleanJet>=4"
   nGenJets = [zeroJet, oneJet, twoJet, threeJet, fourOrMoreJet]
+  nGenJets = [fiducialSelection + " and " + nGenJet for nGenJet in nGenJets]
   namesGenJets = ["nGenJet_0j", "nGenJet_1j", "nGenJet_2j", "nGenJet_3j", "nGenJet_GTE4j"]
 
   # uncorrected HpT
@@ -129,9 +147,9 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   GenHpT_0_45, GenHpT_45_80      = "(Gen_H_pT > 0) and (Gen_H_pT <= 45)", "and (Gen_H_pT > 45) and (Gen_H_pT <= 80)"
   GenHpT_80_120, GenHpT_120_200  = "(Gen_H_pT > 80) and (Gen_H_pT <= 120)", "and (Gen_H_pT > 120) and (Gen_H_pT <= 200)"
   GenHpT_200_350, GenHpT_350_450 = "(Gen_H_pT > 200) and (Gen_H_pT <= 350)", "and (Gen_H_pT > 350) and (Gen_H_pT <= 450)"
-  GenHpT_450_inf                  = "(Gen_H_pT > 450)"
+  GenHpT_450_inf                 = "(Gen_H_pT > 450)"
   GenHpTs      = [GenHpT_0_45, GenHpT_45_80, GenHpT_80_120, GenHpT_120_200, GenHpT_200_350, GenHpT_350_450, GenHpT_450_inf]
-  #GenHpTs = [fiducialSelection + " and " + GenHpT for GenHpT in GenHpTs]
+  GenHpTs      = [fiducialSelection + " and " + GenHpT for GenHpT in GenHpTs]
   namesGenHpTs = ["GenHpT_0_45", "GenHpT_45_80", "GenHpT_80_120", "GenHpT_120_200", "GenHpT_200_350", "GenHpT_350_450", "GenHpT_450_inf"]
 
   # leading jet pT
@@ -159,6 +177,7 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   GenJetPt_200_350 = "(Gen_nCleanJet >= 1) and (Gen_pT_j1 > 200) and (Gen_pT_j1 <= 350)"
   GenJetPt_350_inf = "(Gen_nCleanJet >= 1) and (Gen_pT_j1 >= 350)"
   GenJetPts        = [GenJetPt_0_30, GenJetPt_30_60, GenJetPt_60_120, GenJetPt_120_200, GenJetPt_200_350, GenJetPt_350_inf] 
+  GenJetPts        = [fiducialSelection + " and " + GenJetPt for GenJetPt in GenJetPts]
   namesGenJetPts   = ["Genj1pt_0_30", "Genj1pt_30_60", "Genj1pt_60_120", "Genj1pt_120_200", "Genj1pt_200_350", "Genj1pt_350_inf"]
 
   categories = {"incl"      : "1",
@@ -191,6 +210,7 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
   elif era=="2023 D":   era = "2023_postBPix"
   dicts = {}
   dictsFakes = {}
+  if (testing): categories = dict(list(categories.items())[3:6]) # get a subset to speed things up
   for category,cut in categories.items():
     dicts[category] = apply_single_cut(combined_process_dictionary, cut)
     dictsFakes[category] = apply_single_cut(combined_process_dictionaryFakes, cut)
@@ -211,25 +231,29 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
     xbins = make_bins(var, final_state_mode)
     output_file = uproot.recreate(f"{plot_dir}/{rootfilename.replace('VARIABLE', disciminating_variables[var])}")
     for category in categories:
-      #print(category) #DEBUG
       data_dictionary, background_dictionary, signal_dictionary = sort_combined_processes(dicts[category])
+      # apply fid selection to signal only, on top of original cuts
+      signal_dictionary_fid = apply_single_cut(signal_dictionary, fiducialSelection)
 
-      #data_dictionaryFakes, background_dictionaryFakes, signal_dictionaryFakes = sort_combined_processes(combined_process_dictionaryFakes, fakes=True)
       data_dictionaryFakes, background_dictionaryFakes, signal_dictionaryFakes = sort_combined_processes(dictsFakes[category], fakes=True)
 
-      unrolled_bins_signal = make_masks_per_bin(signal_dictionary, unrolled_bins_var, unrolled_bins)
+      unrolled_bins_signal = make_masks_per_bin(signal_dictionary_fid, unrolled_bins_var, unrolled_bins)
 
       h_data = get_binned_data(final_state_mode, testing, data_dictionary, var, xbins, lumi)
       h_backgrounds = get_binned_backgrounds(final_state_mode, testing, background_dictionary, var, xbins, lumi, userMC=MC_families)
+
+
       if (unrolling):
         h_signals = {}
         for ith_bin in range(len(unrolled_bins)):
           # Note, signal_dictionary already has event selections per category applied
           # meaning that for j1pT the 0j or GTE1j requirements should already be in place
-          h_signals_unrolled = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi,
+          # IT IS NOT! need special handling for those two bins. Actually, we need to consider if
+          # that is how we will do this analysis...
+          h_signals_unrolled = get_binned_signals(final_state_mode, testing, signal_dictionary_fid, var, xbins, lumi,
                                                   mask=unrolled_bins_signal, mask_n=ith_bin)
           # combine non ggH signals into xH
-          first_key = list(signal_dictionary)[0]
+          first_key = list(signal_dictionary_fid)[0]
           h_signals_unrolled["xH_TauTau"] = {}
           h_signals_unrolled["xH_TauTau"]["BinnedEvents"] = np.zeros(len(h_signals_unrolled[first_key]["BinnedEvents"]))
           h_signals_unrolled["xH_TauTau"]["BinnedErrors"] = np.zeros(len(h_signals_unrolled[first_key]["BinnedErrors"]))
@@ -243,7 +267,7 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
               h_signals_unrolled[process]["BinnedEvents"] = np.zeros(len(h_signals_unrolled["ggH_TauTau"]["BinnedEvents"]))
               h_signals_unrolled[process]["BinnedErrors"] = np.zeros(len(h_signals_unrolled["ggH_TauTau"]["BinnedErrors"]))
           # combine non-ggH signal processes
-          for signal in signal_dictionary:
+          for signal in signal_dictionary_fid:
             if ("ggH" not in signal):
               h_signals_unrolled["xH_TauTau"]["BinnedEvents"] += h_signals_unrolled[signal]["BinnedEvents"]
               h_signals_unrolled["xH_TauTau"]["BinnedErrors"] += h_signals_unrolled[signal]["BinnedErrors"]
@@ -253,8 +277,19 @@ def save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_p
             updated_name = process + "_" + unrolled_bins_names[ith_bin]
             h_signals[updated_name] = h_signals_unrolled[process]
       else:
-        h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary, var, xbins, lumi)
+        h_signals = get_binned_signals(final_state_mode, testing, signal_dictionary_fid, var, xbins, lumi)
 
+      # after normal signal processing, add NonFiducialSignal branch
+      signal_dictionary_nonFid = apply_single_cut(signal_dictionary, nonFiducialSelection)
+      h_signals_nonFid = get_binned_signals(final_state_mode, testing, signal_dictionary_nonFid, var, xbins, lumi)
+      h_signals["NonFiducialSignal"] = {}
+      first_key = list(h_signals_nonFid)[0]
+      h_signals["NonFiducialSignal"]["BinnedEvents"] = np.zeros(len(h_signals_nonFid[first_key]["BinnedEvents"]))
+      h_signals["NonFiducialSignal"]["BinnedErrors"] = np.zeros(len(h_signals_nonFid[first_key]["BinnedErrors"]))
+      for process in h_signals_nonFid.keys():
+        h_signals["NonFiducialSignal"]["BinnedEvents"] += h_signals_nonFid[process]["BinnedEvents"]
+        h_signals["NonFiducialSignal"]["BinnedErrors"] += h_signals_nonFid[process]["BinnedErrors"]
+ 
       h_dataFakes = get_binned_data(final_state_mode, testing, data_dictionaryFakes, var, xbins, lumi)
       h_backgroundsFakes = get_binned_backgrounds(final_state_mode, testing, background_dictionaryFakes, var, xbins, lumi)
       h_summed_backgrounds = get_summed_backgrounds(h_backgroundsFakes)
