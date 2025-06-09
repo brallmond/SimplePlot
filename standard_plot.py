@@ -496,8 +496,15 @@ if __name__ == "__main__":
   if hide_plots: pass
   else: plt.show()
 
-  print("Making fitter shapes!")
-  save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi)
-  _, f_ax = plt.subplots()
-  f_ax.text(x=0.5, y=0.5, s="Finished!", fontsize=20, ha="center", va="center")
-  plt.show()
+  make_shapes = True
+  if (make_shapes):
+    print("Making fitter shapes for HpT!")
+    save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi, "HpT")
+    print("Making fitter shapes for nJet!")
+    save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi, "nJet")
+    print("Making fitter shapes for j1pT!")
+    save_fitter_shapes(plot_dir, era, final_state_mode, vars_to_plot, combined_process_dictionary, combined_process_dictionaryFakes, fakesLabel, testing, lumi, "j1pT")
+    print("finished!")
+    #_, f_ax = plt.subplots()
+    #f_ax.text(x=0.5, y=0.5, s="Finished!", fontsize=20, ha="center", va="center")
+    #plt.show()
