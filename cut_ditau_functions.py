@@ -153,7 +153,8 @@ def make_ditau_cut(era, event_dictionary, DeepTau_version, skip_DeepTau=True, ta
     deta_t1t2 = abs(t1_eta - t2_eta)
     dpt_t1t2  = t1_pt - t2_pt
 
-    if (passKinems and t1passDT and t2passDT and subtau_req):
+    if True:
+    #if (passKinems and t1passDT and t2passDT and subtau_req):
       pass_cuts.append(i)
       FS_t1_pt.append(t1_pt)
       FS_t1_eta.append(t1_eta)
