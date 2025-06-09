@@ -47,7 +47,7 @@ class setup_handler:
 
     # file info
     infile_directory = self.set_infile_directory(era, final_state_mode, temp_version)
-    plot_dir_name = "FS_plots/" + args.plot_dir + "_" + final_state_mode + "_" + tau_pt_cut + "TauPtCategory_" + jet_mode
+    plot_dir_name = "FS_plots/" + args.plot_dir + "_" + era + "_" + final_state_mode + "_" + tau_pt_cut + "TauPtCategory_" + jet_mode
     plot_dir_name = make_directory(plot_dir_name, testing)
     logfile       = open('outputfile.log', 'w')
     use_NLO       = args.use_NLO     # True by default, use LO DY if False
@@ -118,6 +118,9 @@ class setup_handler:
       elif ("C" in era) and ("D" not in era): active_dir += "/HLepV3p1_2023preBPIX/"
       elif ("D" in era) and ("C" not in era): active_dir += "/HLepV3p1_2023postBPIX/"
       else: print("Files missing for FS")
+    elif (temp_version == "V7"):
+      if   ("CD" in era):                     active_dir += "/HLepV3p2_2022preEE/"
+      else: print("Files missing for that era or FS")
     else:
       print("not set up for that")
       print(era, temp_version, final_state_mode)
